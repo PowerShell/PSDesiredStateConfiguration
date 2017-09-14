@@ -33,6 +33,8 @@ environment:
   matrix:
     - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017 # This is the standard AppVeyor image
 
+build: off
+
 install:
   - ps: |
       git config --global url.git@github.com:.insteadOf https://github.com/  
