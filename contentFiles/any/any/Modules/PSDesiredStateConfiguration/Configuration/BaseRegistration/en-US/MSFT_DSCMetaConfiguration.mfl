@@ -1,0 +1,34 @@
+#pragma namespace("\\\\.\\root\\default")
+instance of __namespace{ name="MS_409";};
+#pragma namespace("\\\\.\\root\\default\\MS_409")
+
+[Description("Local Configuration Manager settings.") : Amended,AMENDMENT, LOCALE("MS_409")] 
+class MSFT_DSCMetaConfiguration
+{
+  [Description("The time interval between consecutive runs for reapplying the configuration to get to the desired state.") : Amended] uint32 ConfigurationModeFrequencyMins;
+  [Description("Reboot node if needed.") : Amended] boolean RebootNodeIfNeeded;
+  [Description("The configuration apply mode for the server.") : Amended] string ConfigurationMode;
+  [Description("The configuration action after reboot for the server.") : Amended] string ActionAfterReboot;
+  [Description("Default credential to access resources.") : Amended] string Credential;
+  [Description("The refresh mode for the server. Valid values are Pull, Push and Disabled.") : Amended] string RefreshMode;
+  [Description("The certificate ID used to locate the certificate.") : Amended] string CertificateID;
+  [Description("The configuration ID used to get the configuration from the pull server.") : Amended] string ConfigurationID;
+  [Description("Name of the configuration and module Download Manager.") : Amended] string DownloadManagerName;
+  [Description("Custom data that is specific to Download Manager.") : Amended] string DownloadManagerCustomData[];
+  [Description("The time interval between consecutive runs to get the action from the server.") : Amended] uint32 RefreshFrequencyMins;
+  [Description("Overwrite modules when downloading from Pull Server.") : Amended] boolean AllowModuleOverwrite;
+  [Description("The enumeration for DebugMode.") : Amended ToSubclass,Values{"None", "ForceModuleImport", "All", "ResourceScriptBreakAll", "ResourceScriptBreakpoint"} : Amended ToSubclass] string DebugMode[];
+  [Description("Current version of local configuration manager.") : Amended] string LCMVersion;
+  [Description("Compatible versions of current local configuration manager.") : Amended] string LCMCompatibleVersions[];
+  [Description("Current state of local configuration manager.") : Amended] string LCMState;
+  [Description("State detail of local configuration manager.") : Amended] string LCMStateDetail;
+  [Description("Array of configuration download manager objects that contain location information to download configurations") : Amended] string ConfigurationDownloadManagers[];
+  [Description("Array of resource module managers pointing to a location to download missing DSCResources") : Amended] string ResourceModuleManagers[];
+  [Description("Array of report managers pointing to a location that would help generate reports for DSC") : Amended] string ReportManagers[];
+  [Description("Array of partial configurations that are specified to be applied") : Amended] string PartialConfigurations[];  
+  [Description("Number of days to retain configuration status history.") : Amended] uint32 StatusRetentionTimeInDays;
+  [Description("AgentId of the current Dsc Agent.") : Amended ToSubclass] string AgentId;
+  [Description("Current signature validation policy.") : Amended] string SignatureValidationPolicy;
+  [Description ("The signature validation options of the node.") : Amended] string  SignatureValidations[];   
+  [Description ("The maximum module size in MB that can be downloaded.") : Amended] uint32  MaximumDownloadSizeMB; 
+};
