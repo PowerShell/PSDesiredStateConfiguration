@@ -1,0 +1,34 @@
+
+[ClassVersion("1.0.0"),FriendlyName("LocalConfigurationManager")] 
+class MSFT_DSCMetaConfiguration
+{
+  uint32 ConfigurationModeFrequencyMins;
+  boolean RebootNodeIfNeeded;
+  [ValueMap{"ApplyOnly", "ApplyAndMonitor", "ApplyAndAutoCorrect", "MonitorOnly"},Values{"ApplyOnly", "ApplyAndMonitor", "ApplyAndAutoCorrect", "MonitorOnly"}] string ConfigurationMode;
+  [ValueMap {"ContinueConfiguration","StopConfiguration"}, Values {"ContinueConfiguration","StopConfiguration"}]
+  string ActionAfterReboot;
+  [EmbeddedInstance("MSFT_Credential")] string Credential;
+  [ValueMap{"Push", "Pull", "Disabled"},Values{"Push", "Pull", "Disabled"}] string RefreshMode;
+  string CertificateID;
+  string ConfigurationID;
+  string DownloadManagerName;
+  [EmbeddedInstance("MSFT_KeyValuePair")] string DownloadManagerCustomData[];
+  uint32 RefreshFrequencyMins;
+  boolean AllowModuleOverwrite;
+  [ValueMap {"None","ForceModuleImport", "All", "ResourceScriptBreakAll", "ResourceScriptBreakpoint"}, Values {"None","ForceModuleImport", "All", "ResourceScriptBreakAll", "ResourceScriptBreakpoint"}]
+  string DebugMode[];
+  [Read] string LCMVersion;
+  [Read] string LCMCompatibleVersions[];
+  [Read,ValueMap{"Idle","Busy","PendingReboot","PendingConfiguration"},Values{"Idle","Busy","PendingReboot","PendingConfiguration"}] string LCMState;
+  [Read] string LCMStateDetail;
+  [EmbeddedInstance("OMI_ConfigurationDownloadManager")] string ConfigurationDownloadManagers[];
+  [EmbeddedInstance("OMI_ResourceModuleManager")] string ResourceModuleManagers[];
+  [EmbeddedInstance("OMI_ReportManager")] string ReportManagers[];
+  [EmbeddedInstance("MSFT_PartialConfiguration")] string PartialConfigurations[];
+  uint32 StatusRetentionTimeInDays;
+  [Read] string AgentId;
+  string SignatureValidationPolicy; 
+  [EmbeddedInstance("MSFT_SignatureValidation")] 
+  string  SignatureValidations[];
+  uint32  MaximumDownloadSizeMB;   
+};
