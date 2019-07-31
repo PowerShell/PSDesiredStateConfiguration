@@ -27,7 +27,7 @@ CompanyName = 'Microsoft Corporation'
 Copyright = '(c) Microsoft Corporation. All rights reserved.'
 
 # Description of the functionality provided by this module
-# Description = ''
+Description = 'PowerShell Desired State Configuratio'
 
 # Minimum version of the Windows PowerShell engine required by this module
 PowerShellVersion = '6.0'
