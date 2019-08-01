@@ -10,6 +10,12 @@ Describe "Test PSDesiredStateConfiguration" -tags CI {
     }
 
     It "The module should have 2 commands" {
+        if($commands.Count -ne 2)
+        {
+            $modulePath = (Get-Module PSDesiredStateConfiguration).Path
+            Write-Verbose -Verbose -Message "PSDesiredStateConfiguration Path: $modulePath"
+            $commands | Out-String | Write-Verbose -Verbose
+        }
         $commands.Count | Should -Be 2
     }
     It "The module should have the Configuration Command" {
