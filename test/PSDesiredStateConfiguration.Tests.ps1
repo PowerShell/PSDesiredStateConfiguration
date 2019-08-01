@@ -9,14 +9,14 @@ Describe "Test PSDesiredStateConfiguration" -tags CI {
     AfterAll {
     }
 
-    It "The module should have 2 commands" {
-        if($commands.Count -ne 2)
+    It "The module should have 3 commands" {
+        if($commands.Count -ne 3)
         {
             $modulePath = (Get-Module PSDesiredStateConfiguration).Path
             Write-Verbose -Verbose -Message "PSDesiredStateConfiguration Path: $modulePath"
             $commands | Out-String | Write-Verbose -Verbose
         }
-        $commands.Count | Should -Be 2
+        $commands.Count | Should -Be 3
     }
     It "The module should have the Configuration Command" {
         $commands | Where-Object {$_.Name -eq 'Configuration'} | Should -Not -BeNullOrEmpty

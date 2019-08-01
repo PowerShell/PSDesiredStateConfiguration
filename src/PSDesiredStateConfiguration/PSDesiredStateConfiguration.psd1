@@ -9,7 +9,7 @@
 RootModule = 'PSDesiredStateConfiguration.psm1'
 
 # Version number of this module.
-moduleVersion = '2.0'
+moduleVersion = '2.0.0'
 
 # Supported PSEditions
 CompatiblePSEditions = @('Core')
@@ -27,7 +27,7 @@ CompanyName = 'Microsoft Corporation'
 Copyright = '(c) Microsoft Corporation. All rights reserved.'
 
 # Description of the functionality provided by this module
-Description = 'PowerShell Desired State Configuratio'
+Description = 'PowerShell Desired State Configuration'
 
 # Minimum version of the Windows PowerShell engine required by this module
 PowerShellVersion = '6.0'
@@ -66,8 +66,11 @@ PowerShellVersion = '6.0'
 # NestedModules = @()
 
 # Functions to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no functions to export.
-FunctionsToExport = @('Configuration',
-                      'Get-DscResource')
+FunctionsToExport = @(
+        'Configuration'
+        'New-DscChecksum'
+        'Get-DscResource'
+    )
 
 
 # Cmdlets to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no cmdlets to export.
