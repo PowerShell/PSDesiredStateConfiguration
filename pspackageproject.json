@@ -1,0 +1,8 @@
+{
+  "HelpPath": "help",
+  "ModuleName": "PSDesiredStateConfiguration",
+  "BuildOutputPath": "out",
+  "SourcePath": "src/PSDesiredStateConfiguration",
+  "TestPath": "test",
+  "Culture": "en-US"
+}
