@@ -41,12 +41,13 @@ stages:
       displayName: PowerShell Core on Windows
       imageName: windows-2019
 
-  - template: test.yml
-    parameters:
-      jobName: TestPkgWinPS
-      displayName: Windows PowerShell on Windows
-      imageName: windows-2019
-      powershellExecutable: powershell
+  # Not supported on Windows PowerShell per PSD1
+  # - template: test.yml
+  #   parameters:
+  #     jobName: TestPkgWinPS
+  #     displayName: Windows PowerShell on Windows
+  #     imageName: windows-2019
+  #     powershellExecutable: powershell
 
   - template: test.yml
     parameters:
@@ -66,4 +67,4 @@ stages:
   condition: and( eq(variables['Build.Reason'], 'Manual'), eq(variables['Publish'], 'Yes'))
   jobs:
   - template: release.yml
-  
+
