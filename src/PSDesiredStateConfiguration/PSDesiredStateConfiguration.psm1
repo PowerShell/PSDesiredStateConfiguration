@@ -364,7 +364,7 @@ function ConvertTo-MOFInstance
                 {
                     $varValue = $var.Value
                     # Skip null values but preserve empty arrays and strings for type propigation
-                    if ($varValue -ne $null)
+                    if ($null -ne $varValue)
                     {
                         # Pass strings quoted; amn explicit type check is needed because -is recognizes too many things as strings
                         if ($varValue -is [string])
@@ -438,7 +438,7 @@ function ConvertTo-MOFInstance
         {
             '"' + ($Value -replace '\\', '\\' -replace "`r?`n", '\n'  -replace '"', '\"') + '"'
         }
-        elseif ($Value -eq $null)
+        elseif ($null -eq $Value)
         {
             'NULL'
         }
@@ -461,7 +461,7 @@ function ConvertTo-MOFInstance
     # Generate the MOF instance alias to use for the current node
     if ( (Get-PSCurrentConfigurationNode) )
     {
-        if($Script:NodeTypeRefCount[ (Get-PSCurrentConfigurationNode) ] -eq $null)
+        if($null -eq $Script:NodeTypeRefCount[ (Get-PSCurrentConfigurationNode) ])
         {
             $Script:NodeTypeRefCount[ (Get-PSCurrentConfigurationNode) ] =
             New-Object -TypeName 'System.Collections.Generic.Dictionary[string, System.Collections.Generic.Dictionary[string,int]]' -ArgumentList ([System.StringComparer]::OrdinalIgnoreCase)
@@ -564,7 +564,7 @@ function ConvertTo-MOFInstance
                 else
                 {
                     #embeded instances cannot be null
-                    if($p.Value -eq $null -and $PropertyTypes[$p.Name].TypeConstraint -eq 'Instance')
+                    if($null -eq $p.Value -and $PropertyTypes[$p.Name].TypeConstraint -eq 'Instance')
                     {
                         $errorMessage = $LocalizedData.ConvertValueToPropertyFailed -f @('$null', $Type, $p.Name, $ResourceName)
                         $errorMessage += Get-PositionInfo $Properties['SourceInfo']
@@ -619,7 +619,7 @@ function ConvertTo-MOFInstance
                             }
                             if($PSDscDomainUser -and (-not $PSDscAllowDomainUser))
                             {
-                                if($Script:NodeUsingDomainCred -eq $null)
+                                if($null -eq $Script:NodeUsingDomainCred)
                                 {
                                     $Script:NodeUsingDomainCred = New-Object -TypeName 'System.Collections.Generic.Dictionary[string,bool]' -ArgumentList ([System.StringComparer]::OrdinalIgnoreCase)
                                 }
@@ -732,7 +732,7 @@ function ConvertTo-MOFInstance
 
     if ( Get-PSCurrentConfigurationNode )
     {
-        if($Script:NodeInstanceAliases[ (Get-PSCurrentConfigurationNode) ] -eq $null)
+        if($null -eq $Script:NodeInstanceAliases[ (Get-PSCurrentConfigurationNode) ])
         {
             $Script:NodeInstanceAliases[ (Get-PSCurrentConfigurationNode) ] = New-Object -TypeName 'System.Collections.Generic.Dictionary[string,string]' -ArgumentList ([System.StringComparer]::OrdinalIgnoreCase)
             $Script:NodeResourceIdAliases[ (Get-PSCurrentConfigurationNode) ] = New-Object -TypeName 'System.Collections.Generic.Dictionary[string,string]' -ArgumentList ([System.StringComparer]::OrdinalIgnoreCase)
@@ -966,7 +966,7 @@ function Node
                 )
 
                 # Initialize dictionary to detect duplicate resources
-                if ($Script:DuplicateResources -eq $null)
+                if ($null -eq $Script:DuplicateResources)
                 {
                     $Script:DuplicateResources = New-Object -TypeName 'System.Collections.Generic.Dictionary[string,System.Collections.Generic.Dictionary[string,System.Collections.Generic.List[System.Collections.Hashtable]]]' -ArgumentList ([System.StringComparer]::OrdinalIgnoreCase)
                 }
@@ -994,7 +994,7 @@ function Node
                 {
                     $nameMessage = $LocalizedData.DomainCredentialNotAllowed -f @($Node, $Node)
                     $UserWarningPreference = $WarningPreference
-                    if($ArgsToBody['WarningAction'] -ne $null)
+                    if($null -ne $ArgsToBody['WarningAction'])
                     {
                         $UserWarningPreference = $ArgsToBody['WarningAction']
                     }
@@ -1076,7 +1076,7 @@ function Get-ComplexResourceQualifier
 
    # walk the call stack to get at all of the enclosing configuration resource IDs
     $stackedConfigs = @(Get-PSCallStack |
-        where { ($_.InvocationInfo.MyCommand -ne $null) -and ($_.InvocationInfo.MyCommand.CommandType -eq 'Configuration') })
+        where { ($null -ne $_.InvocationInfo.MyCommand) -and ($_.InvocationInfo.MyCommand.CommandType -eq 'Configuration') })
 
     $complexResourceQualifier = $null
     # keep all but the top-most
@@ -1180,7 +1180,7 @@ function Set-NodeResources
         $requiredResourceList
     )
 
-    if ($Script:NodeResources -eq $null)
+    if ($null -eq $Script:NodeResources)
     {
         $Script:NodeResources = New-Object -TypeName 'System.Collections.Generic.Dictionary[string,[string[]]]' -ArgumentList ([System.StringComparer]::OrdinalIgnoreCase)
     }
@@ -1223,7 +1223,7 @@ function Set-NodeManager
         $referencedManagers
     )
 
-    if ($Script:NodeManager -eq $null)
+    if ($null -eq $Script:NodeManager)
     {
         $Script:NodeManager = New-Object -TypeName 'System.Collections.Generic.Dictionary[string,string[]]' -ArgumentList ([System.StringComparer]::OrdinalIgnoreCase)
     }
@@ -1269,7 +1269,7 @@ function Set-NodeResourceSource
         $referencedResourceSources
     )
 
-    if ($Script:NodeResourceSource -eq $null)
+    if ($null -eq $Script:NodeResourceSource)
     {
         $Script:NodeResourceSource = New-Object -TypeName 'System.Collections.Generic.Dictionary[string,string[]]' -ArgumentList ([System.StringComparer]::OrdinalIgnoreCase)
     }
@@ -1334,7 +1334,7 @@ function Add-NodeKeys
         $keywordName
     )
 
-    if ($Script:NodeKeys -eq $null)
+    if ($null -eq $Script:NodeKeys)
     {
         $Script:NodeKeys = New-Object -TypeName 'System.Collections.Generic.Dictionary[string,System.Collections.Generic.HashSet[string]]' -ArgumentList ([System.StringComparer]::OrdinalIgnoreCase)
     }
@@ -1393,7 +1393,7 @@ function Test-ConflictingResources
     }
 
     # Initialize $Script:DuplicateResources if not already initialized
-    if ($Script:DuplicateResources -eq $null)
+    if ($null -eq $Script:DuplicateResources)
     {
         $Script:DuplicateResources = New-Object -TypeName 'System.Collections.Generic.Dictionary[string,System.Collections.Generic.Dictionary[string,System.Collections.Generic.List[System.Collections.Hashtable]]]' -ArgumentList ([System.StringComparer]::OrdinalIgnoreCase)
     }
@@ -1920,7 +1920,7 @@ function Configuration
             #
             $script:functionsToDefine = New-Object -TypeName 'System.Collections.Generic.Dictionary[string,ScriptBlock]'([System.StringComparer]::OrdinalIgnoreCase)
 
-            if($ConfigurationData -eq $null)
+            if($null -eq $ConfigurationData)
             {
                 $ConfigurationData = @{
                     AllNodes = @()
@@ -2250,7 +2250,7 @@ function Configuration
             {
                 $message = $LocalizedData.ImportDscResourceWarningForInbuiltResource -f @(Get-PSTopConfigurationName)
                 $ImportDscResourceWarningPreference = $WarningPreference
-                if($ArgsToBody['WarningAction'] -ne $null)
+                if($null -ne $ArgsToBody['WarningAction'])
                 {
                     $ImportDscResourceWarningPreference = $ArgsToBody['WarningAction']
                 }
@@ -2521,7 +2521,7 @@ function ImportCimAndScriptKeywordsFromModule
     if ($foundScriptSchema -and $SchemaFilePath)
     {
         $resourceDirectory = Split-Path $SchemaFilePath
-        if($resourceDirectory -ne $null)
+        if($null -ne $resourceDirectory)
         {
             Import-Module -Force: (Test-ModuleReloadRequired $SchemaFilePath) -Verbose:$false -Name $resourceDirectory -Global -ErrorAction SilentlyContinue
         }
@@ -2627,7 +2627,7 @@ function Write-MetaConfigFile
         }
         else
         {
-            if($localConfigManager -eq $null)
+            if($null -eq $localConfigManager)
             {
                 # save the localConfigManager which need to be fixed up to add additional manager info as embedded resources
                 $localConfigManager = $mofNodeHash[$mofTypeName] -replace 'MSFT_DSCMetaConfigurationV2', 'MSFT_DSCMetaConfiguration'
@@ -2645,7 +2645,7 @@ function Write-MetaConfigFile
         $nodeDocCount++
     }
 
-    if($localConfigManager -eq $null)
+    if($null -eq $localConfigManager)
     {
         # Print verbose message that empty settings definition is added.
         $emptySettingVerboseMessage = $LocalizedData.MetaConfigurationSettingsMissing -f @($mofNode)
@@ -3185,7 +3185,7 @@ function ValidateNodeExclusiveResources
 
                 if($resourceSegs.Length -eq 2)
                 {
-                    if($ModuleBasedExclusiveResourceMap[$resourceSegs[0]] -eq $null)
+                    if($null -eq $ModuleBasedExclusiveResourceMap[$resourceSegs[0]])
                     {
                         $ModuleBasedExclusiveResourceMap[$resourceSegs[0]] = @{
                             Id = $resourceId
@@ -3215,7 +3215,7 @@ function ValidateNodeExclusiveResources
                         # 'Module\Resource' in PartialConfiguration1 conflicts with 'Module\Resource' in PartialConfiguration2
                         # or 'Module\Resource' in PartialConfiguration1 conflicts with 'Resource' in PartialConfiguration2
                         elseif($ModuleBasedExclusiveResourceMap[$resourceSegs[0]]['Resources'] -icontains $resourceSegs[1] `
-                                    -or $NoModuleExclusiveResourceMap[$resourceSegs[1]] -ne $null)
+                                    -or $null -ne $NoModuleExclusiveResourceMap[$resourceSegs[1]])
                         {
                             $errorMessage = $LocalizedData.ConflictInExclusiveResources -f @($ModuleBasedExclusiveResourceMap[$resourceSegs[0]]['Id'], $resourceId)
                             $exception = New-Object -TypeName System.InvalidOperationException -ArgumentList $errorMessage
@@ -3231,7 +3231,7 @@ function ValidateNodeExclusiveResources
                 }
                 else # no module name, normally means binary resource
                 {
-                    if($NoModuleExclusiveResourceMap[$refResource] -eq $null)
+                    if($null -eq $NoModuleExclusiveResourceMap[$refResource])
                     {
                         $resourceFound = $false
                         $ModuleBasedExclusiveResourceMap.GetEnumerator() | % {
@@ -3292,7 +3292,7 @@ function ValidateNoCircleInNodeResources
     {
         foreach ($resourceId in $Script:NodeResources.Keys)
         {
-            if(($Script:NodeResources[$resourceId] -ne $null) -and $Script:NodeResources[$resourceId].Contains($resourceId))
+            if($null -ne ($Script:NodeResources[$resourceId]) -and $Script:NodeResources[$resourceId].Contains($resourceId))
             {
                 $errorMessage = $LocalizedData.DependsOnLoopDetected -f "$resourceId->$resourceId"
                 $exception = New-Object -TypeName System.InvalidOperationException -ArgumentList $errorMessage
@@ -3300,7 +3300,7 @@ function ValidateNoCircleInNodeResources
                 Update-ConfigurationErrorCount
             }
 
-            if($resourceIndex[$resourceId] -eq $null)
+            if($null -eq $resourceIndex[$resourceId])
             {
                 $script:ComponentDepth = 0
                 StrongConnect($resourceId)
@@ -3332,7 +3332,7 @@ function StrongConnect
     {
         Write-Debug -Message "             > Checking for required node $requiredResource"
         #$requiredResource is not visited yet
-        if(($requiredResource -ne $null) -and ($script:resourceIndex[$requiredResource] -eq $null))
+        if($null -ne ($requiredResource) -and ($null -eq $script:resourceIndex[$requiredResource]))
         {
             StrongConnect($requiredResource)
             $script:resourceLowIndex[$resourceId] = [math]::Min($script:resourceLowIndex[$resourceId], $script:resourceLowIndex[$requiredResource])
@@ -3822,7 +3822,7 @@ function Get-DSCResourceModules
 			$addModule = $false
 
             $dscFolders = Get-childitem "$($moduleFolder.FullName)\DscResources","$($moduleFolder.FullName)\*\DscResources" -ErrorAction Ignore
-            if($dscFolders -ne $null)
+            if($null -ne $dscFolders)
             {
                 $addModule = $true
             }
@@ -3832,7 +3832,7 @@ function Get-DSCResourceModules
                 foreach($psd1 in Get-ChildItem -Recurse -Filter "$($moduleFolder.Name).psd1" -Path $moduleFolder.fullname -Depth 2)
                 {
                     $containsDSCResource = select-string -LiteralPath $psd1 -pattern '^(?!#).*\bDscResourcesToExport\b.*'
-                    if($containsDSCResource -ne $null)
+                    if($null -ne $containsDSCResource)
                     {
 					    $addModule = $true
                     }
@@ -3918,7 +3918,7 @@ function Get-DscResource
         else
         {
             $dscResourceModules = Get-DSCResourceModules
-            if($dscResourceModules -ne $null) {
+            if($null -ne $dscResourceModules) {
     			$modules = Get-Module -ListAvailable -Name ($dscResourceModules)
             }
         }
@@ -3947,7 +3947,7 @@ function Get-DscResource
     {
         try
         {
-            if ($Name -ne $null)
+            if ($null -ne $Name)
             {
                 $nameMessage = $LocalizedData.GetDscResourceInputName -f @('Name', [system.string]::Join(', ', $Name))
                 Write-Verbose -Message $nameMessage
@@ -3966,7 +3966,7 @@ function Get-DscResource
 
             # Get resources for CIM cache
             $keywords = [Microsoft.PowerShell.DesiredStateConfiguration.Internal.DscClassCache]::GetCachedKeywords() | Where-Object -FilterScript {
-                (!$_.IsReservedKeyword) -and ($_.ResourceName -ne $null) -and !(IsHiddenResource $_.ResourceName) -and (![bool]$Module -or ($_.ImplementingModule -like $ModuleString))
+                (!$_.IsReservedKeyword) -and ($null -ne $_.ResourceName) -and !(IsHiddenResource $_.ResourceName) -and (![bool]$Module -or ($_.ImplementingModule -like $ModuleString))
             }
 
             $Resources += $keywords |
@@ -4088,7 +4088,7 @@ function GetResourceFromKeyword
         if(-not $schemaFileName.StartsWith("$env:windir\system32\configuration",[stringComparison]::OrdinalIgnoreCase))
         {
             $classesFromSchema = [Microsoft.PowerShell.DesiredStateConfiguration.Internal.DscClassCache]::GetCachedClassByFileName($schemaFileName)
-            if( $classesFromSchema -ne $null)
+            if($null -ne  $classesFromSchema)
             {
                 # check if the resource is proper DSC resource that always derives from OMI_BaseResource.
                 $schemaToProcess = $classesFromSchema | ForEach-Object -Process {
@@ -4097,7 +4097,7 @@ function GetResourceFromKeyword
                         $_
                     }
                 }
-                if( $schemaToProcess -eq $null)
+                if($null -eq  $schemaToProcess)
                 {
                     return
                 }
@@ -4135,7 +4135,7 @@ function GetResourceFromKeyword
         $resource.ImplementedAs = [Microsoft.PowerShell.DesiredStateConfiguration.ImplementedAsType]::Binary
     }
 
-    if ($resource.Module -ne $null)
+    if ($null -ne $resource.Module)
     {
         $resource.CompanyName = $resource.Module.CompanyName
     }
@@ -4198,10 +4198,10 @@ function GetCompositeResource
     $resource.Name = $configInfo.Name
     $resource.ImplementedAs = [Microsoft.PowerShell.DesiredStateConfiguration.ImplementedAsType]::Composite
 
-    if ($configInfo.Module -ne $null)
+    if ($null -ne $configInfo.Module)
     {
         $resource.Module = GetModule $modules $configInfo.Module.Path
-        if($resource.Module -eq $null)
+        if($null -eq $resource.Module)
         {
             $resource.Module = $configInfo.Module
         }
@@ -4254,7 +4254,7 @@ function AddDscResourceProperty
         $Type = [System.Management.Automation.LanguagePrimitives]::ConvertTypeNameToPSTypeName($property.TypeConstraint)
     }
 
-    if ($property.ValueMap -ne $null)
+    if ($null -ne $property.ValueMap)
     {
         $property.ValueMap.Keys |
         Sort-Object |
@@ -4349,7 +4349,7 @@ function GetSyntax
 #
 function CheckResourceFound($names, $Resources)
 {
-    if ($names -eq $null)
+    if ($null -eq $names)
     {
         return
     }
@@ -4412,7 +4412,7 @@ function GetModule
         $schemaFileName
     )
 
-    if($schemaFileName -eq $null)
+    if($null -eq $schemaFileName)
     {
         return $null
     }
@@ -4531,7 +4531,7 @@ function GetPatterns
 
     $patterns = @()
 
-    if ($names -eq $null)
+    if ($null -eq $names)
     {
         return $patterns
     }
@@ -4559,7 +4559,7 @@ function IsPatternMatched
         $Name
     )
 
-    if ($patterns -eq $null)
+    if ($null -eq $patterns)
     {
         return $true
     }
