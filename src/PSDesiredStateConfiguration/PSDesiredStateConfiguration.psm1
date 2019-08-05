@@ -84,6 +84,7 @@ $script:DirectAccessMetaConfigPropertyList = @('AllowModuleOverWrite', 'Certific
 #################################################################
 function Generate-VersionInfo
 {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseApprovedVerbs", Scope="Function", Target="*")]
     param(
         [Parameter(Mandatory)]
         $KeywordData,
@@ -119,6 +120,8 @@ function Generate-VersionInfo
 # indicate whether meta configuration is processed before document instance
 function Set-PSMetaConfigDocInsProcessedBeforeMeta
 {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseShouldProcessForStateChangingFunctions", "", Scope="Function")]
+    param()
     $Script:PSMetaConfigDocInsProcessedBeforeMeta = $true
 }
 
@@ -134,6 +137,8 @@ function Get-PSMetaConfigDocumentInstVersionInfo
 
 function Set-PSMetaConfigVersionInfoV2
 {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseShouldProcessForStateChangingFunctions", "", Scope="Function")]
+    param()
     $script:PSMetaConfigDocumentInstVersionInfo['MinimumCompatibleVersion'] = '2.0.0'
     if($Script:PSMetaConfigDocInsProcessedBeforeMeta) #fixup configuration document instance version info
     {
@@ -826,6 +831,7 @@ function Get-PositionInfo
 #
 function Node
 {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSAvoidUsingPositionalParameters", Scope="Function", Target="*")]
     [OutputType([void])]
     param (
         [Parameter(Mandatory)]
@@ -1055,6 +1061,7 @@ function Node
 #
 function Update-ConfigurationErrorCount
 {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseShouldProcessForStateChangingFunctions", "", Scope="Function")]
     [OutputType([void])]
     param()
 
@@ -1076,7 +1083,7 @@ function Get-ComplexResourceQualifier
 
    # walk the call stack to get at all of the enclosing configuration resource IDs
     $stackedConfigs = @(Get-PSCallStack |
-        where { ($null -ne $_.InvocationInfo.MyCommand) -and ($_.InvocationInfo.MyCommand.CommandType -eq 'Configuration') })
+        Where-Object -FilterScript { ($null -ne $_.InvocationInfo.MyCommand) -and ($_.InvocationInfo.MyCommand.CommandType -eq 'Configuration') })
 
     $complexResourceQualifier = $null
     # keep all but the top-most
@@ -1084,7 +1091,7 @@ function Get-ComplexResourceQualifier
     {
         $stackedConfigs = $stackedConfigs[1..(@($stackedConfigs).Length - 2)]
         # and build the complex resource ID suffix.
-        $complexResourceQualifier = ( $stackedConfigs | foreach { '[' + $_.Command + ']' + $_.InvocationInfo.BoundParameters['InstanceName'] } ) -join '::'
+        $complexResourceQualifier = ( $stackedConfigs | foreach-Object -Process { '[' + $_.Command + ']' + $_.InvocationInfo.BoundParameters['InstanceName'] } ) -join '::'
     }
 
     return $complexResourceQualifier
@@ -1095,6 +1102,7 @@ function Get-ComplexResourceQualifier
 #
 function Set-PSDefaultConfigurationDocument
 {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseShouldProcessForStateChangingFunctions", "", Scope="Function")]
     [OutputType([void])]
     param (
         [Parameter()]
@@ -1130,6 +1138,7 @@ function Get-PSTopConfigurationName
 
 function Set-PSTopConfigurationName
 {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseShouldProcessForStateChangingFunctions", "", Scope="Function")]
     [OutputType([void])]
     param (
         [Parameter()]
@@ -1154,6 +1163,7 @@ function Get-PSCurrentConfigurationNode
 
 function Set-PSCurrentConfigurationNode
 {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseShouldProcessForStateChangingFunctions", "", Scope="Function")]
     [OutputType([void])]
     param (
         [Parameter()]
@@ -1168,6 +1178,7 @@ function Set-PSCurrentConfigurationNode
 
 function Set-NodeResources
 {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseShouldProcessForStateChangingFunctions", "", Scope="Function")]
     [OutputType([void])]
     param (
         [Parameter(Mandatory)]
@@ -1212,6 +1223,7 @@ function Test-NodeResources
 #
 function Set-NodeManager
 {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseShouldProcessForStateChangingFunctions", "", Scope="Function")]
     [OutputType([void])]
     param (
         [Parameter(Mandatory)]
@@ -1258,6 +1270,7 @@ function Test-NodeManager
 #
 function Set-NodeResourceSource
 {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseShouldProcessForStateChangingFunctions", "", Scope="Function")]
     [OutputType([void])]
     param (
         [Parameter(Mandatory)]
@@ -1306,6 +1319,7 @@ function Test-NodeResourceSource
 #
 function Set-NodeExclusiveResources
 {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseShouldProcessForStateChangingFunctions", "", Scope="Function")]
     [OutputType([string[]])]
     param (
         [Parameter(Mandatory)]
@@ -1366,6 +1380,7 @@ function Add-NodeKeys
 ###########################################################
 function Test-ConflictingResources
 {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseShouldProcessForStateChangingFunctions", "", Scope="Function")]
     [OutputType([void])]
     param (
         [string]
@@ -1701,6 +1716,7 @@ Initialize-ConfigurationRuntimeState
 # 5. We will copy values from NodeName="*" to all node if they don't exist
 function ValidateUpdate-ConfigurationData
 {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseApprovedVerbs", Scope="Function", Target="*")]
     param (
         [Parameter()]
         [hashtable]
@@ -1836,6 +1852,10 @@ New-Object -TypeName 'System.Collections.Generic.Dictionary[string,datetime]'
 #
 function Configuration
 {
+    # suppress global:ConfigurationData
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSAvoidGlobalVars", Scope="Function", Target="*")]
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSProvideCommentHelp", Scope="Function", Target="*")]
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSAvoidUsingPositionalParameters", Scope="Function", Target="*")]
     [CmdletBinding(HelpUri = 'http://go.microsoft.com/fwlink/?LinkId=517195')]
     param (
         # there are extra [] around Tuple arguments
@@ -1858,6 +1878,7 @@ function Configuration
 
     function ConvertModuleDefnitionToModuleInfo
     {
+        [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSAvoidUsingPositionalParameters", Scope="Function", Target="*")]
         param(
             [Microsoft.PowerShell.Commands.ModuleSpecification[]]$moduleToImport,
             [Version]$moduleVersion = $null
@@ -1867,7 +1888,7 @@ function Configuration
             return $null
         }
 
-        $moduleToImport | % {
+        $moduleToImport | Forearch-Object -Process {
             $versionToUse = $_.Version
             if( [string]::IsNullOrEmpty($versionToUse))
             {
@@ -2018,7 +2039,6 @@ function Configuration
         else
         {
             Write-Debug -Message "  $Name : NESTED CONFIGURATION STARTED"
-            $oldFunctionsToDefine = New-Object -TypeName 'System.Collections.Generic.Dictionary[string,ScriptBlock]'
         }
 
         #
@@ -2037,7 +2057,7 @@ function Configuration
 
             foreach ($mod in $modulesInfo) {
 
-                $resourcesFound = ImportClassResourcesFromModule -Module $mod -Resources $res -functionsToDefine $functionsToDefine
+                $null = ImportClassResourcesFromModule -Module $mod -Resources $res -functionsToDefine $functionsToDefine
                 $dscResourcesPath = Join-Path -Path $mod.ModuleBase -ChildPath 'DscResources'
                 if(Test-Path $dscResourcesPath)
                 {
@@ -2048,11 +2068,11 @@ function Configuration
                             # We don't support wildcards resolutions for Friendly names.
                             foreach ($resource in Get-ChildItem -Path $dscResourcesPath -Directory -Name -Filter $requiredResource)
                             {
-                                $foundResource = ImportCimAndScriptKeywordsFromModule -Module $mod -Resource $resource -functionsToDefine $functionsToDefine
+                                $null = ImportCimAndScriptKeywordsFromModule -Module $mod -Resource $resource -functionsToDefine $functionsToDefine
                             }
                         } else {
                             # ImportCimAndScriptKeywordsFromModule takes care about resolving $requiredResources names to ClassNames or FriendlyNames.
-                            $foundResource = ImportCimAndScriptKeywordsFromModule -Module $mod -Resource $requiredResource -functionsToDefine $functionsToDefine
+                            $null = ImportCimAndScriptKeywordsFromModule -Module $mod -Resource $requiredResource -functionsToDefine $functionsToDefine
                         }
                     }
                 }
@@ -2069,8 +2089,6 @@ function Configuration
             # defined outside of a node statement
             $Script:NodeResources = $Script:NoNameNodesResources
             $Script:NodeKeys = $Script:NoNameNodeKeys
-            [System.Collections.Generic.Dictionary[string,string[]]] $OldNodeResources =
-            New-Object -TypeName 'System.Collections.Generic.Dictionary[string,[string[]]]' -ArgumentList ([System.StringComparer]::OrdinalIgnoreCase)
             $Script:NodeManager = $Script:NoNameNodeManager
             $Script:NodeExclusiveResources = $Script:NoNameNodeExclusiveResources
             $Script:NodeResourceSource = $Script:NoNameNodeResourceSource
@@ -2140,7 +2158,7 @@ function Configuration
                 $variablesToDefine += New-Object -TypeName PSVariable -ArgumentList('DependsOn', $DependsOn)
             }
 
-            $result = $Body.InvokeWithContext($functionsToDefine, $variablesToDefine)
+            $null = $Body.InvokeWithContext($functionsToDefine, $variablesToDefine)
         }
         catch [System.Management.Automation.MethodInvocationException]
         {
@@ -2305,6 +2323,7 @@ Export-ModuleMember -Function Configuration
 
 function Update-ModuleVersion
 {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseShouldProcessForStateChangingFunctions", "", Scope="Function")]
     [OutputType([void])]
     param(
         [Parameter(Mandatory)]
@@ -2353,6 +2372,7 @@ function Update-ModuleVersion
 
 function Update-DependsOn
 {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseShouldProcessForStateChangingFunctions", "", Scope="Function")]
     [OutputType([void])]
     param(
         [Parameter(Mandatory)]
@@ -2413,6 +2433,7 @@ function Update-DependsOn
 #
 function Update-ConfigurationDocumentRef
 {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseShouldProcessForStateChangingFunctions", "", Scope="Function")]
     [OutputType([void])]
     param(
         [Parameter(Mandatory)]
@@ -2535,6 +2556,9 @@ function ImportCimAndScriptKeywordsFromModule
 #
 function Write-MetaConfigFile
 {
+    # nodeConfigurationDocument incorrectly shows up as unused
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseDeclaredVarsMoreThanAssignments", Target="", Scope="Function")]
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSAvoidUsingPositionalParameters", Scope="Function", Target="*")]
     param(
         [string]
         $ConfigurationName,
@@ -2711,6 +2735,7 @@ function Write-MetaConfigFile
 # fixup localConfigmanager to have embedded instance
 function Update-LocalConfigManager
 {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseShouldProcessForStateChangingFunctions", "", Scope="Function")]
     param(
         [string]
         $localConfigManager,
@@ -3164,6 +3189,9 @@ function ValidateNodeResourceSource
 # It also validate they exist
 function ValidateNodeExclusiveResources
 {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseDeclaredVarsMoreThanAssignments", Target="", Scope="Function")]
+    param()
+
     Write-Debug -Message "          Validating exclusive resources for node: $(Get-PSCurrentConfigurationNode)"
     if ($Script:NodeExclusiveResources)
     {
@@ -3177,7 +3205,7 @@ function ValidateNodeExclusiveResources
             Write-Debug -Message "            Checking node $resourceId"
 
             # Remove duplicate entries from exclusive Resource array
-            $exclusiveResourceList = $Script:NodeExclusiveResources[$resourceId] | select -uniq
+            $exclusiveResourceList = $Script:NodeExclusiveResources[$resourceId] | Select-Object -Unique
 
             foreach($refResource in $exclusiveResourceList)
             {
@@ -3234,7 +3262,7 @@ function ValidateNodeExclusiveResources
                     if($null -eq $NoModuleExclusiveResourceMap[$refResource])
                     {
                         $resourceFound = $false
-                        $ModuleBasedExclusiveResourceMap.GetEnumerator() | % {
+                        $ModuleBasedExclusiveResourceMap.GetEnumerator() | ForEach-Object {
                             if($_.Value.Resources -icontains $refResource) {
                                 $resourceFound = $true
                                 $ConflictingPartialConfigurationId = $_.Value.Id
@@ -3401,9 +3429,6 @@ function Get-EncryptedPassword
         $Value = $null
     )
 
-    $cert = $null
-
-
     if($Node -and $selectedNodesData)
     {
         if($selectedNodesData -is [array])
@@ -3468,7 +3493,7 @@ function Get-EncryptedPassword
     if($CmsMessageRecipient -and $Value -is [string])
     {
         # Encrypt using the public key
-        $encMsg =Protect-CmsMessage -To $CmsMessageRecipient -Content $Value
+        $encMsg = Protect-CmsMessage -To $CmsMessageRecipient -Content $Value
 
         # Reverse bytes for unmanaged decryption
         #[Array]::Reverse($encbytes)
@@ -3564,6 +3589,7 @@ function Get-PublicKeyFromFile
 #-----------------------------------------------------------------------------------------------------
 function New-DscChecksum
 {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSProvideCommentHelp", Scope="Function", Target="*")]
     [CmdletBinding(SupportsShouldProcess = $true, HelpUri = 'http://go.microsoft.com/fwlink/?LinkId=403986')]
     param(
         [Parameter(Mandatory)]
@@ -3860,6 +3886,8 @@ function Get-DSCResourceModules
 #
 function Get-DscResource
 {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSProvideCommentHelp", Scope="Function", Target="*")]
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSAvoidUsingPositionalParameters", Scope="Function", Target="*")]
     [CmdletBinding(HelpUri = 'http://go.microsoft.com/fwlink/?LinkId=403985')]
     [OutputType('Microsoft.PowerShell.DesiredStateConfiguration.DscResourceInfo[]')]
     [OutputType('string[]')]
@@ -4163,6 +4191,7 @@ function GetResourceFromKeyword
 #
 function GetCompositeResource
 {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSAvoidUsingPositionalParameters", Scope="Function", Target="*")]
     [OutputType('Microsoft.PowerShell.DesiredStateConfiguration.DscResourceInfo')]
     param (
         [System.Management.Automation.WildcardPattern[]]
@@ -4443,7 +4472,6 @@ function GetModule
 
         if ($subDirectory -and ($subDirectory.Name -eq 'DscResources') -and $subDirectory.Parent)
         {
-            $moduleDirectory = [System.IO.Directory]::GetParent($subDirectory)
             $results = $modules | Where-Object -FilterScript {
                 $_.ModuleBase -eq $subDirectory.Parent.FullName
             }
