@@ -32,7 +32,7 @@ Describe "Test PSDesiredStateConfiguration" -tags CI {
             $resource =Get-DscResource -Name PsModule
             $resource | Should -Not -BeNullOrEmpty
         }
-        it "should be able to get a resource with module name" {
+        it "should be able to get a resource with module name" -skip:($IsMacOS) {
             $resource =Get-DscResource -Name PsModule -Module PowerShellGet
             $resource | Should -Not -BeNullOrEmpty
         }
