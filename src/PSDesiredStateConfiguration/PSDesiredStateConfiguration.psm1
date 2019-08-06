@@ -110,7 +110,7 @@ function Generate-VersionInfo
     }
     else
     {
-		$script:PSMetaConfigDocumentInstVersionInfo['MinimumCompatibleVersion'] = ($script:PSMetaConfigDocumentInstVersionInfo['MinimumCompatibleVersion'], "1.0.0" | Measure-Object -Maximum).Maximum
+        $script:PSMetaConfigDocumentInstVersionInfo['MinimumCompatibleVersion'] = ($script:PSMetaConfigDocumentInstVersionInfo['MinimumCompatibleVersion'], "1.0.0" | Measure-Object -Maximum).Maximum
     }
 
     $script:PSMetaConfigDocumentInstVersionInfo['CompatibleVersionAdditionalProperties'] = @('MSFT_DSCMetaConfiguration:StatusRetentionTimeInDays')
@@ -3435,8 +3435,8 @@ function Get-EncryptedPassword
         {
             foreach($target in $selectedNodesData)
             {
-		        # Node name should be exactly the same as one defined in AllNodes
-		        # -eq does case in sensitive comparison
+                # Node name should be exactly the same as one defined in AllNodes
+                # -eq does case in sensitive comparison
                 if($target['NodeName'] -and $target['NodeName'] -eq $Node)
                 {
                     $currentNode = $target
@@ -3502,7 +3502,7 @@ function Get-EncryptedPassword
         #$encMsg = $encMsg -replace "`n",''
         #$encMsg = $encMsg -replace '-----END CMS-----',''
 
-	    return $encMsg
+        return $encMsg
     }
     else
     {
@@ -3845,7 +3845,7 @@ function Get-DSCResourceModules
 
         foreach($moduleFolder in Get-ChildItem $folder -Directory)
         {
-			$addModule = $false
+            $addModule = $false
 
             $dscFolders = Get-childitem "$($moduleFolder.FullName)\DscResources","$($moduleFolder.FullName)\*\DscResources" -ErrorAction Ignore
             if($null -ne $dscFolders)
@@ -3860,15 +3860,15 @@ function Get-DSCResourceModules
                     $containsDSCResource = select-string -LiteralPath $psd1 -pattern '^(?!#).*\bDscResourcesToExport\b.*'
                     if($null -ne $containsDSCResource)
                     {
-					    $addModule = $true
+                        $addModule = $true
                     }
                 }
             }
 
-			if($addModule)
-			{
+            if($addModule)
+            {
                 $dscModuleFolderList.Add($moduleFolder.Name)
-			}
+            }
         }
     }
 
@@ -3947,7 +3947,7 @@ function Get-DscResource
         {
             $dscResourceModules = Get-DSCResourceModules
             if($null -ne $dscResourceModules) {
-    			$modules = Get-Module -ListAvailable -Name ($dscResourceModules)
+                $modules = Get-Module -ListAvailable -Name ($dscResourceModules)
             }
         }
 
