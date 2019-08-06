@@ -28,11 +28,15 @@ Describe "Test PSDesiredStateConfiguration" -tags CI {
         }
     }
     Context "Get-DscResource" {
+        # https://github.com/PowerShell/PSDesiredStateConfiguration/issues/11
         it "should be able to get a resource without module name" -Pending {
             $resource =Get-DscResource -Name PsModule
             $resource | Should -Not -BeNullOrEmpty
         }
-        it "should be able to get a resource with module name" -skip:($IsMacOS) {
+
+        # Linux issue: https://github.com/PowerShell/PSDesiredStateConfiguration/issues/12
+        # macOS issue: https://github.com/PowerShell/MMI/issues/33
+        it "should be able to get a resource with module name" -skip:($IsMacOS -or $IsLinux) {
             $resource =Get-DscResource -Name PsModule -Module PowerShellGet
             $resource | Should -Not -BeNullOrEmpty
         }
