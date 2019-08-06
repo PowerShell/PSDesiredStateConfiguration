@@ -21,11 +21,35 @@ jobs:
         sudo apt-get install powershell-preview
         sudo ln -s /opt/microsoft/powershell/7-preview/pwsh /usr/local/bin/pwsh
       }
+      elseif($IsWindows)
+      {
+        Invoke-WebRequest -Uri https://raw.githubusercontent.com/PowerShell/PowerShell/master/tools/install-powershell.ps1 -outfile ./install-powershell.ps1
+        ./install-powershell.ps1 -AddToPath -Preview -Destination C:\powershell-preview
+        $vstsCommandString = "vso[task.setvariable variable=PATH]C:\powershell-preview;$env:PATH"
+        Write-Host "sending " + $vstsCommandString
+        Write-Host "##$vstsCommandString"
+      }
     displayName: Setup PowerShell preview
 
   - ${{ parameters.powershellExecutable }}: |
       $PSVersionTable
+      $vstsCommandString = "vso[task.setvariable variable=PSHOME]$pshome"
+      Write-Host "sending " + $vstsCommandString
+      Write-Host "##$vstsCommandString"
     displayName: Capture PowerShellVersion
+
+  - ${{ parameters.powershellExecutable }}: |
+        dir env:PATH
+    displayName: Capture Path
+
+  - bash: |
+      curl --output ./Microsoft.Management.Infrastructure.dll https://pscoretestdata.blob.core.windows.net/psdesiredstateconfiguration/Microsoft.Management.Infrastructure.dll
+      echo "copying to $PSHOME/Microsoft.Management.Infrastructure.dll"
+      ls -l "$PSHOME/Microsoft.Management.Infrastructure.dll"
+      sudo cp ./Microsoft.Management.Infrastructure.dll "$PSHOME/Microsoft.Management.Infrastructure.dll"
+      ls -l "$PSHOME/Microsoft.Management.Infrastructure.dll"
+    displayName: Patch macOS
+    condition: and( eq('${{ parameters.imageName }}', 'macOS-10.14'), succeeded())
 
   - ${{ parameters.powershellExecutable }}: |
       Get-PSRepository
