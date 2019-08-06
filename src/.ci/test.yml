@@ -14,7 +14,7 @@ jobs:
       if($IsMacOs)
       {
         brew cask install powershell-preview
-        sudo ln -s /usr/local/microsoft/powershell/7-preview/pwsh /usr/local/bin/pwsh
+        sudo ln -s -f /usr/local/microsoft/powershell/7-preview/pwsh /usr/local/bin/pwsh
       }
       elseif($IsLinux)
       {
@@ -24,7 +24,7 @@ jobs:
     displayName: Setup PowerShell preview
 
   - ${{ parameters.powershellExecutable }}: |
-      $PSVesionTable
+      $PSVersionTable
     displayName: Capture PowerShellVersion
 
   - ${{ parameters.powershellExecutable }}: |
