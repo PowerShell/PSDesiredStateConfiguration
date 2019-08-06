@@ -28,6 +28,10 @@ jobs:
     displayName: Capture PowerShellVersion
 
   - ${{ parameters.powershellExecutable }}: |
+      Get-PSRepository
+    displayName: Capture PSRepository
+
+  - ${{ parameters.powershellExecutable }}: |
       Install-Module -Name "platyPS","Pester" -Force
     displayName: Install dependencies
 
