@@ -84,7 +84,7 @@ $script:DirectAccessMetaConfigPropertyList = @('AllowModuleOverWrite', 'Certific
 #################################################################
 function Generate-VersionInfo
 {
-    [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseApprovedVerbs", Scope="Function", Target="*")]
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseApprovedVerbs", "", Scope="Function", Target="*")]
     param(
         [Parameter(Mandatory)]
         $KeywordData,
@@ -831,7 +831,7 @@ function Get-PositionInfo
 #
 function Node
 {
-    [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSAvoidUsingPositionalParameters", Scope="Function", Target="*")]
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSAvoidUsingPositionalParameters", "", Scope="Function", Target="*")]
     [OutputType([void])]
     param (
         [Parameter(Mandatory)]
@@ -1716,7 +1716,7 @@ Initialize-ConfigurationRuntimeState
 # 5. We will copy values from NodeName="*" to all node if they don't exist
 function ValidateUpdate-ConfigurationData
 {
-    [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseApprovedVerbs", Scope="Function", Target="*")]
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseApprovedVerbs", "", Scope="Function", Target="*")]
     param (
         [Parameter()]
         [hashtable]
@@ -1853,9 +1853,9 @@ New-Object -TypeName 'System.Collections.Generic.Dictionary[string,datetime]'
 function Configuration
 {
     # suppress global:ConfigurationData
-    [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSAvoidGlobalVars", Scope="Function", Target="*")]
-    [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSProvideCommentHelp", Scope="Function", Target="*")]
-    [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSAvoidUsingPositionalParameters", Scope="Function", Target="*")]
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSAvoidGlobalVars", "", Scope="Function", Target="*")]
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSProvideCommentHelp", "", Scope="Function", Target="*")]
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSAvoidUsingPositionalParameters", "", Scope="Function", Target="*")]
     [CmdletBinding(HelpUri = 'http://go.microsoft.com/fwlink/?LinkId=517195')]
     param (
         # there are extra [] around Tuple arguments
@@ -1878,7 +1878,7 @@ function Configuration
 
     function ConvertModuleDefnitionToModuleInfo
     {
-        [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSAvoidUsingPositionalParameters", Scope="Function", Target="*")]
+        [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSAvoidUsingPositionalParameters", "", Scope="Function", Target="*")]
         param(
             [Microsoft.PowerShell.Commands.ModuleSpecification[]]$moduleToImport,
             [Version]$moduleVersion = $null
@@ -2557,8 +2557,8 @@ function ImportCimAndScriptKeywordsFromModule
 function Write-MetaConfigFile
 {
     # nodeConfigurationDocument incorrectly shows up as unused
-    [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseDeclaredVarsMoreThanAssignments", Target="", Scope="Function")]
-    [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSAvoidUsingPositionalParameters", Scope="Function", Target="*")]
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseDeclaredVarsMoreThanAssignments", "", Target="", Scope="Function")]
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSAvoidUsingPositionalParameters", "", Scope="Function", Target="*")]
     param(
         [string]
         $ConfigurationName,
@@ -3189,7 +3189,7 @@ function ValidateNodeResourceSource
 # It also validate they exist
 function ValidateNodeExclusiveResources
 {
-    [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseDeclaredVarsMoreThanAssignments", Target="", Scope="Function")]
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseDeclaredVarsMoreThanAssignments", "", Target="", Scope="Function")]
     param()
 
     Write-Debug -Message "          Validating exclusive resources for node: $(Get-PSCurrentConfigurationNode)"
@@ -3589,7 +3589,7 @@ function Get-PublicKeyFromFile
 #-----------------------------------------------------------------------------------------------------
 function New-DscChecksum
 {
-    [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSProvideCommentHelp", Scope="Function", Target="*")]
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSProvideCommentHelp", "", Scope="Function", Target="*")]
     [CmdletBinding(SupportsShouldProcess = $true, HelpUri = 'http://go.microsoft.com/fwlink/?LinkId=403986')]
     param(
         [Parameter(Mandatory)]
@@ -3886,8 +3886,8 @@ function Get-DSCResourceModules
 #
 function Get-DscResource
 {
-    [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSProvideCommentHelp", Scope="Function", Target="*")]
-    [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSAvoidUsingPositionalParameters", Scope="Function", Target="*")]
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSProvideCommentHelp", "", Scope="Function", Target="*")]
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSAvoidUsingPositionalParameters", "", Scope="Function", Target="*")]
     [CmdletBinding(HelpUri = 'http://go.microsoft.com/fwlink/?LinkId=403985')]
     [OutputType('Microsoft.PowerShell.DesiredStateConfiguration.DscResourceInfo[]')]
     [OutputType('string[]')]
@@ -4191,7 +4191,7 @@ function GetResourceFromKeyword
 #
 function GetCompositeResource
 {
-    [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSAvoidUsingPositionalParameters", Scope="Function", Target="*")]
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSAvoidUsingPositionalParameters", "", Scope="Function", Target="*")]
     [OutputType('Microsoft.PowerShell.DesiredStateConfiguration.DscResourceInfo')]
     param (
         [System.Management.Automation.WildcardPattern[]]

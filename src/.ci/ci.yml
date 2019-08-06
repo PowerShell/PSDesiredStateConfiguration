@@ -9,6 +9,7 @@ pr:
   branches:
     include:
     - master
+    - feature-*
 
 stages:
 - stage: Build
