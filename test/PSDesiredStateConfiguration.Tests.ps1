@@ -132,7 +132,7 @@ Describe "Test PSDesiredStateConfiguration" -tags CI {
                 {
                     Invoke-DscResource -Name santoheusnaasonteuhsantoheu -Method Test -Properties @{TestScript = {Write-Host 'test';return $true};GetScript = {return @{}}; SetScript = {return}} -ErrorAction Stop
                 } |
-                    Should -Throw -ErrorId 'InvalidResourceSpecification,Invoke-DscResource' -ExpectedMessage 'Invalid Resource Name ''santoheusnaasonteuhsantoheu'' or module specification.'
+                    Should -Throw -ErrorId 'Microsoft.PowerShell.Commands.WriteErrorException,CheckResourceFound'
             }
 
 
