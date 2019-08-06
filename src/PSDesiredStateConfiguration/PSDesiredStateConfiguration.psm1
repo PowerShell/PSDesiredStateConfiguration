@@ -14,6 +14,7 @@ data LocalizedData
     InvalidConfigPath = (ERROR) Invalid configuration path '{0}' specified.
     InvalidOutpath = (ERROR) Invalid OutPath '{0}' specified.
     InvalidConfigurationName = Invalid Configuration Name '{0}' is specified. Standard names may only contain letters (a-z, A-Z), numbers (0-9), and underscore (_). The name may not be null or empty, and should start with a letter.
+    InvalidResourceSpecification = Invalid Resource Name '{0}' or module specification.
     NoValidConfigFileFound = No valid config files (mof,zip) were found.
     InputFileNotExist=File {0} doesn't exist.
     FileReadError=Error Reading file {0}.
@@ -4604,6 +4605,74 @@ function IsPatternMatched
 }
 
 Export-ModuleMember -Function Get-DscResource, Configuration
+
+function Invoke-DscResource
+{
+    [CmdletBinding(HelpUri = '')]
+    param (
+        [Parameter(ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true, Mandatory)]
+        [ValidateNotNullOrEmpty()]
+        [string[]]
+        $Name,
+        [Parameter(ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true)]
+        [ValidateNotNullOrEmpty()]
+        [Object]
+        $Module,
+        [Parameter(Mandatory)]
+        [ValidateSet('Get','Set','Test')]
+        [string]
+        $Method,
+        [Hashtable]
+        $Properties
+    )
+
+    $getArguments = @{
+        Name = $Name
+    }
+    if($Module)
+    {
+        $getArguments.Add('Module',$Module)
+    }
+
+    Write-Debug -Message "Getting DSC Resource $Name"
+    $resource = @(Get-DscResource @getArguments -ErrorAction stop)
+
+    if($resource.Count -ne 1)
+    {
+        $errorMessage = $LocalizedData.InvalidResourceSpecification -f $name
+        $exception = [System.ArgumentException]::new($errorMessage,'Name')
+        ThrowError -ExceptionName 'System.ArgumentException' -ExceptionMessage $errorMessage -ExceptionObject $exception -ErrorId 'InvalidResourceSpecification,Invoke-DscResource' -ErrorCategory InvalidArgument
+    }
+
+    [Microsoft.PowerShell.DesiredStateConfiguration.DscResourceInfo] $resource = $resource[0]
+    $resourceInfo = $resource |out-string
+    $path = $resource.Path
+    $type = $resource.ResourceType
+    Write-Debug $resourceInfo
+
+    Write-Debug "Importing $path ..."
+    Import-module -Scope Local -Name $path -Force -ErrorAction stop
+
+    $functionName = "$Method-TargetResource"
+
+    Write-Debug "calling $name\$functionName ..."
+    $output = & $type\$functionName @Properties
+    switch($Method)
+    {
+        'Set' {
+            $output | Foreach-Object -Process {
+                Write-Verbose -Message ('output: ' + $_)
+            }
+        }
+        default {
+            return $output
+        }
+    }
+}
+
+Export-ModuleMember -Function @(
+        'Invoke-DscResource'
+    )
 
 ###########################################################
 
