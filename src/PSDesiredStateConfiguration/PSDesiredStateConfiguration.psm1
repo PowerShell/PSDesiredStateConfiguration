@@ -3981,12 +3981,14 @@ function Get-DscResource
                 $nameMessage = $LocalizedData.GetDscResourceInputName -f @('Name', [system.string]::Join(', ', $Name))
                 Write-Verbose -Message $nameMessage
             }
-            if($Module -and !$modules)
+
+            if(!$modules)
             {
                 #Return if no modules were found with the required specification
                 Write-Warning -Message $LocalizedData.NoModulesPresent
                 return
             }
+
             $ignoreResourceParameters = @('InstanceName', 'OutputPath', 'ConfigurationData') + [System.Management.Automation.Cmdlet]::CommonParameters + [System.Management.Automation.Cmdlet]::OptionalCommonParameters
 
             $patterns = GetPatterns $Name
