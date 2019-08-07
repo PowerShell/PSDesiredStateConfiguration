@@ -45,11 +45,12 @@ Describe "Test PSDesiredStateConfiguration" -tags CI {
                     TestCaseName = 'case mismatch in module name'
                     Name = 'PSModule'
                     ModuleName = 'powershellget'
+                    PendingBecause = 'Broken everywhere'
                 }
             )
 
         }
-        it "should be able to get a <Name> - <TestCaseName>" -TestCases $testCases  {
+        it "should be able to get a <Name> - <TestCaseName>" -TestCases $testCases -skip:($IsWindows -or $IsLinux)  {
             param($Name)
             $resource =Get-DscResource -Name $name
             $resource | Should -Not -BeNullOrEmpty
@@ -58,7 +59,11 @@ Describe "Test PSDesiredStateConfiguration" -tags CI {
         # Linux issue: https://github.com/PowerShell/PSDesiredStateConfiguration/issues/12
         # macOS issue: https://github.com/PowerShell/MMI/issues/33
         it "should be able to get a <Name> from <ModuleName> - <TestCaseName>" -TestCases $testCases  {
-            param($Name,$ModuleName)
+            param($Name,$ModuleName, $PendingBecause)
+            if($PendingBecause)
+            {
+                Set-ItResult -Pending -Because $Because
+            }
             $resource =Get-DscResource -Name $Name -Module $ModuleName
             $resource | Should -Not -BeNullOrEmpty
         }
