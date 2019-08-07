@@ -58,7 +58,7 @@ Describe "Test PSDesiredStateConfiguration" -tags CI {
 
         # Linux issue: https://github.com/PowerShell/PSDesiredStateConfiguration/issues/12
         # macOS issue: https://github.com/PowerShell/MMI/issues/33
-        it "should be able to get a <Name> from <ModuleName> - <TestCaseName>" -TestCases $testCases  {
+        it "should be able to get a <Name> from <ModuleName> - <TestCaseName>" -TestCases $testCases -Skip:($IsLinux)  {
             param($Name,$ModuleName, $PendingBecause)
             if($PendingBecause)
             {
