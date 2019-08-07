@@ -11,6 +11,27 @@ jobs:
   displayName: ${{ parameters.displayName }}
   steps:
   - ${{ parameters.powershellExecutable }}: |
+      if($IsMacOs)
+      {
+        brew cask install powershell-preview
+        sudo ln -s -f /usr/local/microsoft/powershell/7-preview/pwsh /usr/local/bin/pwsh
+      }
+      elseif($IsLinux)
+      {
+        sudo apt-get install powershell-preview
+        sudo ln -s /opt/microsoft/powershell/7-preview/pwsh /usr/local/bin/pwsh
+      }
+    displayName: Setup PowerShell preview
+
+  - ${{ parameters.powershellExecutable }}: |
+      $PSVersionTable
+    displayName: Capture PowerShellVersion
+
+  - ${{ parameters.powershellExecutable }}: |
+      Get-PSRepository
+    displayName: Capture PSRepository
+
+  - ${{ parameters.powershellExecutable }}: |
       Install-Module -Name "platyPS","Pester" -Force
     displayName: Install dependencies
 
