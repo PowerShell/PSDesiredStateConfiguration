@@ -50,7 +50,7 @@ Describe "Test PSDesiredStateConfiguration" -tags CI {
             )
 
         }
-        it "should be able to get a <Name> - <TestCaseName>" -TestCases $testCases -skip:($IsWindows -or $IsLinux)  {
+        it "should be able to get a <Name> - <TestCaseName>" -TestCases $testCases -pending:($IsWindows -or $IsLinux)  {
             param($Name)
             $resource = Get-DscResource -Name $name
             $resource | Should -Not -BeNullOrEmpty
@@ -58,7 +58,7 @@ Describe "Test PSDesiredStateConfiguration" -tags CI {
 
         # Linux issue: https://github.com/PowerShell/PSDesiredStateConfiguration/issues/12
         # macOS issue: https://github.com/PowerShell/MMI/issues/33
-        it "should be able to get a <Name> from <ModuleName> - <TestCaseName>" -TestCases $testCases -Skip:($IsLinux)  {
+        it "should be able to get a <Name> from <ModuleName> - <TestCaseName>" -TestCases $testCases -Pending:($IsLinux)  {
             param($Name,$ModuleName, $PendingBecause)
             if($PendingBecause)
             {
