@@ -50,7 +50,7 @@ Describe "Test PSDesiredStateConfiguration" -tags CI {
             )
 
         }
-        it "should be able to get a <Name> - <TestCaseName>" -TestCases $testCases -pending:($IsWindows -or $IsLinux)  {
+        it "should be able to get a <Name> - <TestCaseName>" -TestCases $testCases -Pending:($IsWindows -or $IsLinux)  {
             param($Name)
             $resource = Get-DscResource -Name $name
             $resource | Should -Not -BeNullOrEmpty
