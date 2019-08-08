@@ -43,6 +43,7 @@ jobs:
     displayName: Capture Path
 
   - bash: |
+      # Patching to fix MMI issue until PowerShell 7 Preview 3 can be released with the fix
       curl --output ./Microsoft.Management.Infrastructure.dll https://pscoretestdata.blob.core.windows.net/psdesiredstateconfiguration/Microsoft.Management.Infrastructure.dll
       echo "copying to $PSHOME/Microsoft.Management.Infrastructure.dll"
       ls -l "$PSHOME/Microsoft.Management.Infrastructure.dll"

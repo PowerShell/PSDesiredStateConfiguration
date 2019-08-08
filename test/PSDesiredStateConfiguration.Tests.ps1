@@ -37,7 +37,7 @@ Describe "Test PSDesiredStateConfiguration" -tags CI {
                     ModuleName = 'PowerShellGet'
                 }
                 @{
-                    TestCaseName = 'Good'
+                    TestCaseName = 'Both names have matching case'
                     Name = 'PSModule'
                     ModuleName = 'PowerShellGet'
                 }
@@ -52,7 +52,7 @@ Describe "Test PSDesiredStateConfiguration" -tags CI {
         }
         it "should be able to get a <Name> - <TestCaseName>" -TestCases $testCases -skip:($IsWindows -or $IsLinux)  {
             param($Name)
-            $resource =Get-DscResource -Name $name
+            $resource = Get-DscResource -Name $name
             $resource | Should -Not -BeNullOrEmpty
         }
 
@@ -64,7 +64,7 @@ Describe "Test PSDesiredStateConfiguration" -tags CI {
             {
                 Set-ItResult -Pending -Because $Because
             }
-            $resource =Get-DscResource -Name $Name -Module $ModuleName
+            $resource = Get-DscResource -Name $Name -Module $ModuleName
             $resource | Should -Not -BeNullOrEmpty
         }
     }
