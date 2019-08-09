@@ -91,9 +91,18 @@ Describe "Test PSDesiredStateConfiguration" -tags CI {
         }
         Context "mof resources"  {
             it "Set method should work" {
-                $result  = Invoke-DscResource -Name PsModule -Module PowerShellGet -Method set -Properties @{
-                    Name = 'PsDscResources'
-                    InstallationPolicy = 'Trusted'
+                if($IsLinux)
+                {
+                    $result  = Invoke-DscResource -Name PSModule -Module PowerShellGet -Method set -Properties @{
+                        Name = 'PsDscResources'
+                        InstallationPolicy = 'Trusted'
+                    }
+                }
+                else
+                {
+                    Install-Module -Name PsDscResources -Force
+                    # being fixed in https://github.com/PowerShell/PowerShellGet/pull/521
+                    set-ItResult -Pending -Because "PowerShellGet resources don't currently work on Linux"
                 }
                 $module = Get-module PsDscResources -ListAvailable
                 $module | Should -Not -BeNullOrEmpty -Because "Resource should have installed module"
