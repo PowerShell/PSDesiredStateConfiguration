@@ -67,5 +67,12 @@ Describe "Test PSDesiredStateConfiguration" -tags CI {
             $resource = Get-DscResource -Name $Name -Module $ModuleName
             $resource | Should -Not -BeNullOrEmpty
         }
+        # Fails on on platforms
+        it "should throw when resource is not found" -Pending {
+            {
+                Get-DscResource -Name antoehusatnoheusntahoesnuthao -Module tanshoeusnthaosnetuhasntoheusnathoseun
+            } |
+                Should -Throw -ErrorId 'Microsoft.PowerShell.Commands.WriteErrorException,CheckResourceFound'
+        }
     }
 }
