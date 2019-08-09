@@ -145,9 +145,9 @@ Describe "Test PSDesiredStateConfiguration" -tags CI {
                     Should -Throw -ErrorId 'Microsoft.PowerShell.Commands.WriteErrorException,CheckResourceFound'
             }
 
-
-            it "Get method should work" {
-                $result  = Invoke-DscResource -Name PsModule -Module PowerShellGet -Method Get -Properties @{ Name = 'PsDscResources'}
+            # being fixed in https://github.com/PowerShell/PowerShellGet/pull/521
+            it "Get method should work" -Pending:($IsLinux) {
+                $result  = Invoke-DscResource -Name PSModule -Module PowerShellGet -Method Get -Properties @{ Name = 'PsDscResources'}
                 $result.Author | Should -BeLike 'Microsoft*'
                 $result.InstallationPolicy | Should -BeOfType [string]
                 $result.Guid | Should -BeOfType [Guid]
