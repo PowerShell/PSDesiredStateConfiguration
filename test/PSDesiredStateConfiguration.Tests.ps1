@@ -2,7 +2,7 @@ Describe "Test PSDesiredStateConfiguration" -tags CI {
     Context "Module loading" {
         BeforeAll {
             $commands = Get-Command -Module PSDesiredStateConfiguration
-            $expectedCommandCount = 3
+            $expectedCommandCount = 4
         }
         BeforeEach {
         }
@@ -73,6 +73,93 @@ Describe "Test PSDesiredStateConfiguration" -tags CI {
                 Get-DscResource -Name antoehusatnoheusntahoesnuthao -Module tanshoeusnthaosnetuhasntoheusnathoseun
             } |
                 Should -Throw -ErrorId 'Microsoft.PowerShell.Commands.WriteErrorException,CheckResourceFound'
+        }
+    }
+    Context "Invoke-DscResource" {
+        BeforeAll {
+            $origProgress = $global:ProgressPreference
+            $global:ProgressPreference = 'SilentlyContinue'
+            $module = Get-InstalledModule -Name PsDscResources -ErrorAction Ignore
+            if($module)
+            {
+                Write-Verbose "removing PSDscResources, tests will re-install..." -Verbose
+                Uninstall-Module -Name PsDscResources -AllVersions -Force
+            }
+        }
+        AfterAll {
+            $Global:ProgressPreference = $origProgress
+        }
+        Context "mof resources"  {
+            it "Set method should work" {
+                if(!$IsLinux)
+                {
+                    $result  = Invoke-DscResource -Name PSModule -Module PowerShellGet -Method set -Properties @{
+                        Name = 'PsDscResources'
+                        InstallationPolicy = 'Trusted'
+                    }
+                }
+                else
+                {
+                    Install-Module -Name PsDscResources -Force
+                    # being fixed in https://github.com/PowerShell/PowerShellGet/pull/521
+                    set-ItResult -Pending -Because "PowerShellGet resources don't currently work on Linux"
+                }
+                $module = Get-module PsDscResources -ListAvailable
+                $module | Should -Not -BeNullOrEmpty -Because "Resource should have installed module"
+            }
+            it "Test method should return false" {
+                $result  = Invoke-DscResource -Name Script -Module PSDscResources -Method Test -Properties @{TestScript = {Write-Output 'test';return $false};GetScript = {return @{}}; SetScript = {return}}
+                $result | Should -Not -BeNullOrEmpty
+                $result | Should -BeFalse -Because "Test method return false"
+            }
+            it "Test method should return true" {
+                $result  = Invoke-DscResource -Name Script -Module PSDscResources -Method Test -Properties @{TestScript = {Write-Host 'test';return $true};GetScript = {return @{}}; SetScript = {return}}
+                $result | Should -BeTrue -Because "Test method return true"
+            }
+            it "Test method should return true with moduleSpecification" {
+                $module = get-module PsDscResources -ListAvailable
+                $moduleSpecification = @{ModuleName=$module.Name;ModuleVersion=$module.Version.ToString()}
+                $result  = Invoke-DscResource -Name Script -Module $moduleSpecification -Method Test -Properties @{TestScript = {Write-Host 'test';return $true};GetScript = {return @{}}; SetScript = {return}}
+                $result | Should -BeTrue -Because "Test method return true"
+            }
+            # Get-DscResource needs to be fixed
+            it "Invalid moduleSpecification" -Pending {
+                $moduleSpecification = @{ModuleName='PsDscResources';ModuleVersion='99.99.99.993'}
+                {
+                    Invoke-DscResource -Name Script -Module $moduleSpecification -Method Test -Properties @{TestScript = {Write-Host 'test';return $true};GetScript = {return @{}}; SetScript = {return}} -ErrorAction Stop
+                } |
+                    Should -Throw -ErrorId 'InvalidResourceSpecification,Invoke-DscResource' -ExpectedMessage 'Invalid Resource Name ''Script'' or module specification.'
+            }
+
+            # waiting on Get-DscResource to be fixed
+            it "Invalid module name" -Pending {
+                {
+                    Invoke-DscResource -Name Script -Module santoheusnaasonteuhsantoheu -Method Test -Properties @{TestScript = {Write-Host 'test';return $true};GetScript = {return @{}}; SetScript = {return}} -ErrorAction Stop
+                } |
+                    Should -Throw -ErrorId 'Microsoft.PowerShell.Commands.WriteErrorException,CheckResourceFound'
+            }
+            # waiting on Get-DscResource to be fixed
+            it "Invalid resource name" -Pending {
+                {
+                    Invoke-DscResource -Name santoheusnaasonteuhsantoheu -Method Test -Properties @{TestScript = {Write-Host 'test';return $true};GetScript = {return @{}}; SetScript = {return}} -ErrorAction Stop
+                } |
+                    Should -Throw -ErrorId 'Microsoft.PowerShell.Commands.WriteErrorException,CheckResourceFound'
+            }
+
+            # being fixed in https://github.com/PowerShell/PowerShellGet/pull/521
+            it "Get method should work" -Pending:($IsLinux) {
+                $result  = Invoke-DscResource -Name PSModule -Module PowerShellGet -Method Get -Properties @{ Name = 'PsDscResources'}
+                $result.Author | Should -BeLike 'Microsoft*'
+                $result.InstallationPolicy | Should -BeOfType [string]
+                $result.Guid | Should -BeOfType [Guid]
+                $result.Ensure | Should -Be 'Present'
+                $result.Name | Should -be 'PsDscResources'
+                $result.Description | Should -BeLike 'This*DSC*'
+                $result.InstalledVersion | should -BeOfType [Version]
+                $result.ModuleBase | Should -BeLike '*PSDscResources*'
+                $result.Repository | should -BeOfType [string]
+                $result.ModuleType | Should -Be 'Manifest'
+            }
         }
     }
 }

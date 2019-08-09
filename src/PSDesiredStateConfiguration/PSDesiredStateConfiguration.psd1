@@ -70,6 +70,7 @@ FunctionsToExport = @(
         'Configuration'
         'New-DscChecksum'
         'Get-DscResource'
+        'Invoke-DscResource'
     )
 
 
