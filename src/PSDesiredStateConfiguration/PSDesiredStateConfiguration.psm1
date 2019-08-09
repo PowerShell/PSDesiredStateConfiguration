@@ -4663,7 +4663,7 @@ function Invoke-DscResource
 
     $resourceInfo = $resource |out-string
     $path = $resource.Path
-    $type = $resource
+    $type = $resource.ResourceType
 
     Write-Debug $resourceInfo
 
