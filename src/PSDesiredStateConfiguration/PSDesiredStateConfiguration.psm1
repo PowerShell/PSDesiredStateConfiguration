@@ -3936,9 +3936,14 @@ function Get-DscResource
         {
             $moduleSpecificName = [System.Management.Automation.LanguagePrimitives]::ConvertTo($Module,[Microsoft.PowerShell.Commands.ModuleSpecification])
             $modules = Get-Module -ListAvailable -FullyQualifiedName $moduleSpecificName
+
             if($Module -is [System.Collections.Hashtable])
             {
                 $ModuleString = $Module.ModuleName
+            }
+            elseif($Module -is [Microsoft.PowerShell.Commands.ModuleSpecification])
+            {
+                $ModuleString = $Module.Name
             }
             else
             {
