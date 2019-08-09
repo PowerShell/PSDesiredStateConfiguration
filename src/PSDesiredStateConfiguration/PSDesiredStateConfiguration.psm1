@@ -4641,6 +4641,7 @@ function Invoke-DscResource
 
     if($resource.Count -ne 1)
     {
+        #TODO zero is unexpected error, more than one should be handled here
         $errorMessage = $LocalizedData.InvalidResourceSpecification -f $name
         $exception = [System.ArgumentException]::new($errorMessage,'Name')
         ThrowError -ExceptionName 'System.ArgumentException' -ExceptionMessage $errorMessage -ExceptionObject $exception -ErrorId 'InvalidResourceSpecification,Invoke-DscResource' -ErrorCategory InvalidArgument

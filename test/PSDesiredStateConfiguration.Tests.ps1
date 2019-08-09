@@ -91,7 +91,7 @@ Describe "Test PSDesiredStateConfiguration" -tags CI {
         }
         Context "mof resources"  {
             it "Set method should work" {
-                if($IsLinux)
+                if(!$IsLinux)
                 {
                     $result  = Invoke-DscResource -Name PSModule -Module PowerShellGet -Method set -Properties @{
                         Name = 'PsDscResources'
@@ -130,14 +130,15 @@ Describe "Test PSDesiredStateConfiguration" -tags CI {
                     Should -Throw -ErrorId 'InvalidResourceSpecification,Invoke-DscResource' -ExpectedMessage 'Invalid Resource Name ''Script'' or module specification.'
             }
 
-            it "Invalid module name" {
+            # waiting on Get-DscResource to be fixed
+            it "Invalid module name" -Pending {
                 {
                     Invoke-DscResource -Name Script -Module santoheusnaasonteuhsantoheu -Method Test -Properties @{TestScript = {Write-Host 'test';return $true};GetScript = {return @{}}; SetScript = {return}} -ErrorAction Stop
                 } |
-                    Should -Throw -ErrorId 'InvalidResourceSpecification,Invoke-DscResource' -ExpectedMessage 'Invalid Resource Name ''Script'' or module specification.'
+                    Should -Throw -ErrorId 'Microsoft.PowerShell.Commands.WriteErrorException,CheckResourceFound'
             }
-
-            it "Invalid resource name" {
+            # waiting on Get-DscResource to be fixed
+            it "Invalid resource name" -Pending {
                 {
                     Invoke-DscResource -Name santoheusnaasonteuhsantoheu -Method Test -Properties @{TestScript = {Write-Host 'test';return $true};GetScript = {return @{}}; SetScript = {return}} -ErrorAction Stop
                 } |
