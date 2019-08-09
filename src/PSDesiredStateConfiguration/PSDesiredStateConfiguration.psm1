@@ -14,7 +14,8 @@ data LocalizedData
     InvalidConfigPath = (ERROR) Invalid configuration path '{0}' specified.
     InvalidOutpath = (ERROR) Invalid OutPath '{0}' specified.
     InvalidConfigurationName = Invalid Configuration Name '{0}' is specified. Standard names may only contain letters (a-z, A-Z), numbers (0-9), and underscore (_). The name may not be null or empty, and should start with a letter.
-    InvalidResourceSpecification = Invalid Resource Name '{0}' or module specification.
+    InvalidResourceSpecification = Found more than one resource named '{0}'. Please use the module specification to be more specific.
+    UnsupportedResourceImplementation = The resource '{0}' implemented as '{1}' is not supported by Invoke-DscResource.
     NoValidConfigFileFound = No valid config files (mof,zip) were found.
     InputFileNotExist=File {0} doesn't exist.
     FileReadError=Error Reading file {0}.
@@ -4614,11 +4615,11 @@ function Invoke-DscResource
     param (
         [Parameter(ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true, Mandatory)]
         [ValidateNotNullOrEmpty()]
-        [string[]]
+        [string]
         $Name,
         [Parameter(ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true)]
         [ValidateNotNullOrEmpty()]
-        [Object]
+        [Microsoft.PowerShell.Commands.ModuleSpecification]
         $Module,
         [Parameter(Mandatory)]
         [ValidateSet('Get','Set','Test')]
@@ -4631,6 +4632,7 @@ function Invoke-DscResource
     $getArguments = @{
         Name = $Name
     }
+
     if($Module)
     {
         $getArguments.Add('Module',$Module)
@@ -4639,18 +4641,30 @@ function Invoke-DscResource
     Write-Debug -Message "Getting DSC Resource $Name"
     $resource = @(Get-DscResource @getArguments -ErrorAction stop)
 
+    if($resource.Count -eq 0)
+    {
+        throw "unexpected state - no resources found - get-dscresource should have thrown"
+    }
+
     if($resource.Count -ne 1)
     {
-        #TODO zero is unexpected error, more than one should be handled here
         $errorMessage = $LocalizedData.InvalidResourceSpecification -f $name
         $exception = [System.ArgumentException]::new($errorMessage,'Name')
         ThrowError -ExceptionName 'System.ArgumentException' -ExceptionMessage $errorMessage -ExceptionObject $exception -ErrorId 'InvalidResourceSpecification,Invoke-DscResource' -ErrorCategory InvalidArgument
     }
 
     [Microsoft.PowerShell.DesiredStateConfiguration.DscResourceInfo] $resource = $resource[0]
+    if($resource.ImplementedAs -ne 'PowerShell')
+    {
+        $errorMessage = $LocalizedData.UnsupportedResourceImplementation -f $name, $resource.ImplementedAs
+        $exception = [System.InvalidOperationException]::new($errorMessage)
+        ThrowError -ExceptionName 'System.InvalidOperationException' -ExceptionMessage $errorMessage -ExceptionObject $exception -ErrorId 'UnsupportedResourceImplementation,Invoke-DscResource' -ErrorCategory InvalidOperation
+    }
+
     $resourceInfo = $resource |out-string
     $path = $resource.Path
-    $type = $resource.ResourceType
+    $type = $resource
+
     Write-Debug $resourceInfo
 
     Write-Debug "Importing $path ..."
