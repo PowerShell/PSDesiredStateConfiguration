@@ -3859,7 +3859,7 @@ function Get-DSCResourceModules
             {
                 foreach($psd1 in Get-ChildItem -Recurse -Filter "$($moduleFolder.Name).psd1" -Path $moduleFolder.fullname -Depth 2)
                 {
-                    $containsDSCResource = select-string -LiteralPath $psd1 -pattern '^(?!#).*\bDscResourcesToExport\b.*'
+                    $containsDSCResource = select-string -LiteralPath $psd1 -pattern '^[^#]*\bDscResourcesToExport\b.*'
                     if($null -ne $containsDSCResource)
                     {
                         $addModule = $true
@@ -4131,7 +4131,7 @@ function GetResourceFromKeyword
                 $schemaToProcess = $classesFromSchema | ForEach-Object -Process {
                     if(($_.CimSystemProperties.ClassName -ieq $keyword.ResourceName) -and ($_.CimSuperClassName -ieq 'OMI_BaseResource'))
                     {
-                        $_
+                        $_ | Add-Member -MemberType NoteProperty -Name 'Class' -Value $true -PassThru
                     }
                 }
                 if($null -eq  $schemaToProcess)
@@ -4191,6 +4191,7 @@ function GetResourceFromKeyword
         Ascending  = $true
     }
     $resource.UpdateProperties($updatedProperties)
+    $resource | Add-Member -MemberType NoteProperty -Name 'Class' -Value $false
 
     return $resource
 }
