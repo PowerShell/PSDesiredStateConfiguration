@@ -101,5 +101,15 @@ Describe "Test PSDesiredStateConfiguration" -tags CI {
             $resource = Get-DscResource -Name $Name -Module $ModuleName
             $resource | Should -Not -BeNullOrEmpty
         }
+
+        it "should be able to get class resource - <Name> - <TestCaseName>" -TestCases $classTestCases {
+            param($Name,$ModuleName, $PendingBecause)
+            if($PendingBecause)
+            {
+                Set-ItResult -Pending -Because $Because
+            }
+            $resource = Get-DscResource -Name $Name
+            $resource | Should -Not -BeNullOrEmpty
+        }
     }
 }
