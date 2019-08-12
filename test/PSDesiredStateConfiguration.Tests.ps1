@@ -30,6 +30,8 @@ Describe "Test PSDesiredStateConfiguration" -tags CI {
     Context "Get-DscResource" {
         # https://github.com/PowerShell/PSDesiredStateConfiguration/issues/11
         BeforeAll {
+            $origProgress = $global:ProgressPreference
+            $global:ProgressPreference = 'SilentlyContinue'
             Install-Module -Name XmlContentDsc -Force
             $testCases = @(
                 @{
@@ -66,6 +68,9 @@ Describe "Test PSDesiredStateConfiguration" -tags CI {
                     ModuleName = 'XmlContentDsc'
                 }
             )
+        }
+        AfterAll {
+            $Global:ProgressPreference = $origProgress
         }
         it "should be able to get script resource - <Name> - <TestCaseName>" -TestCases $testCases -Pending:($IsWindows -or $IsLinux)  {
             param($Name)
