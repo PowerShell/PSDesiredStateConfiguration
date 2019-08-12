@@ -96,6 +96,7 @@ jobs:
     displayName: Execute static analysis tests
     errorActionPreference: continue
     condition: succeededOrFailed()
+    continueOnError: true
 
   - ${{ parameters.powershellExecutable }}: |
       Unregister-PSRepository -Name 'pspackageproject-local-repo' -ErrorAction Ignore
