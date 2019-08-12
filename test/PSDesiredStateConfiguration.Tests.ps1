@@ -30,6 +30,7 @@ Describe "Test PSDesiredStateConfiguration" -tags CI {
     Context "Get-DscResource" {
         # https://github.com/PowerShell/PSDesiredStateConfiguration/issues/11
         BeforeAll {
+            Install-Module -Name XmlContentDsc -Force
             $testCases = @(
                 @{
                     TestCaseName = 'case mismatch in resource name'
@@ -48,9 +49,25 @@ Describe "Test PSDesiredStateConfiguration" -tags CI {
                     PendingBecause = 'Broken everywhere'
                 }
             )
-
+            $classTestCases = @(
+                @{
+                    TestCaseName = 'Good case'
+                    Name = 'XmlFileContentResource'
+                    ModuleName = 'XmlContentDsc'
+                }
+                @{
+                    TestCaseName = 'Module Name case mismatch'
+                    Name = 'XmlFileContentResource'
+                    ModuleName = 'xmlcontentdsc'
+                }
+                @{
+                    TestCaseName = 'Resource name case mismatch'
+                    Name = 'xmlfilecontentresource'
+                    ModuleName = 'XmlContentDsc'
+                }
+            )
         }
-        it "should be able to get a <Name> - <TestCaseName>" -TestCases $testCases -Pending:($IsWindows -or $IsLinux)  {
+        it "should be able to get script resource - <Name> - <TestCaseName>" -TestCases $testCases -Pending:($IsWindows -or $IsLinux)  {
             param($Name)
             $resource = Get-DscResource -Name $name
             $resource | Should -Not -BeNullOrEmpty
@@ -58,7 +75,7 @@ Describe "Test PSDesiredStateConfiguration" -tags CI {
 
         # Linux issue: https://github.com/PowerShell/PSDesiredStateConfiguration/issues/12
         # macOS issue: https://github.com/PowerShell/MMI/issues/33
-        it "should be able to get a <Name> from <ModuleName> - <TestCaseName>" -TestCases $testCases -Pending:($IsLinux)  {
+        it "should be able to get script resource - <Name> from <ModuleName> - <TestCaseName>" -TestCases $testCases -Pending:($IsLinux)  {
             param($Name,$ModuleName, $PendingBecause)
             if($PendingBecause)
             {
@@ -73,6 +90,16 @@ Describe "Test PSDesiredStateConfiguration" -tags CI {
                 Get-DscResource -Name antoehusatnoheusntahoesnuthao -Module tanshoeusnthaosnetuhasntoheusnathoseun
             } |
                 Should -Throw -ErrorId 'Microsoft.PowerShell.Commands.WriteErrorException,CheckResourceFound'
+        }
+
+        it "should be able to get class resource - <Name> from <ModuleName> - <TestCaseName>" -TestCases $classTestCases {
+            param($Name,$ModuleName, $PendingBecause)
+            if($PendingBecause)
+            {
+                Set-ItResult -Pending -Because $Because
+            }
+            $resource = Get-DscResource -Name $Name -Module $ModuleName
+            $resource | Should -Not -BeNullOrEmpty
         }
     }
 }
