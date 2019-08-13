@@ -109,7 +109,7 @@ Describe "Test PSDesiredStateConfiguration" -tags CI {
             $resource | Should -Not -BeNullOrEmpty
         }
 
-        it "should be able to get class resource - <Name> - <TestCaseName>" -TestCases $classTestCases -Pending:($IsLinux -or $IsMacOs) {
+        it "should be able to get class resource - <Name> - <TestCaseName>" -TestCases $classTestCases -Pending {
             param($Name,$ModuleName, $PendingBecause)
             if($PendingBecause)
             {
@@ -120,3 +120,4 @@ Describe "Test PSDesiredStateConfiguration" -tags CI {
         }
     }
 }
+
