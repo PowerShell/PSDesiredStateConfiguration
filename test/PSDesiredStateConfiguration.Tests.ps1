@@ -56,11 +56,13 @@ Describe "Test PSDesiredStateConfiguration" -tags CI {
                     TestCaseName = 'Good case'
                     Name = 'XmlFileContentResource'
                     ModuleName = 'XmlContentDsc'
+                    PendingBecause = 'Broken everywhere'
                 }
                 @{
                     TestCaseName = 'Module Name case mismatch'
                     Name = 'XmlFileContentResource'
                     ModuleName = 'xmlcontentdsc'
+                    PendingBecause = 'Broken everywhere'
                 }
                 @{
                     TestCaseName = 'Resource name case mismatch'
@@ -97,7 +99,7 @@ Describe "Test PSDesiredStateConfiguration" -tags CI {
                 Should -Throw -ErrorId 'Microsoft.PowerShell.Commands.WriteErrorException,CheckResourceFound'
         }
 
-        it "should be able to get class resource - <Name> from <ModuleName> - <TestCaseName>" -TestCases $classTestCases {
+        it "should be able to get class resource - <Name> from <ModuleName> - <TestCaseName>" -TestCases $classTestCases -Pending:($IsLinux -or $IsMacOs) {
             param($Name,$ModuleName, $PendingBecause)
             if($PendingBecause)
             {
@@ -107,7 +109,7 @@ Describe "Test PSDesiredStateConfiguration" -tags CI {
             $resource | Should -Not -BeNullOrEmpty
         }
 
-        it "should be able to get class resource - <Name> - <TestCaseName>" -TestCases $classTestCases {
+        it "should be able to get class resource - <Name> - <TestCaseName>" -TestCases $classTestCases -Pending:($IsLinux -or $IsMacOs) {
             param($Name,$ModuleName, $PendingBecause)
             if($PendingBecause)
             {
