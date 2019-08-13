@@ -27,7 +27,7 @@ Describe "Test PSDesiredStateConfiguration" -tags CI {
             $commands | Where-Object {$_.Name -eq 'Get-DscResource'} | Should -Not -BeNullOrEmpty
         }
     }
-    Context "Get-DscResource" {
+    Context "Get-DscResource - ScriptResources" {
         # https://github.com/PowerShell/PSDesiredStateConfiguration/issues/11
         BeforeAll {
             $origProgress = $global:ProgressPreference
@@ -51,6 +51,41 @@ Describe "Test PSDesiredStateConfiguration" -tags CI {
                     PendingBecause = 'Broken everywhere'
                 }
             )
+        }
+        AfterAll {
+            $Global:ProgressPreference = $origProgress
+        }
+        it "should be able to get <Name> - <TestCaseName>" -TestCases $testCases -Pending:($IsWindows -or $IsLinux)  {
+            param($Name)
+            $resource = Get-DscResource -Name $name
+            $resource | Should -Not -BeNullOrEmpty
+        }
+
+        # Linux issue: https://github.com/PowerShell/PSDesiredStateConfiguration/issues/12
+        # macOS issue: https://github.com/PowerShell/MMI/issues/33
+        it "should be able to get <Name> from <ModuleName> - <TestCaseName>" -TestCases $testCases -Pending:($IsLinux)  {
+            param($Name,$ModuleName, $PendingBecause)
+            if($PendingBecause)
+            {
+                Set-ItResult -Pending -Because $Because
+            }
+            $resource = Get-DscResource -Name $Name -Module $ModuleName
+            $resource | Should -Not -BeNullOrEmpty
+        }
+        # Fails on on platforms
+        it "should throw when resource is not found" -Pending {
+            {
+                Get-DscResource -Name antoehusatnoheusntahoesnuthao -Module tanshoeusnthaosnetuhasntoheusnathoseun
+            } |
+                Should -Throw -ErrorId 'Microsoft.PowerShell.Commands.WriteErrorException,CheckResourceFound'
+        }
+    }
+    Context "Get-DscResource - Class base Resources" {
+        # https://github.com/PowerShell/PSDesiredStateConfiguration/issues/11
+        BeforeAll {
+            $origProgress = $global:ProgressPreference
+            $global:ProgressPreference = 'SilentlyContinue'
+            Install-Module -Name XmlContentDsc -Force
             $classTestCases = @(
                 @{
                     TestCaseName = 'Good case'
@@ -73,32 +108,8 @@ Describe "Test PSDesiredStateConfiguration" -tags CI {
         }
         AfterAll {
             $Global:ProgressPreference = $origProgress
+            Uninstall-Module -name XmlContentDsc -AllVersions
         }
-        it "should be able to get script resource - <Name> - <TestCaseName>" -TestCases $testCases -Pending:($IsWindows -or $IsLinux)  {
-            param($Name)
-            $resource = Get-DscResource -Name $name
-            $resource | Should -Not -BeNullOrEmpty
-        }
-
-        # Linux issue: https://github.com/PowerShell/PSDesiredStateConfiguration/issues/12
-        # macOS issue: https://github.com/PowerShell/MMI/issues/33
-        it "should be able to get script resource - <Name> from <ModuleName> - <TestCaseName>" -TestCases $testCases -Pending:($IsLinux)  {
-            param($Name,$ModuleName, $PendingBecause)
-            if($PendingBecause)
-            {
-                Set-ItResult -Pending -Because $Because
-            }
-            $resource = Get-DscResource -Name $Name -Module $ModuleName
-            $resource | Should -Not -BeNullOrEmpty
-        }
-        # Fails on on platforms
-        it "should throw when resource is not found" -Pending {
-            {
-                Get-DscResource -Name antoehusatnoheusntahoesnuthao -Module tanshoeusnthaosnetuhasntoheusnathoseun
-            } |
-                Should -Throw -ErrorId 'Microsoft.PowerShell.Commands.WriteErrorException,CheckResourceFound'
-        }
-
         it "should be able to get class resource - <Name> from <ModuleName> - <TestCaseName>" -TestCases $classTestCases -Pending:($IsLinux -or $IsMacOs) {
             param($Name,$ModuleName, $PendingBecause)
             if($PendingBecause)
