@@ -60,7 +60,7 @@ Describe "Test PSDesiredStateConfiguration" -tags CI {
 
             if($IsLinux -or $IsWindows)
             {
-                Set-ItResult -Pending -Because "https://github.com/PowerShell/PSDesiredStateConfiguration/issues/11"
+                Set-ItResult -Pending -Because "https://github.com/PowerShell/PSDesiredStateConfiguration/issues/15"
             }
 
             $resource = Get-DscResource -Name $name
@@ -144,7 +144,7 @@ Describe "Test PSDesiredStateConfiguration" -tags CI {
 
         it "should be able to get class resource - <Name> - <TestCaseName>" -TestCases $classTestCases {
             param($Name,$ModuleName, $PendingBecause)
-            Set-ItResult -Pending -Because "https://github.com/PowerShell/PSDesiredStateConfiguration/issues/11"
+            Set-ItResult -Pending -Because "https://github.com/PowerShell/PSDesiredStateConfiguration/issues/19"
             if($PendingBecause)
             {
                 Set-ItResult -Pending -Because $Because
