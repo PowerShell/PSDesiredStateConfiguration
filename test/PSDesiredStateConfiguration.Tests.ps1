@@ -47,7 +47,7 @@ Describe "Test PSDesiredStateConfiguration" -tags CI {
                     Name = 'PSModule'
                     ModuleName = 'powershellget'
                     # Linux issue: https://github.com/PowerShell/PSDesiredStateConfiguration/issues/12
-                    PendingBecause = 'Broken everywhere'
+                    PendingBecause = 'https://github.com/PowerShell/PSDesiredStateConfiguration/issues/12'
                 }
             )
         }
@@ -78,7 +78,7 @@ Describe "Test PSDesiredStateConfiguration" -tags CI {
 
             if($PendingBecause)
             {
-                Set-ItResult -Pending -Because $Because
+                Set-ItResult -Pending -Because $PendingBecause
             }
             $resource = Get-DscResource -Name $Name -Module $ModuleName
             $resource | Should -Not -BeNullOrEmpty
@@ -130,12 +130,12 @@ Describe "Test PSDesiredStateConfiguration" -tags CI {
             param($Name,$ModuleName, $PendingBecause)
             if($IsLinux -or $IsMacOs)
             {
-                Set-ItResult -Pending -Because "Fix for most of thse are in https://github.com/PowerShell/PowerShell/pull/10350"
+                Set-ItResult -Pending -Because "Fix for most of these are in https://github.com/PowerShell/PowerShell/pull/10350"
             }
 
             if($PendingBecause)
             {
-                Set-ItResult -Pending -Because $Because
+                Set-ItResult -Pending -Because $PendingBecause
             }
             $resource = Get-DscResource -Name $Name -Module $ModuleName
             $resource | Should -Not -BeNullOrEmpty
@@ -147,7 +147,7 @@ Describe "Test PSDesiredStateConfiguration" -tags CI {
             Set-ItResult -Pending -Because "https://github.com/PowerShell/PSDesiredStateConfiguration/issues/19"
             if($PendingBecause)
             {
-                Set-ItResult -Pending -Because $Because
+                Set-ItResult -Pending -Because $PendingBecause
             }
             $resource = Get-DscResource -Name $Name
             $resource | Should -Not -BeNullOrEmpty
