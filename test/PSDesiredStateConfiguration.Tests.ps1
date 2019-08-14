@@ -105,7 +105,7 @@ Describe "Test PSDesiredStateConfiguration" -tags CI {
                     TestCaseName = 'Good case'
                     Name = 'XmlFileContentResource'
                     ModuleName = 'XmlContentDsc'
-                    PendingBecause = 'Broken everywhere'
+                    PendingBecause = "https://github.com/PowerShell/PSDesiredStateConfiguration/issues/19"
                 }
                 @{
                     TestCaseName = 'Module Name case mismatch'
