@@ -32,7 +32,6 @@ Describe "Test PSDesiredStateConfiguration" -tags CI {
         BeforeAll {
             $origProgress = $global:ProgressPreference
             $global:ProgressPreference = 'SilentlyContinue'
-            Install-Module -Name XmlContentDsc -Force
             $testCases = @(
                 @{
                     TestCaseName = 'case mismatch in resource name'
