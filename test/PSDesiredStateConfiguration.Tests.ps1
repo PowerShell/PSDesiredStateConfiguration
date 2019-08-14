@@ -28,7 +28,6 @@ Describe "Test PSDesiredStateConfiguration" -tags CI {
         }
     }
     Context "Get-DscResource - ScriptResources" {
-        # https://github.com/PowerShell/PSDesiredStateConfiguration/issues/11
         BeforeAll {
             $origProgress = $global:ProgressPreference
             $global:ProgressPreference = 'SilentlyContinue'
@@ -47,6 +46,7 @@ Describe "Test PSDesiredStateConfiguration" -tags CI {
                     TestCaseName = 'case mismatch in module name'
                     Name = 'PSModule'
                     ModuleName = 'powershellget'
+                    # Linux issue: https://github.com/PowerShell/PSDesiredStateConfiguration/issues/12
                     PendingBecause = 'Broken everywhere'
                 }
             )
@@ -54,25 +54,40 @@ Describe "Test PSDesiredStateConfiguration" -tags CI {
         AfterAll {
             $Global:ProgressPreference = $origProgress
         }
+
         it "should be able to get <Name> - <TestCaseName>" -TestCases $testCases -Pending:($IsWindows -or $IsLinux)  {
             param($Name)
+
+            if($IsLinux -or $IsWindows)
+            {
+                Set-ItResult -Pending -Because "https://github.com/PowerShell/PSDesiredStateConfiguration/issues/11"
+            }
+
             $resource = Get-DscResource -Name $name
             $resource | Should -Not -BeNullOrEmpty
+            $resource.Name | Should -Be $Name
         }
 
-        # Linux issue: https://github.com/PowerShell/PSDesiredStateConfiguration/issues/12
-        # macOS issue: https://github.com/PowerShell/MMI/issues/33
-        it "should be able to get <Name> from <ModuleName> - <TestCaseName>" -TestCases $testCases -Pending:($IsLinux)  {
+        it "should be able to get <Name> from <ModuleName> - <TestCaseName>" -TestCases $testCases {
             param($Name,$ModuleName, $PendingBecause)
+
+            if($IsLinux)
+            {
+                Set-ItResult -Pending -Because "https://github.com/PowerShell/PSDesiredStateConfiguration/issues/12"
+            }
+
             if($PendingBecause)
             {
                 Set-ItResult -Pending -Because $Because
             }
             $resource = Get-DscResource -Name $Name -Module $ModuleName
             $resource | Should -Not -BeNullOrEmpty
+            $resource.Name | Should -Be $Name
         }
-        # Fails on on platforms
-        it "should throw when resource is not found" -Pending {
+
+        # Fails on all platforms
+        it "should throw when resource is not found" {
+            Set-ItResult -Pending -Because "https://github.com/PowerShell/PSDesiredStateConfiguration/issues/17"
             {
                 Get-DscResource -Name antoehusatnoheusntahoesnuthao -Module tanshoeusnthaosnetuhasntoheusnathoseun
             } |
@@ -80,7 +95,7 @@ Describe "Test PSDesiredStateConfiguration" -tags CI {
         }
     }
     Context "Get-DscResource - Class base Resources" {
-        # https://github.com/PowerShell/PSDesiredStateConfiguration/issues/11
+
         BeforeAll {
             $origProgress = $global:ProgressPreference
             $global:ProgressPreference = 'SilentlyContinue'
@@ -96,7 +111,7 @@ Describe "Test PSDesiredStateConfiguration" -tags CI {
                     TestCaseName = 'Module Name case mismatch'
                     Name = 'XmlFileContentResource'
                     ModuleName = 'xmlcontentdsc'
-                    PendingBecause = 'Broken everywhere'
+                    PendingBecause = 'https://github.com/PowerShell/PSDesiredStateConfiguration/issues/12'
                 }
                 @{
                     TestCaseName = 'Resource name case mismatch'
@@ -109,24 +124,34 @@ Describe "Test PSDesiredStateConfiguration" -tags CI {
             $Global:ProgressPreference = $origProgress
             Uninstall-Module -name XmlContentDsc -AllVersions
         }
-        it "should be able to get class resource - <Name> from <ModuleName> - <TestCaseName>" -TestCases $classTestCases -Pending:($IsLinux -or $IsMacOs) {
+
+        # Fix for most of thse are in https://github.com/PowerShell/PowerShell/pull/10350
+        it "should be able to get class resource - <Name> from <ModuleName> - <TestCaseName>" -TestCases $classTestCases {
             param($Name,$ModuleName, $PendingBecause)
+            if($IsLinux -or $IsMacOs)
+            {
+                Set-ItResult -Pending -Because "Fix for most of thse are in https://github.com/PowerShell/PowerShell/pull/10350"
+            }
+
             if($PendingBecause)
             {
                 Set-ItResult -Pending -Because $Because
             }
             $resource = Get-DscResource -Name $Name -Module $ModuleName
             $resource | Should -Not -BeNullOrEmpty
+            $resource.Name | Should -Be $Name
         }
 
-        it "should be able to get class resource - <Name> - <TestCaseName>" -TestCases $classTestCases -Pending {
+        it "should be able to get class resource - <Name> - <TestCaseName>" -TestCases $classTestCases {
             param($Name,$ModuleName, $PendingBecause)
+            Set-ItResult -Pending -Because "https://github.com/PowerShell/PSDesiredStateConfiguration/issues/11"
             if($PendingBecause)
             {
                 Set-ItResult -Pending -Because $Because
             }
             $resource = Get-DscResource -Name $Name
             $resource | Should -Not -BeNullOrEmpty
+            $resource.Name | Should -Be $Name
         }
     }
 }
