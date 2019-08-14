@@ -55,7 +55,7 @@ Describe "Test PSDesiredStateConfiguration" -tags CI {
             $Global:ProgressPreference = $origProgress
         }
 
-        it "should be able to get <Name> - <TestCaseName>" -TestCases $testCases -Pending:($IsWindows -or $IsLinux)  {
+        it "should be able to get <Name> - <TestCaseName>" -TestCases $testCases {
             param($Name)
 
             if($IsLinux -or $IsWindows)
