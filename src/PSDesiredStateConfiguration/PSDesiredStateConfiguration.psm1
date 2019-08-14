@@ -4669,31 +4669,17 @@ function Invoke-DscResource
 
     $resourceInfo = $resource |out-string
     Write-Debug $resourceInfo
-        Invoke-DscScriptBasedResource -Resource $resource -Method $Method -Property $Property
+    Invoke-DscScriptBasedResource -Resource $resource -Method $Method -Property $Property
 }
 
+# Class to return Test method results for Invoke-DscResource
 class InvokeDscResourceTestResult {
     [bool] $InDesiredState
 }
 
+# Class to return Set method results for Invoke-DscResource
 class InvokeDscResourceSetResult {
     [bool] $RebootRequired
-}
-
-function Invoke-DscClassBasedResource
-{
-    param(
-        [Parameter(Mandatory)]
-        [Microsoft.PowerShell.DesiredStateConfiguration.DscResourceInfo] $resource,
-        [Parameter(Mandatory)]
-        [ValidateSet('Get','Set','Test')]
-        [string]
-        $Method,
-        [Hashtable]
-        $Property
-    )
-
-
 }
 
 function Invoke-DscScriptBasedResource
@@ -4711,8 +4697,6 @@ function Invoke-DscScriptBasedResource
 
     $path = $resource.Path
     $type = $resource.ResourceType
-
-    Write-Debug $resourceInfo
 
     Write-Debug "Importing $path ..."
     Import-module -Scope Local -Name $path -Force -ErrorAction stop
