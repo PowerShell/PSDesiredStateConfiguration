@@ -3859,7 +3859,7 @@ function Get-DSCResourceModules
             {
                 foreach($psd1 in Get-ChildItem -Recurse -Filter "$($moduleFolder.Name).psd1" -Path $moduleFolder.fullname -Depth 2)
                 {
-                    $containsDSCResource = select-string -LiteralPath $psd1 -pattern '^[^#]*\bDscResourcesToExport\b.*'
+                    $containsDSCResource = select-string -LiteralPath $psd1 -pattern '^(?!#).*\bDscResourcesToExport\b.*'
                     if($null -ne $containsDSCResource)
                     {
                         $addModule = $true
