@@ -27,6 +27,65 @@ Describe "Test PSDesiredStateConfiguration" -tags CI {
             $commands | Where-Object {$_.Name -eq 'Get-DscResource'} | Should -Not -BeNullOrEmpty
         }
     }
+    Context "Get-DscResource - Composite Resources" {
+        BeforeAll {
+            $origProgress = $global:ProgressPreference
+            $global:ProgressPreference = 'SilentlyContinue'
+            Install-Module -Name PSDscResources -Force
+            $testCases = @(
+                @{
+                    TestCaseName = 'case mismatch in resource name'
+                    Name = 'groupset'
+                    ModuleName = 'PSDscResources'
+                }
+                @{
+                    TestCaseName = 'Both names have matching case'
+                    Name = 'GroupSet'
+                    ModuleName = 'PSDscResources'
+                }
+                @{
+                    TestCaseName = 'case mismatch in module name'
+                    Name = 'GroupSet'
+                    ModuleName = 'psdscResources'
+                    PendingBecause = 'https://github.com/PowerShell/PSDesiredStateConfiguration/issues/12'
+                }
+            )
+        }
+        AfterAll {
+            Uninstall-Module -name PSDscResources -AllVersions
+            $Global:ProgressPreference = $origProgress
+        }
+        it "should be able to get <Name> - <TestCaseName>" -TestCases $testCases {
+            param($Name)
+
+            if($IsLinux -or $IsWindows)
+            {
+                Set-ItResult -Pending -Because "https://github.com/PowerShell/PSDesiredStateConfiguration/issues/15"
+            }
+
+            $resource = Get-DscResource -Name $name
+            $resource | Should -Not -BeNullOrEmpty
+            $resource.Name | Should -Be $Name
+            $resource.ImplementationDetail | Should -BeNullOrEmpty
+        }
+        it "should be able to get <Name> from <ModuleName> - <TestCaseName>" -TestCases $testCases {
+            param($Name,$ModuleName, $PendingBecause)
+
+            if($IsLinux)
+            {
+                Set-ItResult -Pending -Because "https://github.com/PowerShell/PSDesiredStateConfiguration/issues/12"
+            }
+
+            if($PendingBecause)
+            {
+                Set-ItResult -Pending -Because $PendingBecause
+            }
+            $resource = Get-DscResource -Name $Name -Module $ModuleName
+            $resource | Should -Not -BeNullOrEmpty
+            $resource.Name | Should -Be $Name
+            $resource.ImplementationDetail | Should -BeNullOrEmpty
+        }
+    }
     Context "Get-DscResource - ScriptResources" {
         BeforeAll {
             $origProgress = $global:ProgressPreference
