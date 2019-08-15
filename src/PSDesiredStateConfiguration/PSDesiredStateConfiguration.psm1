@@ -1963,10 +1963,11 @@ function Configuration
                 $script:ConfigurationData = $ConfigurationData
             }
 
-            if($OutputPath -eq '.' -or $OutputPath -eq $null -or $OutputPath -eq '')
+            if($OutputPath -eq '.' -or $null -eq $OutputPath -or $OutputPath -eq '')
             {
                 $OutputPath = ".\$Name"
             }
+
             # Load the default CIM keyword/function definitions set, populating the function collection
             # with the default functions.
             [Microsoft.PowerShell.DesiredStateConfiguration.Internal.DscClassCache]::LoadDefaultCimKeywords($functionsToDefine)
@@ -4691,6 +4692,7 @@ class InvokeDscResourceSetResult {
 
 function Invoke-DscScriptBasedResource
 {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSAvoidGlobalVars", "", Scope="Function")]
     param(
         [Parameter(Mandatory)]
         [Microsoft.PowerShell.DesiredStateConfiguration.DscResourceInfo] $resource,
