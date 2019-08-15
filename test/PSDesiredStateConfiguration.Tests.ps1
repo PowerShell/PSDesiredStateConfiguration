@@ -46,7 +46,6 @@ Describe "Test PSDesiredStateConfiguration" -tags CI {
                     TestCaseName = 'case mismatch in module name'
                     Name = 'PSModule'
                     ModuleName = 'powershellget'
-                    # Linux issue: https://github.com/PowerShell/PSDesiredStateConfiguration/issues/12
                     PendingBecause = 'https://github.com/PowerShell/PSDesiredStateConfiguration/issues/12'
                 }
             )
@@ -66,6 +65,7 @@ Describe "Test PSDesiredStateConfiguration" -tags CI {
             $resource = Get-DscResource -Name $name
             $resource | Should -Not -BeNullOrEmpty
             $resource.Name | Should -Be $Name
+            $resource.ImplementationDetail | Should -Be 'ScriptBased'
         }
 
         it "should be able to get <Name> from <ModuleName> - <TestCaseName>" -TestCases $testCases {
@@ -83,6 +83,7 @@ Describe "Test PSDesiredStateConfiguration" -tags CI {
             $resource = Get-DscResource -Name $Name -Module $ModuleName
             $resource | Should -Not -BeNullOrEmpty
             $resource.Name | Should -Be $Name
+            $resource.ImplementationDetail | Should -Be 'ScriptBased'
         }
 
         # Fails on all platforms
@@ -140,6 +141,7 @@ Describe "Test PSDesiredStateConfiguration" -tags CI {
             $resource = Get-DscResource -Name $Name -Module $ModuleName
             $resource | Should -Not -BeNullOrEmpty
             $resource.Name | Should -Be $Name
+            $resource.ImplementationDetail | Should -Be 'ClassBased'
         }
 
         it "should be able to get class resource - <Name> - <TestCaseName>" -TestCases $classTestCases {
@@ -152,6 +154,7 @@ Describe "Test PSDesiredStateConfiguration" -tags CI {
             $resource = Get-DscResource -Name $Name
             $resource | Should -Not -BeNullOrEmpty
             $resource.Name | Should -Be $Name
+            $resource.ImplementationDetail | Should -Be 'ClassBased'
         }
     }
     Context "Invoke-DscResource" {
