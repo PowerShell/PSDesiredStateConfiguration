@@ -4131,7 +4131,7 @@ function GetResourceFromKeyword
                 $schemaToProcess = $classesFromSchema | ForEach-Object -Process {
                     if(($_.CimSystemProperties.ClassName -ieq $keyword.ResourceName) -and ($_.CimSuperClassName -ieq 'OMI_BaseResource'))
                     {
-                        $_ | Add-Member -MemberType NoteProperty -Name 'Class' -Value $true -PassThru
+                        $_
                     }
                 }
                 if($null -eq  $schemaToProcess)
@@ -4191,7 +4191,6 @@ function GetResourceFromKeyword
         Ascending  = $true
     }
     $resource.UpdateProperties($updatedProperties)
-    $resource | Add-Member -MemberType NoteProperty -Name 'Class' -Value $false
 
     return $resource
 }
