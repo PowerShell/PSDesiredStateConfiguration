@@ -169,10 +169,30 @@ Describe "Test PSDesiredStateConfiguration" -tags CI {
             $Global:ProgressPreference = $origProgress
         }
         Context "mof resources"  {
+            BeforeAll {
+                $dscMachineStatusCases = @(
+                    @{
+                        value = '1'
+                        expectedResult = $true
+                    }
+                    @{
+                        value = '$true'
+                        expectedResult = $true
+                    }
+                    @{
+                        value = '0'
+                        expectedResult = $false
+                    }
+                    @{
+                        value = '$false'
+                        expectedResult = $false
+                    }
+                )
+            }
             it "Set method should work" {
                 if(!$IsLinux)
                 {
-                    $result  = Invoke-DscResource -Name PSModule -Module PowerShellGet -Method set -Properties @{
+                    $result  = Invoke-DscResource -Name PSModule -Module PowerShellGet -Method set -Property @{
                         Name = 'PsDscResources'
                         InstallationPolicy = 'Trusted'
                     }
@@ -183,29 +203,42 @@ Describe "Test PSDesiredStateConfiguration" -tags CI {
                     # being fixed in https://github.com/PowerShell/PowerShellGet/pull/521
                     set-ItResult -Pending -Because "PowerShellGet resources don't currently work on Linux"
                 }
+
+                $result.RebootRequired | Should -BeFalse
                 $module = Get-module PsDscResources -ListAvailable
                 $module | Should -Not -BeNullOrEmpty -Because "Resource should have installed module"
             }
-            it "Test method should return false" {
-                $result  = Invoke-DscResource -Name Script -Module PSDscResources -Method Test -Properties @{TestScript = {Write-Output 'test';return $false};GetScript = {return @{}}; SetScript = {return}}
+            it 'Set method should return RebootRequired=<expectedResult> when $global:DSCMachineStatus = <value>' -TestCases $dscMachineStatusCases {
+                param(
+                    $value,
+                    $ExpectedResult
+                )
+                # using create scriptBlock because $using:<variable> doesn't work with existing Invoke-DscResource
+                # Verified in Windows PowerShell on 20190814
+                $result  = Invoke-DscResource -Name Script -Module PSDscResources -Method Set -Property @{TestScript = {Write-Output 'test';return $false};GetScript = {return @{}}; SetScript = [scriptblock]::Create("`$global:DSCMachineStatus = $value;return")}
                 $result | Should -Not -BeNullOrEmpty
-                $result | Should -BeFalse -Because "Test method return false"
+                $result.RebootRequired | Should -BeExactly $expectedResult
+            }
+            it "Test method should return false" {
+                $result  = Invoke-DscResource -Name Script -Module PSDscResources -Method Test -Property @{TestScript = {Write-Output 'test';return $false};GetScript = {return @{}}; SetScript = {return}}
+                $result | Should -Not -BeNullOrEmpty
+                $result.InDesiredState | Should -BeFalse -Because "Test method return false"
             }
             it "Test method should return true" {
-                $result  = Invoke-DscResource -Name Script -Module PSDscResources -Method Test -Properties @{TestScript = {Write-Host 'test';return $true};GetScript = {return @{}}; SetScript = {return}}
+                $result  = Invoke-DscResource -Name Script -Module PSDscResources -Method Test -Property @{TestScript = {Write-Verbose 'test';return $true};GetScript = {return @{}}; SetScript = {return}}
                 $result | Should -BeTrue -Because "Test method return true"
             }
             it "Test method should return true with moduleSpecification" {
                 $module = get-module PsDscResources -ListAvailable
                 $moduleSpecification = @{ModuleName=$module.Name;ModuleVersion=$module.Version.ToString()}
-                $result  = Invoke-DscResource -Name Script -Module $moduleSpecification -Method Test -Properties @{TestScript = {Write-Host 'test';return $true};GetScript = {return @{}}; SetScript = {return}}
+                $result  = Invoke-DscResource -Name Script -Module $moduleSpecification -Method Test -Property @{TestScript = {Write-Verbose 'test';return $true};GetScript = {return @{}}; SetScript = {return}}
                 $result | Should -BeTrue -Because "Test method return true"
             }
             # Get-DscResource needs to be fixed
             it "Invalid moduleSpecification" -Pending {
                 $moduleSpecification = @{ModuleName='PsDscResources';ModuleVersion='99.99.99.993'}
                 {
-                    Invoke-DscResource -Name Script -Module $moduleSpecification -Method Test -Properties @{TestScript = {Write-Host 'test';return $true};GetScript = {return @{}}; SetScript = {return}} -ErrorAction Stop
+                    Invoke-DscResource -Name Script -Module $moduleSpecification -Method Test -Property @{TestScript = {Write-Host 'test';return $true};GetScript = {return @{}}; SetScript = {return}} -ErrorAction Stop
                 } |
                     Should -Throw -ErrorId 'InvalidResourceSpecification,Invoke-DscResource' -ExpectedMessage 'Invalid Resource Name ''Script'' or module specification.'
             }
@@ -213,21 +246,21 @@ Describe "Test PSDesiredStateConfiguration" -tags CI {
             # waiting on Get-DscResource to be fixed
             it "Invalid module name" -Pending {
                 {
-                    Invoke-DscResource -Name Script -Module santoheusnaasonteuhsantoheu -Method Test -Properties @{TestScript = {Write-Host 'test';return $true};GetScript = {return @{}}; SetScript = {return}} -ErrorAction Stop
+                    Invoke-DscResource -Name Script -Module santoheusnaasonteuhsantoheu -Method Test -Property @{TestScript = {Write-Host 'test';return $true};GetScript = {return @{}}; SetScript = {return}} -ErrorAction Stop
                 } |
                     Should -Throw -ErrorId 'Microsoft.PowerShell.Commands.WriteErrorException,CheckResourceFound'
             }
             # waiting on Get-DscResource to be fixed
             it "Invalid resource name" -Pending {
                 {
-                    Invoke-DscResource -Name santoheusnaasonteuhsantoheu -Method Test -Properties @{TestScript = {Write-Host 'test';return $true};GetScript = {return @{}}; SetScript = {return}} -ErrorAction Stop
+                    Invoke-DscResource -Name santoheusnaasonteuhsantoheu -Method Test -Property @{TestScript = {Write-Host 'test';return $true};GetScript = {return @{}}; SetScript = {return}} -ErrorAction Stop
                 } |
                     Should -Throw -ErrorId 'Microsoft.PowerShell.Commands.WriteErrorException,CheckResourceFound'
             }
 
             # being fixed in https://github.com/PowerShell/PowerShellGet/pull/521
             it "Get method should work" -Pending:($IsLinux) {
-                $result  = Invoke-DscResource -Name PSModule -Module PowerShellGet -Method Get -Properties @{ Name = 'PsDscResources'}
+                $result  = Invoke-DscResource -Name PSModule -Module PowerShellGet -Method Get -Property @{ Name = 'PsDscResources'}
                 $result.Author | Should -BeLike 'Microsoft*'
                 $result.InstallationPolicy | Should -BeOfType [string]
                 $result.Guid | Should -BeOfType [Guid]

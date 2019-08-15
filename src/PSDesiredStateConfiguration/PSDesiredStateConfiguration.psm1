@@ -4631,7 +4631,7 @@ function Invoke-DscResource
         [string]
         $Method,
         [Hashtable]
-        $Properties
+        $Property
     )
 
     $getArguments = @{
@@ -4667,10 +4667,35 @@ function Invoke-DscResource
     }
 
     $resourceInfo = $resource |out-string
+    Write-Debug $resourceInfo
+    Invoke-DscScriptBasedResource -Resource $resource -Method $Method -Property $Property
+}
+
+# Class to return Test method results for Invoke-DscResource
+class InvokeDscResourceTestResult {
+    [bool] $InDesiredState
+}
+
+# Class to return Set method results for Invoke-DscResource
+class InvokeDscResourceSetResult {
+    [bool] $RebootRequired
+}
+
+function Invoke-DscScriptBasedResource
+{
+    param(
+        [Parameter(Mandatory)]
+        [Microsoft.PowerShell.DesiredStateConfiguration.DscResourceInfo] $resource,
+        [Parameter(Mandatory)]
+        [ValidateSet('Get','Set','Test')]
+        [string]
+        $Method,
+        [Hashtable]
+        $Property
+    )
+
     $path = $resource.Path
     $type = $resource.ResourceType
-
-    Write-Debug $resourceInfo
 
     Write-Debug "Importing $path ..."
     Import-module -Scope Local -Name $path -Force -ErrorAction stop
@@ -4678,12 +4703,22 @@ function Invoke-DscResource
     $functionName = "$Method-TargetResource"
 
     Write-Debug "calling $name\$functionName ..."
-    $output = & $type\$functionName @Properties
+    $global:DSCMachineStatus = $null
+    $output = & $type\$functionName @Property
     switch($Method)
     {
         'Set' {
             $output | Foreach-Object -Process {
                 Write-Verbose -Message ('output: ' + $_)
+            }
+            $rebootRequired = if($global:DSCMachineStatus -eq 1) {$true} else {$false}
+            return [InvokeDscResourceSetResult]@{
+                RebootRequired = $rebootRequired
+            }
+        }
+        'Test' {
+            return [InvokeDscResourceTestResult]@{
+                InDesiredState = $output
             }
         }
         default {
