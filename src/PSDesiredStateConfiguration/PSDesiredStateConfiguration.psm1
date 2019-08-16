@@ -1963,10 +1963,11 @@ function Configuration
                 $script:ConfigurationData = $ConfigurationData
             }
 
-            if($OutputPath -eq '.' -or $OutputPath -eq $null -or $OutputPath -eq '')
+            if($OutputPath -eq '.' -or $null -eq $OutputPath -or $OutputPath -eq '')
             {
                 $OutputPath = ".\$Name"
             }
+
             # Load the default CIM keyword/function definitions set, populating the function collection
             # with the default functions.
             [Microsoft.PowerShell.DesiredStateConfiguration.Internal.DscClassCache]::LoadDefaultCimKeywords($functionsToDefine)
@@ -3859,7 +3860,7 @@ function Get-DSCResourceModules
             {
                 foreach($psd1 in Get-ChildItem -Recurse -Filter "$($moduleFolder.Name).psd1" -Path $moduleFolder.fullname -Depth 2)
                 {
-                    $containsDSCResource = select-string -LiteralPath $psd1 -pattern '^(?!#).*\bDscResourcesToExport\b.*'
+                    $containsDSCResource = select-string -LiteralPath $psd1 -pattern '^[^#]*\bDscResourcesToExport\b.*'
                     if($null -ne $containsDSCResource)
                     {
                         $addModule = $true
@@ -4084,6 +4085,8 @@ function GetResourceFromKeyword
         $modules
     )
 
+    $implementationDetail = 'ScriptBased'
+
     # Find whether $name follows the pattern
     $matched = (IsPatternMatched $patterns $keyword.ResourceName) -or (IsPatternMatched $patterns $keyword.Keyword)
     if ($matched -eq $false)
@@ -4110,6 +4113,7 @@ function GetResourceFromKeyword
     $resource.Name = $keyword.Keyword
 
     $schemaFiles = [Microsoft.PowerShell.DesiredStateConfiguration.Internal.DscClassCache]::GetFileDefiningClass($keyword.ResourceName)
+
     if ($schemaFiles.Count)
     {
         # Find the correct schema file that matches module name and version
@@ -4131,7 +4135,7 @@ function GetResourceFromKeyword
                 $schemaToProcess = $classesFromSchema | ForEach-Object -Process {
                     if(($_.CimSystemProperties.ClassName -ieq $keyword.ResourceName) -and ($_.CimSuperClassName -ieq 'OMI_BaseResource'))
                     {
-                        $_
+                        $_ | Add-Member -MemberType NoteProperty -Name 'ImplementationDetail' -Value $implementationDetail -PassThru
                     }
                 }
                 if($null -eq  $schemaToProcess)
@@ -4150,6 +4154,7 @@ function GetResourceFromKeyword
     }
     else
     {
+        $implementationDetail = 'ClassBased'
         $Module = $modules | Where-Object -FilterScript {
             $_.Name -eq $keyword.ImplementingModule -and
             $_.Version -eq $keyword.ImplementingModuleVersion
@@ -4157,6 +4162,7 @@ function GetResourceFromKeyword
 
         if ($Module -and $Module.ExportedDscResources -contains $keyword.Keyword)
         {
+            $implementationDetail = 'ClassBased'
             $resource.Module = $Module
             $resource.Path = $Module.Path
             $resource.ParentPath = Split-Path -Path $Module.Path
@@ -4169,6 +4175,7 @@ function GetResourceFromKeyword
     }
     else
     {
+        $implementationDetail = $null
         $resource.ImplementedAs = [Microsoft.PowerShell.DesiredStateConfiguration.ImplementedAsType]::Binary
     }
 
@@ -4191,6 +4198,7 @@ function GetResourceFromKeyword
         Ascending  = $true
     }
     $resource.UpdateProperties($updatedProperties)
+    $resource | Add-Member -MemberType NoteProperty -Name 'ImplementationDetail' -Value $implementationDetail
 
     return $resource
 }
@@ -4253,6 +4261,7 @@ function GetCompositeResource
         AddDscResourcePropertyFromMetadata $resource $_ $ignoreParameters
     }
 
+    $resource | Add-Member -MemberType NoteProperty -Name 'ImplementationDetail' -Value $null
     return $resource
 }
 
@@ -4683,6 +4692,7 @@ class InvokeDscResourceSetResult {
 
 function Invoke-DscScriptBasedResource
 {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSAvoidGlobalVars", "", Scope="Function")]
     param(
         [Parameter(Mandatory)]
         [Microsoft.PowerShell.DesiredStateConfiguration.DscResourceInfo] $resource,
