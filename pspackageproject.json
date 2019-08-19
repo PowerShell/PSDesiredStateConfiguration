@@ -2,6 +2,7 @@
   "HelpPath": "help",
   "ModuleName": "PSDesiredStateConfiguration",
   "BuildOutputPath": "out",
+  "SignedOutputPath": "signed",
   "SourcePath": "src/PSDesiredStateConfiguration",
   "TestPath": "test",
   "Culture": "en-US"
