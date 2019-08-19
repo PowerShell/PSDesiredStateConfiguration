@@ -185,7 +185,6 @@ Describe "Test PSDesiredStateConfiguration" -tags CI {
             Uninstall-Module -name XmlContentDsc -AllVersions
         }
 
-        # Fix for most of thse are in https://github.com/PowerShell/PowerShell/pull/10350
         it "should be able to get class resource - <Name> from <ModuleName> - <TestCaseName>" -TestCases $classTestCases {
             param($Name,$ModuleName, $PendingBecause)
             if($IsLinux -or $IsMacOs)
@@ -360,6 +359,12 @@ Describe "Test PSDesiredStateConfiguration" -tags CI {
                     $value,
                     $ExpectedResult
                 )
+
+                if ($IsLinux -or $IsMacOs)
+                {
+                    Set-ItResult -Pending -Because "https://github.com/PowerShell/PowerShell/pull/10350"
+                }
+
                 $testString = '890574209347509120348'
                 $result  = Invoke-DscResource -Name XmlFileContentResource -Module XmlContentDsc -Property @{Path=$resolvedXmlPath; XPath = '/configuration/appSetting/Test1';Ensure='Present'; Attributes=@{ TestValue2 = $testString; Name = $testString } } -Method Set
                 $result | Should -Not -BeNullOrEmpty
