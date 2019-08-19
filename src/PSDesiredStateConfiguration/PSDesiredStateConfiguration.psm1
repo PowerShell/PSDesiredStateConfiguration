@@ -4700,6 +4700,8 @@ class InvokeDscResourceSetResult {
 
 function Invoke-DscClassBasedResource
 {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSAvoidGlobalVars", "", Scope="Function")]
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseDeclaredVarsMoreThanAssignments", "", Scope="Function")]
     param(
         [Parameter(Mandatory)]
         [Microsoft.PowerShell.DesiredStateConfiguration.DscResourceInfo] $resource,
@@ -4747,6 +4749,7 @@ return [$type]::new()
 function Invoke-DscScriptBasedResource
 {
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSAvoidGlobalVars", "", Scope="Function")]
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseDeclaredVarsMoreThanAssignments", "", Scope="Function")]
     param(
         [Parameter(Mandatory)]
         [Microsoft.PowerShell.DesiredStateConfiguration.DscResourceInfo] $resource,
@@ -4774,6 +4777,7 @@ function Invoke-DscScriptBasedResource
 
 function Get-InvokeDscResourceResult
 {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSAvoidGlobalVars", "", Scope="Function")]
     param(
         $Output,
         $Method
