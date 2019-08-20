@@ -4726,11 +4726,9 @@ Write-Host -Message ([$type]::new | out-string)
 return [$type]::new()
 "@
 
-    #Write-Debug "`n$script"
 
     $null= $powershell.AddScript($script)
     $dscType=$powershell.Invoke() | Select-object -First 1
-    #return $dscType
     foreach($key in $Property.Keys)
     {
         $value = $Property.$key
