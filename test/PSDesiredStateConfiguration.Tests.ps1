@@ -185,7 +185,6 @@ Describe "Test PSDesiredStateConfiguration" -tags CI {
             Uninstall-Module -name XmlContentDsc -AllVersions
         }
 
-        # Fix for most of thse are in https://github.com/PowerShell/PowerShell/pull/10350
         it "should be able to get class resource - <Name> from <ModuleName> - <TestCaseName>" -TestCases $classTestCases {
             param($Name,$ModuleName, $PendingBecause)
             if($IsLinux -or $IsMacOs)
@@ -323,6 +322,7 @@ Describe "Test PSDesiredStateConfiguration" -tags CI {
             # being fixed in https://github.com/PowerShell/PowerShellGet/pull/521
             it "Get method should work" -Pending:($IsLinux) {
                 $result  = Invoke-DscResource -Name PSModule -Module PowerShellGet -Method Get -Property @{ Name = 'PsDscResources'}
+                $result | Should -Not -BeNullOrEmpty
                 $result.Author | Should -BeLike 'Microsoft*'
                 $result.InstallationPolicy | Should -BeOfType [string]
                 $result.Guid | Should -BeOfType [Guid]
@@ -333,6 +333,43 @@ Describe "Test PSDesiredStateConfiguration" -tags CI {
                 $result.ModuleBase | Should -BeLike '*PSDscResources*'
                 $result.Repository | should -BeOfType [string]
                 $result.ModuleType | Should -Be 'Manifest'
+            }
+        }
+        Context "Class Based Resources" {
+            BeforeAll {
+                Install-Module -Name XmlContentDsc -Force
+            }
+            AfterAll {
+                $Global:ProgressPreference = $origProgress
+                Uninstall-Module -name XmlContentDsc -AllVersions
+            }
+            BeforeEach {
+                $testXmlPath = 'TestDrive:\test.xml'
+                @'
+<configuration>
+<appSetting>
+    <Test1/>
+</appSetting>
+</configuration>
+'@ | Out-File -FilePath $testXmlPath -Encoding utf8NoBOM
+                $resolvedXmlPath = (Resolve-Path -Path $testXmlPath).ProviderPath
+            }
+            it 'Set method should work' {
+                param(
+                    $value,
+                    $ExpectedResult
+                )
+
+                if ($IsLinux -or $IsMacOs)
+                {
+                    Set-ItResult -Pending -Because "https://github.com/PowerShell/PowerShell/pull/10350"
+                }
+
+                $testString = '890574209347509120348'
+                $result  = Invoke-DscResource -Name XmlFileContentResource -Module XmlContentDsc -Property @{Path=$resolvedXmlPath; XPath = '/configuration/appSetting/Test1';Ensure='Present'; Attributes=@{ TestValue2 = $testString; Name = $testString } } -Method Set
+                $result | Should -Not -BeNullOrEmpty
+                $result.RebootRequired | Should -BeFalse
+                $testXmlPath | Should -FileContentMatch $testString
             }
         }
     }

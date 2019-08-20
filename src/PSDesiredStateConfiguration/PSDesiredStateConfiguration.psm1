@@ -4677,7 +4677,15 @@ function Invoke-DscResource
 
     $resourceInfo = $resource |out-string
     Write-Debug $resourceInfo
-    Invoke-DscScriptBasedResource -Resource $resource -Method $Method -Property $Property
+
+    if($resource.ImplementationDetail -eq 'ClassBased')
+    {
+        Invoke-DscClassBasedResource -Resource $resource -Method $Method -Property $Property
+    }
+    else
+    {
+        Invoke-DscScriptBasedResource -Resource $resource -Method $Method -Property $Property
+    }
 }
 
 # Class to return Test method results for Invoke-DscResource
@@ -4690,9 +4698,56 @@ class InvokeDscResourceSetResult {
     [bool] $RebootRequired
 }
 
+function Invoke-DscClassBasedResource
+{
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSAvoidGlobalVars", "", Scope="Function")]
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseDeclaredVarsMoreThanAssignments", "", Scope="Function")]
+    param(
+        [Parameter(Mandatory)]
+        [Microsoft.PowerShell.DesiredStateConfiguration.DscResourceInfo] $resource,
+        [Parameter(Mandatory)]
+        [ValidateSet('Get','Set','Test')]
+        [string]
+        $Method,
+        [Hashtable]
+        $Property
+    )
+
+    $path = $resource.Path
+    $type = $resource.ResourceType
+
+    Write-Debug "Importing $path ..."
+    $iss = [System.Management.Automation.Runspaces.InitialSessionState]::CreateDefault2()
+    $powershell = [PowerShell]::Create($iss)
+    $script = @"
+using module $path
+
+Write-Host -Message ([$type]::new | out-string)
+return [$type]::new()
+"@
+
+
+    $null= $powershell.AddScript($script)
+    $dscType=$powershell.Invoke() | Select-object -First 1
+    foreach($key in $Property.Keys)
+    {
+        $value = $Property.$key
+        Write-Debug "Setting $key to $value"
+        $dscType.$key = $value
+    }
+    $info = $dscType | Out-String
+    Write-Debug $info
+
+    Write-Debug "calling $type.$Method() ..."
+    $global:DSCMachineStatus = $null
+    $output = $dscType.$Method()
+    return Get-InvokeDscResourceResult -Output $output -Method $Method
+}
+
 function Invoke-DscScriptBasedResource
 {
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSAvoidGlobalVars", "", Scope="Function")]
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseDeclaredVarsMoreThanAssignments", "", Scope="Function")]
     param(
         [Parameter(Mandatory)]
         [Microsoft.PowerShell.DesiredStateConfiguration.DscResourceInfo] $resource,
@@ -4715,10 +4770,21 @@ function Invoke-DscScriptBasedResource
     Write-Debug "calling $name\$functionName ..."
     $global:DSCMachineStatus = $null
     $output = & $type\$functionName @Property
+    return Get-InvokeDscResourceResult -Output $output -Method $Method
+}
+
+function Get-InvokeDscResourceResult
+{
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSAvoidGlobalVars", "", Scope="Function")]
+    param(
+        $Output,
+        $Method
+    )
+
     switch($Method)
     {
         'Set' {
-            $output | Foreach-Object -Process {
+            $Output | Foreach-Object -Process {
                 Write-Verbose -Message ('output: ' + $_)
             }
             $rebootRequired = if($global:DSCMachineStatus -eq 1) {$true} else {$false}
@@ -4728,11 +4794,11 @@ function Invoke-DscScriptBasedResource
         }
         'Test' {
             return [InvokeDscResourceTestResult]@{
-                InDesiredState = $output
+                InDesiredState = $Output
             }
         }
         default {
-            return $output
+            return $Output
         }
     }
 }
