@@ -253,7 +253,7 @@ Describe "Test PSDesiredStateConfiguration" -tags CI {
             it "Set method should work" {
                 if(!$IsLinux)
                 {
-                    $result  = Invoke-DscResource -Name PSModule -Module PowerShellGet -Method set -Property @{
+                    $result  = Invoke-DscResource -Name PSModule -ModuleName PowerShellGet -Method set -Property @{
                         Name = 'PsDscResources'
                         InstallationPolicy = 'Trusted'
                     }
@@ -276,30 +276,30 @@ Describe "Test PSDesiredStateConfiguration" -tags CI {
                 )
                 # using create scriptBlock because $using:<variable> doesn't work with existing Invoke-DscResource
                 # Verified in Windows PowerShell on 20190814
-                $result  = Invoke-DscResource -Name Script -Module PSDscResources -Method Set -Property @{TestScript = {Write-Output 'test';return $false};GetScript = {return @{}}; SetScript = [scriptblock]::Create("`$global:DSCMachineStatus = $value;return")}
+                $result  = Invoke-DscResource -Name Script -ModuleName PSDscResources -Method Set -Property @{TestScript = {Write-Output 'test';return $false};GetScript = {return @{}}; SetScript = [scriptblock]::Create("`$global:DSCMachineStatus = $value;return")}
                 $result | Should -Not -BeNullOrEmpty
                 $result.RebootRequired | Should -BeExactly $expectedResult
             }
             it "Test method should return false" {
-                $result  = Invoke-DscResource -Name Script -Module PSDscResources -Method Test -Property @{TestScript = {Write-Output 'test';return $false};GetScript = {return @{}}; SetScript = {return}}
+                $result  = Invoke-DscResource -Name Script -ModuleName PSDscResources -Method Test -Property @{TestScript = {Write-Output 'test';return $false};GetScript = {return @{}}; SetScript = {return}}
                 $result | Should -Not -BeNullOrEmpty
                 $result.InDesiredState | Should -BeFalse -Because "Test method return false"
             }
             it "Test method should return true" {
-                $result  = Invoke-DscResource -Name Script -Module PSDscResources -Method Test -Property @{TestScript = {Write-Verbose 'test';return $true};GetScript = {return @{}}; SetScript = {return}}
+                $result  = Invoke-DscResource -Name Script -ModuleName PSDscResources -Method Test -Property @{TestScript = {Write-Verbose 'test';return $true};GetScript = {return @{}}; SetScript = {return}}
                 $result | Should -BeTrue -Because "Test method return true"
             }
             it "Test method should return true with moduleSpecification" {
                 $module = get-module PsDscResources -ListAvailable
                 $moduleSpecification = @{ModuleName=$module.Name;ModuleVersion=$module.Version.ToString()}
-                $result  = Invoke-DscResource -Name Script -Module $moduleSpecification -Method Test -Property @{TestScript = {Write-Verbose 'test';return $true};GetScript = {return @{}}; SetScript = {return}}
+                $result  = Invoke-DscResource -Name Script -ModuleName $moduleSpecification -Method Test -Property @{TestScript = {Write-Verbose 'test';return $true};GetScript = {return @{}}; SetScript = {return}}
                 $result | Should -BeTrue -Because "Test method return true"
             }
             # Get-DscResource needs to be fixed
             it "Invalid moduleSpecification" -Pending {
                 $moduleSpecification = @{ModuleName='PsDscResources';ModuleVersion='99.99.99.993'}
                 {
-                    Invoke-DscResource -Name Script -Module $moduleSpecification -Method Test -Property @{TestScript = {Write-Host 'test';return $true};GetScript = {return @{}}; SetScript = {return}} -ErrorAction Stop
+                    Invoke-DscResource -Name Script -ModuleName $moduleSpecification -Method Test -Property @{TestScript = {Write-Host 'test';return $true};GetScript = {return @{}}; SetScript = {return}} -ErrorAction Stop
                 } |
                     Should -Throw -ErrorId 'InvalidResourceSpecification,Invoke-DscResource' -ExpectedMessage 'Invalid Resource Name ''Script'' or module specification.'
             }
@@ -307,7 +307,7 @@ Describe "Test PSDesiredStateConfiguration" -tags CI {
             # waiting on Get-DscResource to be fixed
             it "Invalid module name" -Pending {
                 {
-                    Invoke-DscResource -Name Script -Module santoheusnaasonteuhsantoheu -Method Test -Property @{TestScript = {Write-Host 'test';return $true};GetScript = {return @{}}; SetScript = {return}} -ErrorAction Stop
+                    Invoke-DscResource -Name Script -ModuleName santoheusnaasonteuhsantoheu -Method Test -Property @{TestScript = {Write-Host 'test';return $true};GetScript = {return @{}}; SetScript = {return}} -ErrorAction Stop
                 } |
                     Should -Throw -ErrorId 'Microsoft.PowerShell.Commands.WriteErrorException,CheckResourceFound'
             }
@@ -321,7 +321,7 @@ Describe "Test PSDesiredStateConfiguration" -tags CI {
 
             # being fixed in https://github.com/PowerShell/PowerShellGet/pull/521
             it "Get method should work" -Pending:($IsLinux) {
-                $result  = Invoke-DscResource -Name PSModule -Module PowerShellGet -Method Get -Property @{ Name = 'PsDscResources'}
+                $result  = Invoke-DscResource -Name PSModule -ModuleName PowerShellGet -Method Get -Property @{ Name = 'PsDscResources'}
                 $result | Should -Not -BeNullOrEmpty
                 $result.Author | Should -BeLike 'Microsoft*'
                 $result.InstallationPolicy | Should -BeOfType [string]
@@ -366,7 +366,7 @@ Describe "Test PSDesiredStateConfiguration" -tags CI {
                 }
 
                 $testString = '890574209347509120348'
-                $result  = Invoke-DscResource -Name XmlFileContentResource -Module XmlContentDsc -Property @{Path=$resolvedXmlPath; XPath = '/configuration/appSetting/Test1';Ensure='Present'; Attributes=@{ TestValue2 = $testString; Name = $testString } } -Method Set
+                $result  = Invoke-DscResource -Name XmlFileContentResource -ModuleName XmlContentDsc -Property @{Path=$resolvedXmlPath; XPath = '/configuration/appSetting/Test1';Ensure='Present'; Attributes=@{ TestValue2 = $testString; Name = $testString } } -Method Set
                 $result | Should -Not -BeNullOrEmpty
                 $result.RebootRequired | Should -BeFalse
                 $testXmlPath | Should -FileContentMatch $testString

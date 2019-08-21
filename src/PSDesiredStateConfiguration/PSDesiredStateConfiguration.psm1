@@ -4634,7 +4634,7 @@ function Invoke-DscResource
         [Parameter(ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true)]
         [ValidateNotNullOrEmpty()]
         [Microsoft.PowerShell.Commands.ModuleSpecification]
-        $Module,
+        $ModuleName,
         [Parameter(Mandatory)]
         [ValidateSet('Get','Set','Test')]
         [string]
@@ -4647,9 +4647,9 @@ function Invoke-DscResource
         Name = $Name
     }
 
-    if($Module)
+    if($ModuleName)
     {
-        $getArguments.Add('Module',$Module)
+        $getArguments.Add('Module',$ModuleName)
     }
 
     Write-Debug -Message "Getting DSC Resource $Name"
