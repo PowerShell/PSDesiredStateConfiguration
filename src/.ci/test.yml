@@ -13,11 +13,13 @@ jobs:
   - ${{ parameters.powershellExecutable }}: |
       if($IsMacOs)
       {
+        brew update
         brew cask install powershell-preview
         sudo ln -s -f /usr/local/microsoft/powershell/7-preview/pwsh /usr/local/bin/pwsh
       }
       elseif($IsLinux)
       {
+        sudo apt-get update
         sudo apt-get install powershell-preview
         sudo ln -s /opt/microsoft/powershell/7-preview/pwsh /usr/local/bin/pwsh
       }
@@ -42,16 +44,6 @@ jobs:
         dir env:PATH
     displayName: Capture Path
 
-  - bash: |
-      # Patching to fix MMI issue until PowerShell 7 Preview 3 can be released with the fix
-      curl --output ./Microsoft.Management.Infrastructure.dll https://pscoretestdata.blob.core.windows.net/psdesiredstateconfiguration/Microsoft.Management.Infrastructure.dll
-      echo "copying to $PSHOME/Microsoft.Management.Infrastructure.dll"
-      ls -l "$PSHOME/Microsoft.Management.Infrastructure.dll"
-      sudo cp ./Microsoft.Management.Infrastructure.dll "$PSHOME/Microsoft.Management.Infrastructure.dll"
-      ls -l "$PSHOME/Microsoft.Management.Infrastructure.dll"
-    displayName: Patch macOS
-    condition: and( eq('${{ parameters.imageName }}', 'macOS-10.14'), succeeded())
-
   - ${{ parameters.powershellExecutable }}: |
       Get-PSRepository
     displayName: Capture PSRepository
@@ -65,7 +57,7 @@ jobs:
         Install-Module -Name "PSScriptAnalyzer" -RequiredVersion 1.18.0 -Force
     displayName: Install dependencies
     timeoutInMinutes: 10
-  
+
   - ${{ parameters.powershellExecutable }}: |
       Install-Module -Name PSPackageProject -Force
     displayName: Install PSPackageProject module
