@@ -70,12 +70,10 @@ Describe "Test PSDesiredStateConfiguration" -tags CI {
                     TestCaseName = 'case mismatch in module name'
                     Name = 'GroupSet'
                     ModuleName = 'psdscResources'
-                    PendingBecause = 'https://github.com/PowerShell/PSDesiredStateConfiguration/issues/12'
                 }
             )
         }
         AfterAll {
-            Uninstall-Module -name PSDscResources -AllVersions
             $Global:ProgressPreference = $origProgress
         }
         it "should be able to get <Name> - <TestCaseName>" -TestCases $testCases {
@@ -119,6 +117,7 @@ Describe "Test PSDesiredStateConfiguration" -tags CI {
         BeforeAll {
             $origProgress = $global:ProgressPreference
             $global:ProgressPreference = 'SilentlyContinue'
+
 
             Install-ModuleIfMissing -Name PSDscResources -Force
 
@@ -185,6 +184,7 @@ Describe "Test PSDesiredStateConfiguration" -tags CI {
             foreach($resource in $resource)
             {
                 $resource.Name | Should -Be $Name
+                $resource.ImplementationDetail | Should -Be 'ScriptBased'
             }
         }
 
@@ -206,6 +206,7 @@ Describe "Test PSDesiredStateConfiguration" -tags CI {
             foreach($resource in $resource)
             {
                 $resource.Name | Should -Be $Name
+                $resource.ImplementationDetail | Should -Be 'ScriptBased'
             }
         }
 
@@ -309,20 +310,24 @@ Describe "Test PSDesiredStateConfiguration" -tags CI {
                         expectedResult = $false
                     }
                 )
+
+                Install-ModuleIfMissing -Name PowerShellGet -Force -SkipPublisherCheck -RequiredVersion '2.2.1'
+                $module = Get-Module PowerShellGet -ListAvailable | Sort-Object -Property Version -Descending | Select-Object -First 1
+
+                $psGetModuleSpecification = @{ModuleName=$module.Name;ModuleVersion=$module.Version.ToString()}
             }
             it "Set method should work" {
                 if(!$IsLinux)
                 {
-                    $result  = Invoke-DscResource -Name PSModule -Module PowerShellGet -Method set -Property @{
+                    $result  = Invoke-DscResource -Name PSModule -Module $psGetModuleSpecification -Method set -Property @{
                         Name = 'PsDscResources'
                         InstallationPolicy = 'Trusted'
                     }
                 }
                 else
                 {
-                    Install-Module -Name PsDscResources -Force
-                    # being fixed in https://github.com/PowerShell/PowerShellGet/pull/521
-                    set-ItResult -Pending -Because "PowerShellGet resources don't currently work on Linux"
+                    # workraound because of https://github.com/PowerShell/PowerShellGet/pull/529
+                    Install-ModuleIfMissing -Name PsDscResources -Force
                 }
 
                 $result.RebootRequired | Should -BeFalse
@@ -334,6 +339,7 @@ Describe "Test PSDesiredStateConfiguration" -tags CI {
                     $value,
                     $ExpectedResult
                 )
+
                 # using create scriptBlock because $using:<variable> doesn't work with existing Invoke-DscResource
                 # Verified in Windows PowerShell on 20190814
                 $result  = Invoke-DscResource -Name Script -Module PSDscResources -Method Set -Property @{TestScript = {Write-Output 'test';return $false};GetScript = {return @{}}; SetScript = [scriptblock]::Create("`$global:DSCMachineStatus = $value;return")}
@@ -355,8 +361,9 @@ Describe "Test PSDesiredStateConfiguration" -tags CI {
                 $result  = Invoke-DscResource -Name Script -Module $moduleSpecification -Method Test -Property @{TestScript = {Write-Verbose 'test';return $true};GetScript = {return @{}}; SetScript = {return}}
                 $result | Should -BeTrue -Because "Test method return true"
             }
-            # Get-DscResource needs to be fixed
-            it "Invalid moduleSpecification" -Pending {
+
+            it "Invalid moduleSpecification" {
+                Set-ItResult -Pending -Because "https://github.com/PowerShell/PSDesiredStateConfiguration/issues/17"
                 $moduleSpecification = @{ModuleName='PsDscResources';ModuleVersion='99.99.99.993'}
                 {
                     Invoke-DscResource -Name Script -Module $moduleSpecification -Method Test -Property @{TestScript = {Write-Host 'test';return $true};GetScript = {return @{}}; SetScript = {return}} -ErrorAction Stop
@@ -365,23 +372,32 @@ Describe "Test PSDesiredStateConfiguration" -tags CI {
             }
 
             # waiting on Get-DscResource to be fixed
-            it "Invalid module name" -Pending {
+            it "Invalid module name" {
+                Set-ItResult -Pending -Because "https://github.com/PowerShell/PSDesiredStateConfiguration/issues/17"
                 {
                     Invoke-DscResource -Name Script -Module santoheusnaasonteuhsantoheu -Method Test -Property @{TestScript = {Write-Host 'test';return $true};GetScript = {return @{}}; SetScript = {return}} -ErrorAction Stop
                 } |
                     Should -Throw -ErrorId 'Microsoft.PowerShell.Commands.WriteErrorException,CheckResourceFound'
             }
-            # waiting on Get-DscResource to be fixed
-            it "Invalid resource name" -Pending {
+
+            it "Invalid resource name" {
+                if ($IsWindows) {
+                    Set-ItResult -Pending -Because "https://github.com/PowerShell/PSDesiredStateConfiguration/issues/17"
+                }
+
                 {
                     Invoke-DscResource -Name santoheusnaasonteuhsantoheu -Method Test -Property @{TestScript = {Write-Host 'test';return $true};GetScript = {return @{}}; SetScript = {return}} -ErrorAction Stop
                 } |
                     Should -Throw -ErrorId 'Microsoft.PowerShell.Commands.WriteErrorException,CheckResourceFound'
             }
 
-            # being fixed in https://github.com/PowerShell/PowerShellGet/pull/521
-            it "Get method should work" -Pending:($IsLinux) {
-                $result  = Invoke-DscResource -Name PSModule -Module PowerShellGet -Method Get -Property @{ Name = 'PsDscResources'}
+            it "Get method should work" {
+                if($IsLinux)
+                {
+                    Set-ItResult -Pending -Because "https://github.com/PowerShell/PSDesiredStateConfiguration/issues/12 and https://github.com/PowerShell/PowerShellGet/pull/529"
+                }
+
+                $result  = Invoke-DscResource -Name PSModule -Module $psGetModuleSpecification -Method Get -Property @{ Name = 'PsDscResources'}
                 $result | Should -Not -BeNullOrEmpty
                 $result.Author | Should -BeLike 'Microsoft*'
                 $result.InstallationPolicy | Should -BeOfType [string]
@@ -397,11 +413,10 @@ Describe "Test PSDesiredStateConfiguration" -tags CI {
         }
         Context "Class Based Resources" {
             BeforeAll {
-                Install-Module -Name XmlContentDsc -Force
+                Install-ModuleIfMissing -Name XmlContentDsc -Force
             }
             AfterAll {
                 $Global:ProgressPreference = $origProgress
-                Uninstall-Module -name XmlContentDsc -AllVersions
             }
             BeforeEach {
                 $testXmlPath = 'TestDrive:\test.xml'
@@ -419,11 +434,6 @@ Describe "Test PSDesiredStateConfiguration" -tags CI {
                     $value,
                     $ExpectedResult
                 )
-
-                if ($IsLinux -or $IsMacOs)
-                {
-                    Set-ItResult -Pending -Because "https://github.com/PowerShell/PowerShell/pull/10350"
-                }
 
                 $testString = '890574209347509120348'
                 $result  = Invoke-DscResource -Name XmlFileContentResource -Module XmlContentDsc -Property @{Path=$resolvedXmlPath; XPath = '/configuration/appSetting/Test1';Ensure='Present'; Attributes=@{ TestValue2 = $testString; Name = $testString } } -Method Set
