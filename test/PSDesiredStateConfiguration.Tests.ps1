@@ -5,7 +5,7 @@ Function Install-ModuleIfMissing
         [String]
         $Name,
         [version]
-        $RequiredVersion,
+        $MinimumVersion,
         [switch]
         $SkipPublisherCheck,
         [switch]
@@ -118,10 +118,9 @@ Describe "Test PSDesiredStateConfiguration" -tags CI {
             $origProgress = $global:ProgressPreference
             $global:ProgressPreference = 'SilentlyContinue'
 
-
             Install-ModuleIfMissing -Name PSDscResources -Force
 
-            Install-ModuleIfMissing -Name PowerShellGet -RequiredVersion '2.2.1'
+            Install-ModuleIfMissing -Name PowerShellGet -MinimumVersion '2.2.1'
             $module = Get-Module PowerShellGet -ListAvailable | Sort-Object -Property Version -Descending | Select-Object -First 1
 
             $psGetModuleSpecification = @{ModuleName=$module.Name;ModuleVersion=$module.Version.ToString()}
