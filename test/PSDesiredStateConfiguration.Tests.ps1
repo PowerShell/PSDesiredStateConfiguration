@@ -14,7 +14,7 @@ Function Install-ModuleIfMissing
 
     $module = Get-Module -Name $Name -ListAvailable -ErrorAction Ignore | Sort-Object -Property Version -Descending | Select-Object -First 1
 
-    if(!$module -or $module.Version -lt $RequiredVersion)
+    if(!$module -or $module.Version -lt $MinimumVersion)
     {
         Write-Verbose "Installing module '$Name' ..." -Verbose
         Install-Module -Name $Name -Force -SkipPublisherCheck:$SkipPublisherCheck.IsPresent
