@@ -1,3 +1,26 @@
+Function Install-ModuleIfMissing
+{
+    param(
+        [parameter(Mandatory)]
+        [String]
+        $Name,
+        [version]
+        $MinimumVersion,
+        [switch]
+        $SkipPublisherCheck,
+        [switch]
+        $Force
+    )
+
+    $module = Get-Module -Name $Name -ListAvailable -ErrorAction Ignore | Sort-Object -Property Version -Descending | Select-Object -First 1
+
+    if(!$module -or $module.Version -lt $MinimumVersion)
+    {
+        Write-Verbose "Installing module '$Name' ..." -Verbose
+        Install-Module -Name $Name -Force -SkipPublisherCheck:$SkipPublisherCheck.IsPresent
+    }
+}
+
 Describe "Test PSDesiredStateConfiguration" -tags CI {
     Context "Module loading" {
         BeforeAll {
@@ -31,7 +54,7 @@ Describe "Test PSDesiredStateConfiguration" -tags CI {
         BeforeAll {
             $origProgress = $global:ProgressPreference
             $global:ProgressPreference = 'SilentlyContinue'
-            Install-Module -Name PSDscResources -Force
+            Install-ModuleIfMissing -Name PSDscResources
             $testCases = @(
                 @{
                     TestCaseName = 'case mismatch in resource name'
@@ -58,9 +81,14 @@ Describe "Test PSDesiredStateConfiguration" -tags CI {
         it "should be able to get <Name> - <TestCaseName>" -TestCases $testCases {
             param($Name)
 
-            if($IsLinux -or $IsWindows)
+            if($IsWindows)
             {
-                Set-ItResult -Pending -Because "https://github.com/PowerShell/PSDesiredStateConfiguration/issues/15"
+                Set-ItResult -Pending -Because "Will only find script from PSDesiredStateConfiguration without modulename"
+            }
+
+            if($IsLinux)
+            {
+                Set-ItResult -Pending -Because "https://github.com/PowerShell/PSDesiredStateConfiguration/issues/26"
             }
 
             $resource = Get-DscResource -Name $name
@@ -68,12 +96,13 @@ Describe "Test PSDesiredStateConfiguration" -tags CI {
             $resource.Name | Should -Be $Name
             $resource.ImplementationDetail | Should -BeNullOrEmpty
         }
+
         it "should be able to get <Name> from <ModuleName> - <TestCaseName>" -TestCases $testCases {
             param($Name,$ModuleName, $PendingBecause)
 
             if($IsLinux)
             {
-                Set-ItResult -Pending -Because "https://github.com/PowerShell/PSDesiredStateConfiguration/issues/12"
+                Set-ItResult -Pending -Because "https://github.com/PowerShell/PSDesiredStateConfiguration/issues/26"
             }
 
             if($PendingBecause)
@@ -90,7 +119,32 @@ Describe "Test PSDesiredStateConfiguration" -tags CI {
         BeforeAll {
             $origProgress = $global:ProgressPreference
             $global:ProgressPreference = 'SilentlyContinue'
+
+            Install-ModuleIfMissing -Name PSDscResources -Force
+
+            Install-ModuleIfMissing -Name PowerShellGet -MinimumVersion '2.2.1'
+            $module = Get-Module PowerShellGet -ListAvailable | Sort-Object -Property Version -Descending | Select-Object -First 1
+
+            $psGetModuleSpecification = @{ModuleName=$module.Name;ModuleVersion=$module.Version.ToString()}
+            $psGetModuleCount = @(Get-Module PowerShellGet -ListAvailable).Count
             $testCases = @(
+                @{
+                    TestCaseName = 'case mismatch in resource name'
+                    Name = 'script'
+                    ModuleName = 'PSDscResources'
+                }
+                @{
+                    TestCaseName = 'Both names have matching case'
+                    Name = 'Script'
+                    ModuleName = 'PSDscResources'
+                }
+                @{
+                    TestCaseName = 'case mismatch in module name'
+                    Name = 'Script'
+                    ModuleName = 'psdscResources'
+                }
+                <#
+                Add these back when PowerShellGet is fixed https://github.com/PowerShell/PowerShellGet/pull/529
                 @{
                     TestCaseName = 'case mismatch in resource name'
                     Name = 'PsModule'
@@ -105,8 +159,8 @@ Describe "Test PSDesiredStateConfiguration" -tags CI {
                     TestCaseName = 'case mismatch in module name'
                     Name = 'PSModule'
                     ModuleName = 'powershellget'
-                    PendingBecause = 'https://github.com/PowerShell/PSDesiredStateConfiguration/issues/12'
                 }
+                #>
             )
         }
         AfterAll {
@@ -116,15 +170,22 @@ Describe "Test PSDesiredStateConfiguration" -tags CI {
         it "should be able to get <Name> - <TestCaseName>" -TestCases $testCases {
             param($Name)
 
-            if($IsLinux -or $IsWindows)
+            if($IsWindows)
             {
-                Set-ItResult -Pending -Because "https://github.com/PowerShell/PSDesiredStateConfiguration/issues/15"
+                Set-ItResult -Pending -Because "Will only find script from PSDesiredStateConfiguration without modulename"
             }
 
-            $resource = Get-DscResource -Name $name
-            $resource | Should -Not -BeNullOrEmpty
-            $resource.Name | Should -Be $Name
-            $resource.ImplementationDetail | Should -Be 'ScriptBased'
+            if($PendingBecause)
+            {
+                Set-ItResult -Pending -Because $PendingBecause
+            }
+
+            $resources = @(Get-DscResource -Name $name)
+            $resources | Should -Not -BeNullOrEmpty
+            foreach($resource in $resource)
+            {
+                $resource.Name | Should -Be $Name
+            }
         }
 
         it "should be able to get <Name> from <ModuleName> - <TestCaseName>" -TestCases $testCases {
@@ -132,20 +193,22 @@ Describe "Test PSDesiredStateConfiguration" -tags CI {
 
             if($IsLinux)
             {
-                Set-ItResult -Pending -Because "https://github.com/PowerShell/PSDesiredStateConfiguration/issues/12"
+                Set-ItResult -Pending -Because "https://github.com/PowerShell/PSDesiredStateConfiguration/issues/12 and https://github.com/PowerShell/PowerShellGet/pull/529"
             }
 
             if($PendingBecause)
             {
                 Set-ItResult -Pending -Because $PendingBecause
             }
-            $resource = Get-DscResource -Name $Name -Module $ModuleName
-            $resource | Should -Not -BeNullOrEmpty
-            $resource.Name | Should -Be $Name
-            $resource.ImplementationDetail | Should -Be 'ScriptBased'
+
+            $resources = @(Get-DscResource -Name $name -Module $ModuleName)
+            $resources | Should -Not -BeNullOrEmpty
+            foreach($resource in $resource)
+            {
+                $resource.Name | Should -Be $Name
+            }
         }
 
-        # Fails on all platforms
         it "should throw when resource is not found" {
             Set-ItResult -Pending -Because "https://github.com/PowerShell/PSDesiredStateConfiguration/issues/17"
             {
@@ -159,19 +222,17 @@ Describe "Test PSDesiredStateConfiguration" -tags CI {
         BeforeAll {
             $origProgress = $global:ProgressPreference
             $global:ProgressPreference = 'SilentlyContinue'
-            Install-Module -Name XmlContentDsc -Force
+            Install-ModuleIfMissing -Name XmlContentDsc -Force
             $classTestCases = @(
                 @{
                     TestCaseName = 'Good case'
                     Name = 'XmlFileContentResource'
                     ModuleName = 'XmlContentDsc'
-                    PendingBecause = "https://github.com/PowerShell/PSDesiredStateConfiguration/issues/19"
                 }
                 @{
                     TestCaseName = 'Module Name case mismatch'
                     Name = 'XmlFileContentResource'
                     ModuleName = 'xmlcontentdsc'
-                    PendingBecause = 'https://github.com/PowerShell/PSDesiredStateConfiguration/issues/12'
                 }
                 @{
                     TestCaseName = 'Resource name case mismatch'
@@ -182,20 +243,16 @@ Describe "Test PSDesiredStateConfiguration" -tags CI {
         }
         AfterAll {
             $Global:ProgressPreference = $origProgress
-            Uninstall-Module -name XmlContentDsc -AllVersions
         }
 
         it "should be able to get class resource - <Name> from <ModuleName> - <TestCaseName>" -TestCases $classTestCases {
             param($Name,$ModuleName, $PendingBecause)
-            if($IsLinux -or $IsMacOs)
-            {
-                Set-ItResult -Pending -Because "Fix for most of these are in https://github.com/PowerShell/PowerShell/pull/10350"
-            }
 
             if($PendingBecause)
             {
                 Set-ItResult -Pending -Because $PendingBecause
             }
+
             $resource = Get-DscResource -Name $Name -Module $ModuleName
             $resource | Should -Not -BeNullOrEmpty
             $resource.Name | Should -Be $Name
@@ -204,7 +261,10 @@ Describe "Test PSDesiredStateConfiguration" -tags CI {
 
         it "should be able to get class resource - <Name> - <TestCaseName>" -TestCases $classTestCases {
             param($Name,$ModuleName, $PendingBecause)
-            Set-ItResult -Pending -Because "https://github.com/PowerShell/PSDesiredStateConfiguration/issues/19"
+            if($IsWindows)
+            {
+                Set-ItResult -Pending -Because "https://github.com/PowerShell/PSDesiredStateConfiguration/issues/19"
+            }
             if($PendingBecause)
             {
                 Set-ItResult -Pending -Because $PendingBecause
