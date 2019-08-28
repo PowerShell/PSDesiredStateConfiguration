@@ -1,0 +1,16 @@
+steps:
+- pwsh: |
+    Install-Module -Name "platyPS","Pester" -Force
+  displayName: Install dependencies
+  timeoutInMinutes: 10
+- pwsh: |
+    Install-Module -Name "PSScriptAnalyzer" -RequiredVersion 1.18.0 -Force
+  displayName: Install PSScriptAnalyzer
+  timeoutInMinutes: 10
+- pwsh: |
+    Install-Module -Name PSPackageProject -Force
+  displayName: Install PSPackageProject module
+  timeoutInMinutes: 10
+- pwsh: |
+    $(Build.SourcesDirectory)/build.ps1 -Build
+  displayName: Build
