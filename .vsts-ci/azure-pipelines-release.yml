@@ -121,25 +121,25 @@ stages:
         ArtifactType: 'Container'
 
     # Publish to TSA server
-    - task: TSAUpload@1
-      condition: succeededOrFailed()
-      continueOnError: true
-      inputs:
-        tsaVersion: 'TsaV2'
-        codebase: 'Existing'
-        tsaEnvironment: 'PROD'
-        codeBaseName: 'PSDesiredStateConfiguration_20190828'
-        uploadAPIScan: false
-        uploadBinSkim: false
-        uploadCredScan: true
-        uploadFortifySCA: false
-        uploadFxCop: false
-        uploadModernCop: false
-        uploadPoliCheck: true
-        uploadPREfast: false
-        uploadRoslyn: false
-        uploadTSLint: false
-        uploadAsync: true
+    # - task: TSAUpload@1
+    #   condition: succeededOrFailed()
+    #   continueOnError: true
+    #   inputs:
+    #     tsaVersion: 'TsaV2'
+    #     codebase: 'Existing'
+    #     tsaEnvironment: 'PROD'
+    #     codeBaseName: 'PSDesiredStateConfiguration_20190828'
+    #     uploadAPIScan: false
+    #     uploadBinSkim: false
+    #     uploadCredScan: true
+    #     uploadFortifySCA: false
+    #     uploadFxCop: false
+    #     uploadModernCop: false
+    #     uploadPoliCheck: true
+    #     uploadPREfast: false
+    #     uploadRoslyn: false
+    #     uploadTSLint: false
+    #     uploadAsync: true
 
     - pwsh: |
         $(Build.SourcesDirectory)/build.ps1 -Publish -Signed
