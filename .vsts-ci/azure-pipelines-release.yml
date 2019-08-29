@@ -50,6 +50,9 @@ stages:
         Get-ChildItem -Path env:
       displayName: Capture environment
       condition: succeededOrFailed()
+
+    - template: templates/shouldsign.yml
+
     - template: templates/ci-build.yml
 
     - powershell: |
