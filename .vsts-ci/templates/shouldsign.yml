@@ -12,6 +12,6 @@ steps:
     }
 
     $vstsCommandString = "vso[task.setvariable variable=SHOULD_SIGN]$($shouldSign.ToString().ToLowerInvariant())"
-    Write-Host "sending " + $vstsCommandString
+    Write-Host ("sending " + $vstsCommandString)
     Write-Host "##$vstsCommandString"
   displayName: 'Set SHOULD_SIGN Variable'

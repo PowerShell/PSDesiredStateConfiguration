@@ -46,12 +46,12 @@ stages:
       inputs:
         productName: PSDesiredStateConfiguration
 
+    - template: templates/shouldsign.yml
+
     - powershell: |
         Get-ChildItem -Path env:
       displayName: Capture environment
       condition: succeededOrFailed()
-
-    - template: templates/shouldsign.yml
 
     - template: templates/ci-build.yml
 
