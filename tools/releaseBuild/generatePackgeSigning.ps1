@@ -98,5 +98,3 @@ foreach ($file in $LinuxFiles) {
 $null = new-item -Path $path -ItemType file -Force
 $savePath = (Resolve-Path $Path).ProviderPath
 $signingXml.Save($savePath)
-#$updateScriptPath = Join-Path -Path $PSScriptRoot -ChildPath 'updateSigning.ps1'
-#& $updateScriptPath -SigningXmlPath $path
