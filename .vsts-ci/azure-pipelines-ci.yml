@@ -1,0 +1,78 @@
+name: Build-$(System.PullRequest.PullRequestNumber)-$(Date:yyyyMMdd)$(Rev:.rr)
+trigger:
+  # Batch merge builds together while a merge build is running
+  batch: true
+  branches:
+    include:
+    - master
+pr:
+  branches:
+    include:
+    - master
+    - feature-*
+  paths:
+    exclude:
+      - /.dependabot/*
+      - /.poshchan/*
+      - /.github/**/*
+      - /.vscode/**/*
+      - /.vsts-ci/misc-analysis.yml
+      - /tools/**/*
+      - .editorconfig
+      - .gitattributes
+      - .gitignore
+      - /docs/**/*
+      - /CHANGELOG.md
+      - /CONTRIBUTING.md
+      - /README.md
+      - /LICENSE.txt
+      - /CODE_OF_CONDUCT.md
+
+stages:
+- stage: Build
+  displayName: Build PowerShell Package
+  jobs:
+  - job: BuildPkg
+    displayName: Build Package
+    pool:
+      vmImage: windows-2019
+    steps:
+    - template: templates/ci-build.yml
+    - pwsh: |
+        Write-Verbose "BUILD_OUTPUT_PATH- $env:BUILD_OUTPUT_PATH" -Verbose
+        Write-Verbose "SIGNED_OUTPUT_PATH- $env:SIGNED_OUTPUT_PATH" -Verbose
+        Copy-Item $env:BUILD_OUTPUT_PATH $env:SIGNED_OUTPUT_PATH -Recurse -Force
+      displayName: Build Signing Placeholder
+    - pwsh: |
+        $(Build.SourcesDirectory)/build.ps1 -Publish -Signed
+      displayName: Publish
+      timeoutInMinutes: 10
+
+- stage: Test
+  displayName: Test Package
+  jobs:
+  - template: templates/ci-test.yml
+    parameters:
+      jobName: TestPkgWin
+      displayName: PowerShell Core on Windows
+      imageName: windows-2019
+
+  # Not supported on Windows PowerShell per PSD1
+  # - template: test.yml
+  #   parameters:
+  #     jobName: TestPkgWinPS
+  #     displayName: Windows PowerShell on Windows
+  #     imageName: windows-2019
+  #     powershellExecutable: powershell
+
+  - template: templates/ci-test.yml
+    parameters:
+      jobName: TestPkgUbuntu16
+      displayName: PowerShell Core on Ubuntu 16.04
+      imageName: ubuntu-16.04
+
+  - template: templates/ci-test.yml
+    parameters:
+      jobName: TestPkgWinMacOS
+      displayName: PowerShell Core on macOS
+      imageName: macOS-10.14
