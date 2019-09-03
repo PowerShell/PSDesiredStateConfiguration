@@ -1,0 +1,9 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!-- template used by generatePackageSigning.ps1 -->
+<SignConfigXML>
+  <job platform="" configuration="" dest="__OUTPATHROOT__\signed" jobname="PSDesiredStateConfiguration module" approvers="vigarg;gstolt">
+    <file src="__INPATHROOT__\PSDesiredStateConfiguration/helpers/DscResourceInfo.psm1" signType="AuthenticodeFormer" dest="__OUTPATHROOT__\PSDesiredStateConfiguration/helpers/DscResourceInfo.psm1" />
+    <file src="__INPATHROOT__\PSDesiredStateConfiguration/PSDesiredStateConfiguration.psd1" signType="AuthenticodeFormer" dest="__OUTPATHROOT__\PSDesiredStateConfiguration/PSDesiredStateConfiguration.psd1" />
+    <file src="__INPATHROOT__\PSDesiredStateConfiguration/PSDesiredStateConfiguration.psm1" signType="AuthenticodeFormer" dest="__OUTPATHROOT__\PSDesiredStateConfiguration/PSDesiredStateConfiguration.psm1" />
+  </job>
+</SignConfigXML>
