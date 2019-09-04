@@ -30,7 +30,11 @@ param (
 
     [Parameter(ParameterSetName="help")]
     [switch]
-    $UpdateHelp
+    $UpdateHelp,
+
+    [Parameter(ParameterSetName="build")]
+    [switch]
+    $TestInvokeDscResource
 )
 
 $config = Get-PSPackageProjectConfiguration -ConfigPath $PSScriptRoot
@@ -84,6 +88,29 @@ if ($Build.IsPresent)
 if ($Publish.IsPresent)
 {
     Invoke-PSPackageProjectPublish -Signed:$Signed.IsPresent
+}
+
+if ( $TestInvokeDscResource.IsPresent ) {
+    $backupName = $null
+    try {
+        $configFolder = split-path $PROFILE
+        $configPath = Join-Path $configFolder -ChildPath powershell.config.json
+        if(Test-Path ~/.config/powershell/powershell.config.json)
+        {
+            $backupName = Join-Path $configFolder -ChildPath "powershell.config-((Get-Date).ToString('yyyyMMddHHmm')).json"
+            Copy-Item $configPath $backupName -force
+        }
+
+        copy-Item  $PSScriptRoot/assets/powershell.config.json $configPath
+        Invoke-PSPackageProjectTest -Type $TestType
+    }
+    finally {
+        remove-item $configPath
+        if($backupName)
+        {
+            Copy-Item $backupName $configPath -force
+        }
+    }
 }
 
 if ( $Test.IsPresent ) {
