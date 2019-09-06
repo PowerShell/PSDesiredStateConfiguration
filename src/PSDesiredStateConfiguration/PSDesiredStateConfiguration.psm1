@@ -4135,7 +4135,14 @@ function GetResourceFromKeyword
                 $schemaToProcess = $classesFromSchema | ForEach-Object -Process {
                     if(($_.CimSystemProperties.ClassName -ieq $keyword.ResourceName) -and ($_.CimSuperClassName -ieq 'OMI_BaseResource'))
                     {
-                        $_ | Add-Member -MemberType NoteProperty -Name 'ImplementationDetail' -Value $implementationDetail -PassThru
+                        if ([ExperimentalFeature]::IsEnabled("PSDesiredStateConfiguration.InvokeDscResource"))
+                        {
+                            $_ | Add-Member -MemberType NoteProperty -Name 'ImplementationDetail' -Value $implementationDetail -PassThru
+                        }
+                        else
+                        {
+                            $_
+                        }
                     }
                 }
                 if($null -eq  $schemaToProcess)
@@ -4198,7 +4205,10 @@ function GetResourceFromKeyword
         Ascending  = $true
     }
     $resource.UpdateProperties($updatedProperties)
-    $resource | Add-Member -MemberType NoteProperty -Name 'ImplementationDetail' -Value $implementationDetail
+    if ([ExperimentalFeature]::IsEnabled("PSDesiredStateConfiguration.InvokeDscResource"))
+    {
+        $resource | Add-Member -MemberType NoteProperty -Name 'ImplementationDetail' -Value $implementationDetail
+    }
 
     return $resource
 }
@@ -4625,6 +4635,7 @@ Export-ModuleMember -Function Get-DscResource, Configuration
 
 function Invoke-DscResource
 {
+    [Experimental("PSDesiredStateConfiguration.InvokeDscResource", "Show")]
     [CmdletBinding(HelpUri = '')]
     param (
         [Parameter(ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true, Mandatory)]
