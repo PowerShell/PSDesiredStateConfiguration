@@ -14,6 +14,8 @@ data LocalizedData
     InvalidConfigPath = (ERROR) Invalid configuration path '{0}' specified.
     InvalidOutpath = (ERROR) Invalid OutPath '{0}' specified.
     InvalidConfigurationName = Invalid Configuration Name '{0}' is specified. Standard names may only contain letters (a-z, A-Z), numbers (0-9), and underscore (_). The name may not be null or empty, and should start with a letter.
+    InvalidResourceSpecification = Found more than one resource named '{0}'. Please use the module specification to be more specific.
+    UnsupportedResourceImplementation = The resource '{0}' implemented as '{1}' is not supported by Invoke-DscResource.
     NoValidConfigFileFound = No valid config files (mof,zip) were found.
     InputFileNotExist=File {0} doesn't exist.
     FileReadError=Error Reading file {0}.
@@ -1961,10 +1963,11 @@ function Configuration
                 $script:ConfigurationData = $ConfigurationData
             }
 
-            if($OutputPath -eq '.' -or $OutputPath -eq $null -or $OutputPath -eq '')
+            if($OutputPath -eq '.' -or $null -eq $OutputPath -or $OutputPath -eq '')
             {
                 $OutputPath = ".\$Name"
             }
+
             # Load the default CIM keyword/function definitions set, populating the function collection
             # with the default functions.
             [Microsoft.PowerShell.DesiredStateConfiguration.Internal.DscClassCache]::LoadDefaultCimKeywords($functionsToDefine)
@@ -3857,7 +3860,7 @@ function Get-DSCResourceModules
             {
                 foreach($psd1 in Get-ChildItem -Recurse -Filter "$($moduleFolder.Name).psd1" -Path $moduleFolder.fullname -Depth 2)
                 {
-                    $containsDSCResource = select-string -LiteralPath $psd1 -pattern '^(?!#).*\bDscResourcesToExport\b.*'
+                    $containsDSCResource = select-string -LiteralPath $psd1 -pattern '^[^#]*\bDscResourcesToExport\b.*'
                     if($null -ne $containsDSCResource)
                     {
                         $addModule = $true
@@ -3934,9 +3937,14 @@ function Get-DscResource
         {
             $moduleSpecificName = [System.Management.Automation.LanguagePrimitives]::ConvertTo($Module,[Microsoft.PowerShell.Commands.ModuleSpecification])
             $modules = Get-Module -ListAvailable -FullyQualifiedName $moduleSpecificName
+
             if($Module -is [System.Collections.Hashtable])
             {
                 $ModuleString = $Module.ModuleName
+            }
+            elseif($Module -is [Microsoft.PowerShell.Commands.ModuleSpecification])
+            {
+                $ModuleString = $Module.Name
             }
             else
             {
@@ -3980,12 +3988,14 @@ function Get-DscResource
                 $nameMessage = $LocalizedData.GetDscResourceInputName -f @('Name', [system.string]::Join(', ', $Name))
                 Write-Verbose -Message $nameMessage
             }
-            if($Module -and !$modules)
+
+            if(!$modules)
             {
                 #Return if no modules were found with the required specification
                 Write-Warning -Message $LocalizedData.NoModulesPresent
                 return
             }
+
             $ignoreResourceParameters = @('InstanceName', 'OutputPath', 'ConfigurationData') + [System.Management.Automation.Cmdlet]::CommonParameters + [System.Management.Automation.Cmdlet]::OptionalCommonParameters
 
             $patterns = GetPatterns $Name
@@ -4075,6 +4085,8 @@ function GetResourceFromKeyword
         $modules
     )
 
+    $implementationDetail = 'ScriptBased'
+
     # Find whether $name follows the pattern
     $matched = (IsPatternMatched $patterns $keyword.ResourceName) -or (IsPatternMatched $patterns $keyword.Keyword)
     if ($matched -eq $false)
@@ -4101,6 +4113,7 @@ function GetResourceFromKeyword
     $resource.Name = $keyword.Keyword
 
     $schemaFiles = [Microsoft.PowerShell.DesiredStateConfiguration.Internal.DscClassCache]::GetFileDefiningClass($keyword.ResourceName)
+
     if ($schemaFiles.Count)
     {
         # Find the correct schema file that matches module name and version
@@ -4122,7 +4135,14 @@ function GetResourceFromKeyword
                 $schemaToProcess = $classesFromSchema | ForEach-Object -Process {
                     if(($_.CimSystemProperties.ClassName -ieq $keyword.ResourceName) -and ($_.CimSuperClassName -ieq 'OMI_BaseResource'))
                     {
-                        $_
+                        if ([ExperimentalFeature]::IsEnabled("PSDesiredStateConfiguration.InvokeDscResource"))
+                        {
+                            $_ | Add-Member -MemberType NoteProperty -Name 'ImplementationDetail' -Value $implementationDetail -PassThru
+                        }
+                        else
+                        {
+                            $_
+                        }
                     }
                 }
                 if($null -eq  $schemaToProcess)
@@ -4141,6 +4161,7 @@ function GetResourceFromKeyword
     }
     else
     {
+        $implementationDetail = 'ClassBased'
         $Module = $modules | Where-Object -FilterScript {
             $_.Name -eq $keyword.ImplementingModule -and
             $_.Version -eq $keyword.ImplementingModuleVersion
@@ -4148,6 +4169,7 @@ function GetResourceFromKeyword
 
         if ($Module -and $Module.ExportedDscResources -contains $keyword.Keyword)
         {
+            $implementationDetail = 'ClassBased'
             $resource.Module = $Module
             $resource.Path = $Module.Path
             $resource.ParentPath = Split-Path -Path $Module.Path
@@ -4160,6 +4182,7 @@ function GetResourceFromKeyword
     }
     else
     {
+        $implementationDetail = $null
         $resource.ImplementedAs = [Microsoft.PowerShell.DesiredStateConfiguration.ImplementedAsType]::Binary
     }
 
@@ -4182,6 +4205,10 @@ function GetResourceFromKeyword
         Ascending  = $true
     }
     $resource.UpdateProperties($updatedProperties)
+    if ([ExperimentalFeature]::IsEnabled("PSDesiredStateConfiguration.InvokeDscResource"))
+    {
+        $resource | Add-Member -MemberType NoteProperty -Name 'ImplementationDetail' -Value $implementationDetail
+    }
 
     return $resource
 }
@@ -4244,6 +4271,7 @@ function GetCompositeResource
         AddDscResourcePropertyFromMetadata $resource $_ $ignoreParameters
     }
 
+    $resource | Add-Member -MemberType NoteProperty -Name 'ImplementationDetail' -Value $null
     return $resource
 }
 
@@ -4604,6 +4632,191 @@ function IsPatternMatched
 }
 
 Export-ModuleMember -Function Get-DscResource, Configuration
+
+function Invoke-DscResource
+{
+    [Experimental("PSDesiredStateConfiguration.InvokeDscResource", "Show")]
+    [CmdletBinding(HelpUri = '')]
+    param (
+        [Parameter(ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true, Mandatory)]
+        [ValidateNotNullOrEmpty()]
+        [string]
+        $Name,
+        [Parameter(ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true)]
+        [ValidateNotNullOrEmpty()]
+        [Microsoft.PowerShell.Commands.ModuleSpecification]
+        $ModuleName,
+        [Parameter(Mandatory)]
+        [ValidateSet('Get','Set','Test')]
+        [string]
+        $Method,
+        [Hashtable]
+        $Property
+    )
+
+    $getArguments = @{
+        Name = $Name
+    }
+
+    if($ModuleName)
+    {
+        $getArguments.Add('Module',$ModuleName)
+    }
+
+    Write-Debug -Message "Getting DSC Resource $Name"
+    $resource = @(Get-DscResource @getArguments -ErrorAction stop)
+
+    if($resource.Count -eq 0)
+    {
+        throw "unexpected state - no resources found - get-dscresource should have thrown"
+    }
+
+    if($resource.Count -ne 1)
+    {
+        $errorMessage = $LocalizedData.InvalidResourceSpecification -f $name
+        $exception = [System.ArgumentException]::new($errorMessage,'Name')
+        ThrowError -ExceptionName 'System.ArgumentException' -ExceptionMessage $errorMessage -ExceptionObject $exception -ErrorId 'InvalidResourceSpecification,Invoke-DscResource' -ErrorCategory InvalidArgument
+    }
+
+    [Microsoft.PowerShell.DesiredStateConfiguration.DscResourceInfo] $resource = $resource[0]
+    if($resource.ImplementedAs -ne 'PowerShell')
+    {
+        $errorMessage = $LocalizedData.UnsupportedResourceImplementation -f $name, $resource.ImplementedAs
+        $exception = [System.InvalidOperationException]::new($errorMessage)
+        ThrowError -ExceptionName 'System.InvalidOperationException' -ExceptionMessage $errorMessage -ExceptionObject $exception -ErrorId 'UnsupportedResourceImplementation,Invoke-DscResource' -ErrorCategory InvalidOperation
+    }
+
+    $resourceInfo = $resource |out-string
+    Write-Debug $resourceInfo
+
+    if($resource.ImplementationDetail -eq 'ClassBased')
+    {
+        Invoke-DscClassBasedResource -Resource $resource -Method $Method -Property $Property
+    }
+    else
+    {
+        Invoke-DscScriptBasedResource -Resource $resource -Method $Method -Property $Property
+    }
+}
+
+# Class to return Test method results for Invoke-DscResource
+class InvokeDscResourceTestResult {
+    [bool] $InDesiredState
+}
+
+# Class to return Set method results for Invoke-DscResource
+class InvokeDscResourceSetResult {
+    [bool] $RebootRequired
+}
+
+function Invoke-DscClassBasedResource
+{
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSAvoidGlobalVars", "", Scope="Function")]
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseDeclaredVarsMoreThanAssignments", "", Scope="Function")]
+    param(
+        [Parameter(Mandatory)]
+        [Microsoft.PowerShell.DesiredStateConfiguration.DscResourceInfo] $resource,
+        [Parameter(Mandatory)]
+        [ValidateSet('Get','Set','Test')]
+        [string]
+        $Method,
+        [Hashtable]
+        $Property
+    )
+
+    $path = $resource.Path
+    $type = $resource.ResourceType
+
+    Write-Debug "Importing $path ..."
+    $iss = [System.Management.Automation.Runspaces.InitialSessionState]::CreateDefault2()
+    $powershell = [PowerShell]::Create($iss)
+    $script = @"
+using module $path
+
+Write-Host -Message ([$type]::new | out-string)
+return [$type]::new()
+"@
+
+
+    $null= $powershell.AddScript($script)
+    $dscType=$powershell.Invoke() | Select-object -First 1
+    foreach($key in $Property.Keys)
+    {
+        $value = $Property.$key
+        Write-Debug "Setting $key to $value"
+        $dscType.$key = $value
+    }
+    $info = $dscType | Out-String
+    Write-Debug $info
+
+    Write-Debug "calling $type.$Method() ..."
+    $global:DSCMachineStatus = $null
+    $output = $dscType.$Method()
+    return Get-InvokeDscResourceResult -Output $output -Method $Method
+}
+
+function Invoke-DscScriptBasedResource
+{
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSAvoidGlobalVars", "", Scope="Function")]
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseDeclaredVarsMoreThanAssignments", "", Scope="Function")]
+    param(
+        [Parameter(Mandatory)]
+        [Microsoft.PowerShell.DesiredStateConfiguration.DscResourceInfo] $resource,
+        [Parameter(Mandatory)]
+        [ValidateSet('Get','Set','Test')]
+        [string]
+        $Method,
+        [Hashtable]
+        $Property
+    )
+
+    $path = $resource.Path
+    $type = $resource.ResourceType
+
+    Write-Debug "Importing $path ..."
+    Import-module -Scope Local -Name $path -Force -ErrorAction stop
+
+    $functionName = "$Method-TargetResource"
+
+    Write-Debug "calling $name\$functionName ..."
+    $global:DSCMachineStatus = $null
+    $output = & $type\$functionName @Property
+    return Get-InvokeDscResourceResult -Output $output -Method $Method
+}
+
+function Get-InvokeDscResourceResult
+{
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSAvoidGlobalVars", "", Scope="Function")]
+    param(
+        $Output,
+        $Method
+    )
+
+    switch($Method)
+    {
+        'Set' {
+            $Output | Foreach-Object -Process {
+                Write-Verbose -Message ('output: ' + $_)
+            }
+            $rebootRequired = if($global:DSCMachineStatus -eq 1) {$true} else {$false}
+            return [InvokeDscResourceSetResult]@{
+                RebootRequired = $rebootRequired
+            }
+        }
+        'Test' {
+            return [InvokeDscResourceTestResult]@{
+                InDesiredState = $Output
+            }
+        }
+        default {
+            return $Output
+        }
+    }
+}
+
+Export-ModuleMember -Function @(
+        'Invoke-DscResource'
+    )
 
 ###########################################################
 

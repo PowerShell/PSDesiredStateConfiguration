@@ -9,7 +9,7 @@
 RootModule = 'PSDesiredStateConfiguration.psm1'
 
 # Version number of this module.
-moduleVersion = '2.0.0'
+moduleVersion = '2.0.1'
 
 # Supported PSEditions
 CompatiblePSEditions = @('Core')
@@ -70,6 +70,7 @@ FunctionsToExport = @(
         'Configuration'
         'New-DscChecksum'
         'Get-DscResource'
+        'Invoke-DscResource'
     )
 
 
@@ -96,4 +97,16 @@ HelpInfoURI = 'https://go.microsoft.com/fwlink/?linkid=390814'
 
 # Default prefix for commands exported from this module. Override the default prefix using Import-Module -Prefix.
 # DefaultCommandPrefix = ''
+
+PrivateData = @{
+    PSData = @{
+        ExperimentalFeatures = @(
+                @{
+                    Name = 'PSDesiredStateConfiguration.InvokeDscResource'
+                    Description = "Enables the Invoke-DscResource cmdlet and related features."
+                }
+            )
+        }
+    }
+
 }

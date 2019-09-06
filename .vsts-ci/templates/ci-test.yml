@@ -83,7 +83,19 @@ jobs:
 
   - ${{ parameters.powershellExecutable }}: |
       Invoke-PSPackageProjectTest -Type Functional
-    displayName: Execute functional tests
+    displayName: Execute functional tests - InvokeDscResource Disabled
+    errorActionPreference: continue
+
+  - ${{ parameters.powershellExecutable }}: |
+      $configFolder = split-path $PROFILE
+      $configPath = Join-Path $configFolder -ChildPath powershell.config.json
+      copy-Item  $(Build.SourcesDirectory)/assets/powershell.config.json $configPath
+    displayName: Enable ExperimentalFeature
+    errorActionPreference: continue
+
+  - ${{ parameters.powershellExecutable }}: |
+      Invoke-PSPackageProjectTest -Type Functional
+    displayName: Execute functional tests - InvokeDscResource Enabled
     errorActionPreference: continue
 
   - ${{ parameters.powershellExecutable }}: |
