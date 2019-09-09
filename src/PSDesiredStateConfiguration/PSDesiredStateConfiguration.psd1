@@ -9,7 +9,7 @@
 RootModule = 'PSDesiredStateConfiguration.psm1'
 
 # Version number of this module.
-moduleVersion = '2.0.1'
+moduleVersion = '2.0.2'
 
 # Supported PSEditions
 CompatiblePSEditions = @('Core')
@@ -30,7 +30,7 @@ Copyright = '(c) Microsoft Corporation. All rights reserved.'
 Description = 'PowerShell Desired State Configuration'
 
 # Minimum version of the Windows PowerShell engine required by this module
-PowerShellVersion = '6.0'
+PowerShellVersion = '6.1'
 
 # Name of the Windows PowerShell host required by this module
 # PowerShellHostName = ''
