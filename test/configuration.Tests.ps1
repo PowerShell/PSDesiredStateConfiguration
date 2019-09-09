@@ -7,9 +7,23 @@ Describe "DSC MOF Compilation" -tags "CI" {
     }
 
     BeforeAll {
-        $IsAlpine = (Get-PlatformInfo) -eq "alpine"
-        Import-Module PSDesiredStateConfiguration
-        $dscModule = Get-Module PSDesiredStateConfiguration
+        if(!$IsWindows)
+        {
+            $env:DSC_HOME = (join-path (split-path (get-module PSDesiredStateConfiguration -listavailable).Path) -ChildPath 'Configuration')
+        }
+
+        $IsAlpine = $false
+        if(Get-Command -name 'Get-PlatformInfo' -ErrorAction Ignore)
+        {
+            $IsAlpine = (Get-PlatformInfo) -eq "alpine"
+        }
+
+        $dscModule = Get-Module PSDesiredStateConfiguration -ErrorAction Ignore
+        if(!$dscModule)
+        {
+            Import-Module PSDesiredStateConfiguration
+            $dscModule = Get-Module PSDesiredStateConfiguration
+        }
         $baseSchemaPath = Join-Path $dscModule.ModuleBase 'Configuration'
         $testResourceSchemaPath = Join-Path -Path (Join-Path -Path (Join-Path -Path $PSScriptRoot -ChildPath assets) -ChildPath dsc) schema
 
@@ -52,6 +66,27 @@ Describe "DSC MOF Compilation" -tags "CI" {
                     SetScript = "";
                     TestScript = "";
                     User = "root";
+                }
+            }
+        }
+
+        DSCTestConfig -OutputPath TestDrive:\DscTestConfig2
+"@) | Should -Not -Throw
+
+        "TestDrive:\DscTestConfig2\localhost.mof" | Should -Exist
+    }
+
+    It "Should be able to compile a MOF from another basic configuration" -Skip:(!$IsMacOS) {
+        Write-Verbose "DSC_HOME: ${env:DSC_HOME}" -verbose
+        [Scriptblock]::Create(@"
+        configuration DSCTestConfig
+        {
+            Import-DscResource -ModuleName PowerShellGet
+            Node "localhost" {
+                PSModule f1
+                {
+                    Name = 'PsDscResources'
+                    InstallationPolicy = 'Trusted'
                 }
             }
         }
