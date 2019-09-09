@@ -7,11 +7,6 @@ Describe "DSC MOF Compilation" -tags "CI" {
     }
 
     BeforeAll {
-        if(!$IsWindows)
-        {
-            $env:DSC_HOME = (join-path (split-path (get-module PSDesiredStateConfiguration -listavailable).Path) -ChildPath 'Configuration')
-        }
-
         $IsAlpine = $false
         if(Get-Command -name 'Get-PlatformInfo' -ErrorAction Ignore)
         {
