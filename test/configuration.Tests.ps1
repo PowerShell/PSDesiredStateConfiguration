@@ -13,17 +13,15 @@ Describe "DSC MOF Compilation" -tags "CI" {
             $IsAlpine = (Get-PlatformInfo) -eq "alpine"
         }
 
-        $dscModule = Get-Module PSDesiredStateConfiguration -ErrorAction Ignore
-        if(!$dscModule)
+        $dscModules = Get-Module PSDesiredStateConfiguration -ListAvailable
+        foreach($dscModule in $dscModules)
         {
-            Import-Module PSDesiredStateConfiguration
-            $dscModule = Get-Module PSDesiredStateConfiguration
-        }
-        $baseSchemaPath = Join-Path $dscModule.ModuleBase 'Configuration'
-        $testResourceSchemaPath = Join-Path -Path (Join-Path -Path (Join-Path -Path $PSScriptRoot -ChildPath assets) -ChildPath dsc) schema
+            $baseSchemaPath = Join-Path $dscModule.ModuleBase 'Configuration'
+            $testResourceSchemaPath = Join-Path -Path (Join-Path -Path (Join-Path -Path $PSScriptRoot -ChildPath assets) -ChildPath dsc) schema
 
-        # Copy test resources to PSDesiredStateConfiguration module
-        Copy-Item $testResourceSchemaPath $baseSchemaPath -Recurse -Force
+            # Copy test resources to PSDesiredStateConfiguration module
+            Copy-Item $testResourceSchemaPath $baseSchemaPath -Recurse -Force
+        }
 
         $_modulePath = $env:PSModulePath
         $powershellexe = (get-process -pid $PID).MainModule.FileName
