@@ -83,13 +83,16 @@ jobs:
 
   - ${{ parameters.powershellExecutable }}: |
       $psdscPath = Join-Path -Path $PSHome -ChildPath 'Modules/PSDesiredStateConfiguration'
+      $modulesPath = Join-Path -Path $PSHome -ChildPath 'Modules'
       if($IsMacOs -or $IsLinux)
       {
         sudo rm -rf $psdscPath
+        sudo pwsh -c Copy-Item $config.BuildOutputPath $modulesPath -Recurse -Force
       }
       elseif($IsWindows)
       {
         Remove-Item -Force -Recurse $psdscPath
+        Copy-Item $config.BuildOutputPath $modulesPath -Recurse -Force
       }
     displayName: Remove built-in PSDesiredStateConfiguration
     errorActionPreference: continue
