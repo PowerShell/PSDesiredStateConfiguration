@@ -2,10 +2,6 @@
 # Licensed under the MIT License.
 Describe "DSC MOF Compilation" -tags "CI" {
 
-    AfterAll {
-        $env:PSModulePath = $_modulePath
-    }
-
     BeforeAll {
         $IsAlpine = $false
         if(Get-Command -name 'Get-PlatformInfo' -ErrorAction Ignore)
@@ -22,10 +18,6 @@ Describe "DSC MOF Compilation" -tags "CI" {
             # Copy test resources to PSDesiredStateConfiguration module
             Copy-Item $testResourceSchemaPath $baseSchemaPath -Recurse -Force
         }
-
-        $_modulePath = $env:PSModulePath
-        $powershellexe = (get-process -pid $PID).MainModule.FileName
-        $env:PSModulePath = join-path ([io.path]::GetDirectoryName($powershellexe)) Modules
     }
 
     It "Should be able to compile a MOF from a basic configuration" -Skip:($IsMacOS -or $IsWindows -or $IsAlpine) {
