@@ -82,19 +82,6 @@ jobs:
     timeoutInMinutes: 10
 
   - ${{ parameters.powershellExecutable }}: |
-      $psdscPath = Join-Path -Path $PSHome -ChildPath 'Modules/PSDesiredStateConfiguration'
-      if($IsMacOs -or $IsLinux)
-      {
-        sudo rm -rf $psdscPath
-      }
-      elseif($IsWindows)
-      {
-        Remove-Item -Force -Recurse $psdscPath
-      }
-    displayName: Remove built-in PSDesiredStateConfiguration
-    errorActionPreference: continue
-
-  - ${{ parameters.powershellExecutable }}: |
       Invoke-PSPackageProjectTest -Type Functional
     displayName: Execute functional tests - InvokeDscResource Disabled
     errorActionPreference: continue
