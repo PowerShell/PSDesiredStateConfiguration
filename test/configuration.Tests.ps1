@@ -8,6 +8,10 @@ Describe "DSC MOF Compilation" -tags "CI" {
     }
 
     It "Should be able to compile a MOF using PSModule resource"  {
+        if ($IsLinux) {
+            Set-ItResult -Pending -Because "https://github.com/PowerShell/PowerShellGet/pull/529"
+        }
+
         Write-Verbose "DSC_HOME: ${env:DSC_HOME}" -verbose
         [Scriptblock]::Create(@"
         configuration DSCTestConfig
