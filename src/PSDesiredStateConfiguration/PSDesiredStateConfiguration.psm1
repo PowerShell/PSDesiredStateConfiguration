@@ -1890,7 +1890,7 @@ function Configuration
             return $null
         }
 
-        $moduleToImport | Forearch-Object -Process {
+        $moduleToImport | Foreach-Object -Process {
             $versionToUse = $_.Version
             if( [string]::IsNullOrEmpty($versionToUse))
             {
