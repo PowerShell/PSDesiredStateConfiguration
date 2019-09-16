@@ -65,6 +65,7 @@ data LocalizedData
     NoModulesPresent=There are no modules present in the system with the given module specification.
     ImportDscResourceWarningForInbuiltResource=The configuration '{0}' is loading one or more built-in resources without explicitly importing associated modules. Add Import-DscResource -ModuleName 'PSDesiredStateConfiguration' to your configuration to avoid this message.
     PasswordTooLong=An error occurred during encryption of a password in node '{0}'. Most likely the password entered is too long to be encrypted using the selected certificate.  Please either use a shorter password or select a certificate with a larger key.
+    PsDscRunAsCredentialNotSupport=The 'PsDscRunAsCredential' property is not currently support when using Invoke-DscResource.
 '@
 }
 Set-StrictMode -Off
@@ -4650,12 +4651,20 @@ function Invoke-DscResource
         [ValidateSet('Get','Set','Test')]
         [string]
         $Method,
+        [Parameter(Mandatory)]
         [Hashtable]
         $Property
     )
 
     $getArguments = @{
         Name = $Name
+    }
+
+    if($Property.ContainsKey('PsDscRunAsCredential'))
+    {
+        $errorMessage = $LocalizedData.PsDscRunAsCredentialNotSupport -f $name
+        $exception = [System.ArgumentException]::new($errorMessage,'Name')
+        ThrowError -ExceptionName 'System.ArgumentException' -ExceptionMessage $errorMessage -ExceptionObject $exception -ErrorId 'PsDscRunAsCredentialNotSupport,Invoke-DscResource' -ErrorCategory InvalidArgument
     }
 
     if($ModuleName)
