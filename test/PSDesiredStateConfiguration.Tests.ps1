@@ -1,3 +1,5 @@
+# Copyright (c) Microsoft Corporation. All rights reserved.
+# Licensed under the MIT License.
 Function Install-ModuleIfMissing {
     param(
         [parameter(Mandatory)]
@@ -32,12 +34,6 @@ Describe "Test PSDesiredStateConfiguration" -tags CI {
                 $expectedCommandCount ++
             }
         }
-        BeforeEach {
-        }
-        AfterEach {
-        }
-        AfterAll {
-        }
 
         It "The module should have $expectedCommandCount commands" {
             if ($commands.Count -ne $expectedCommandCount) {
@@ -47,9 +43,11 @@ Describe "Test PSDesiredStateConfiguration" -tags CI {
             }
             $commands.Count | Should -Be $expectedCommandCount
         }
+
         It "The module should have the Configuration Command" {
             $commands | Where-Object { $_.Name -eq 'Configuration' } | Should -Not -BeNullOrEmpty
         }
+
         It "The module should have the Get-DscResource Command" {
             $commands | Where-Object { $_.Name -eq 'Get-DscResource' } | Should -Not -BeNullOrEmpty
         }
@@ -77,9 +75,11 @@ Describe "Test PSDesiredStateConfiguration" -tags CI {
                 }
             )
         }
+
         AfterAll {
             $Global:ProgressPreference = $origProgress
         }
+
         it "should be able to get <Name> - <TestCaseName>" -TestCases $testCases {
             param($Name)
 
@@ -113,6 +113,7 @@ Describe "Test PSDesiredStateConfiguration" -tags CI {
             if ($PendingBecause) {
                 Set-ItResult -Pending -Because $PendingBecause
             }
+
             $resource = Get-DscResource -Name $Name -Module $ModuleName
             $resource | Should -Not -BeNullOrEmpty
             $resource.Name | Should -Be $Name
@@ -172,6 +173,7 @@ Describe "Test PSDesiredStateConfiguration" -tags CI {
                 #>
             )
         }
+
         AfterAll {
             $Global:ProgressPreference = $origProgress
         }
@@ -257,6 +259,7 @@ Describe "Test PSDesiredStateConfiguration" -tags CI {
                 }
             )
         }
+
         AfterAll {
             $Global:ProgressPreference = $origProgress
         }
@@ -284,9 +287,11 @@ Describe "Test PSDesiredStateConfiguration" -tags CI {
             if ($IsWindows) {
                 Set-ItResult -Pending -Because "https://github.com/PowerShell/PSDesiredStateConfiguration/issues/19"
             }
+
             if ($PendingBecause) {
                 Set-ItResult -Pending -Because $PendingBecause
             }
+
             $resource = Get-DscResource -Name $Name
             $resource | Should -Not -BeNullOrEmpty
             $resource.Name | Should -Be $Name
@@ -308,9 +313,11 @@ Describe "Test PSDesiredStateConfiguration" -tags CI {
                 Uninstall-Module -Name PsDscResources -AllVersions -Force
             }
         }
+
         AfterAll {
             $Global:ProgressPreference = $origProgress
         }
+
         Context "mof resources" {
             BeforeAll {
                 $dscMachineStatusCases = @(
@@ -365,15 +372,18 @@ Describe "Test PSDesiredStateConfiguration" -tags CI {
                 $result | Should -Not -BeNullOrEmpty
                 $result.RebootRequired | Should -BeExactly $expectedResult
             }
+
             it "Test method should return false"  -Skip:(!(Test-IsInvokeDscResourceEnable)) {
                 $result = Invoke-DscResource -Name Script -ModuleName PSDscResources -Method Test -Property @{TestScript = { Write-Output 'test'; return $false }; GetScript = { return @{ } }; SetScript = { return } }
                 $result | Should -Not -BeNullOrEmpty
                 $result.InDesiredState | Should -BeFalse -Because "Test method return false"
             }
+
             it "Test method should return true"  -Skip:(!(Test-IsInvokeDscResourceEnable)) {
                 $result = Invoke-DscResource -Name Script -ModuleName PSDscResources -Method Test -Property @{TestScript = { Write-Verbose 'test'; return $true }; GetScript = { return @{ } }; SetScript = { return } }
                 $result | Should -BeTrue -Because "Test method return true"
             }
+
             it "Test method should return true with moduleSpecification"  -Skip:(!(Test-IsInvokeDscResourceEnable)) {
                 $module = get-module PsDscResources -ListAvailable
                 $moduleSpecification = @{ModuleName = $module.Name; ModuleVersion = $module.Version.ToString() }
@@ -429,13 +439,16 @@ Describe "Test PSDesiredStateConfiguration" -tags CI {
                 $result.ModuleType | Should -Be 'Manifest'
             }
         }
+
         Context "Class Based Resources" {
             BeforeAll {
                 Install-ModuleIfMissing -Name XmlContentDsc -Force
             }
+
             AfterAll {
                 $Global:ProgressPreference = $origProgress
             }
+
             BeforeEach {
                 $testXmlPath = 'TestDrive:\test.xml'
                 @'
@@ -447,6 +460,7 @@ Describe "Test PSDesiredStateConfiguration" -tags CI {
 '@ | Out-File -FilePath $testXmlPath -Encoding utf8NoBOM
                 $resolvedXmlPath = (Resolve-Path -Path $testXmlPath).ProviderPath
             }
+
             it 'Set method should work'  -Skip:(!(Test-IsInvokeDscResourceEnable)) {
                 param(
                     $value,
