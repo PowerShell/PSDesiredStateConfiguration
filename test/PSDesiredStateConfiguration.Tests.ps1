@@ -132,6 +132,7 @@ Describe "Test PSDesiredStateConfiguration" -tags CI {
 
             Install-ModuleIfMissing -Name PSDscResources -Force
 
+            # Install PowerShellGet only if PowerShellGet 2.2.1 or newer does not exist
             Install-ModuleIfMissing -Name PowerShellGet -MinimumVersion '2.2.1'
             $module = Get-Module PowerShellGet -ListAvailable | Sort-Object -Property Version -Descending | Select-Object -First 1
 
@@ -261,7 +262,7 @@ Describe "Test PSDesiredStateConfiguration" -tags CI {
         }
 
         AfterAll {
-            $Global:ProgressPreference = $origProgress
+            $global:ProgressPreference = $origProgress
         }
 
         it "should be able to get class resource - <Name> from <ModuleName> - <TestCaseName>" -TestCases $classTestCases {
