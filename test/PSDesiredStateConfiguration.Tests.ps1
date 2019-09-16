@@ -28,28 +28,54 @@ Function Test-IsInvokeDscResourceEnable {
 Describe "Test PSDesiredStateConfiguration" -tags CI {
     Context "Module loading" {
         BeforeAll {
-            $commands = Get-Command -Module PSDesiredStateConfiguration
-            $expectedCommandCount = 3
-            if (Test-IsInvokeDscResourceEnable) {
-                $expectedCommandCount ++
-            }
-        }
+            Function BeCommand {
+                [CmdletBinding()]
+                Param(
+                    [object[]] $ActualValue,
+                    [string] $CommandName,
+                    [string] $ModuleName,
+                    [switch]$Negate
+                )
 
-        It "The module should have $expectedCommandCount commands" {
-            if ($commands.Count -ne $expectedCommandCount) {
-                $modulePath = (Get-Module PSDesiredStateConfiguration).Path
-                Write-Verbose -Verbose -Message "PSDesiredStateConfiguration Path: $modulePath"
-                $commands | Out-String | Write-Verbose -Verbose
+                $failure = if ($Negate) {
+                    "Expected: Command $CommandName should not exist in module $ModuleName"
+                }
+                else {
+                    "Expected: Command $CommandName should exist in module $ModuleName"
+                }
+
+                $succeeded = if ($Negate) {
+                    ($ActualValue | Where-Object { $_.Name -eq $CommandName }).count -eq 0
+                }
+                else {
+                    ($ActualValue | Where-Object { $_.Name -eq $CommandName }).count -gt 0
+                }
+
+                return [PSCustomObject]@{
+                    Succeeded = $succeeded
+                    FailureMessage = $failure
+                }
             }
-            $commands.Count | Should -Be $expectedCommandCount
+
+            Add-AssertionOperator -Name 'HaveCommand' -Test $Function:BeCommand -SupportsArrayInput
+
+            $commands = Get-Command -Module PSDesiredStateConfiguration
         }
 
         It "The module should have the Configuration Command" {
-            $commands | Where-Object { $_.Name -eq 'Configuration' } | Should -Not -BeNullOrEmpty
+            $commands | Should -HaveCommand -CommandName 'Configuration' -ModuleName PSDesiredStateConfiguration
+        }
+
+        It "The module should have the Configuration Command" {
+            $commands | Should -HaveCommand -CommandName 'New-DscChecksum' -ModuleName PSDesiredStateConfiguration
         }
 
         It "The module should have the Get-DscResource Command" {
-            $commands | Where-Object { $_.Name -eq 'Get-DscResource' } | Should -Not -BeNullOrEmpty
+            $commands | Should -HaveCommand -CommandName 'Get-DscResource' -ModuleName PSDesiredStateConfiguration
+        }
+
+        It "The module should have the Invoke-DscResource Command" -Skip:(!(Test-IsInvokeDscResourceEnable)) {
+            $commands | Should -HaveCommand -CommandName 'Invoke-DscResource' -ModuleName PSDesiredStateConfiguration
         }
     }
     Context "Get-DscResource - Composite Resources" {
@@ -125,6 +151,7 @@ Describe "Test PSDesiredStateConfiguration" -tags CI {
             }
         }
     }
+
     Context "Get-DscResource - ScriptResources" {
         BeforeAll {
             $origProgress = $global:ProgressPreference
