@@ -5,7 +5,10 @@ Describe "DSC MOF Compilation" -tags "CI" {
         $module = Get-Module PowerShellGet -ListAvailable | Sort-Object -Property Version -Descending | Select-Object -First 1
 
         $psGetModuleVersion = $module.Version.ToString()
-        #Import-Module PSDesiredStateConfiguration
+        if (!$env:DSC_HOME)
+        {
+            Import-Module PSDesiredStateConfiguration
+        }
     }
 
     It "Should be able to compile a MOF using PSModule resource"  {
