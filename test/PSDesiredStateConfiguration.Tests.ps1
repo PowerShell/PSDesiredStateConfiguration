@@ -368,6 +368,7 @@ Describe "Test PSDesiredStateConfiguration" -tags CI {
                 )
 
                 Install-ModuleIfMissing -Name PowerShellGet -Force -SkipPublisherCheck -MinimumVersion '2.2.1'
+                Install-ModuleIfMissing -Name xWebAdministration
                 $module = Get-Module PowerShellGet -ListAvailable | Sort-Object -Property Version -Descending | Select-Object -First 1
 
                 $psGetModuleSpecification = @{ModuleName = $module.Name; ModuleVersion = $module.Version.ToString() }
@@ -426,6 +427,26 @@ Describe "Test PSDesiredStateConfiguration" -tags CI {
                     Invoke-DscResource -Name Script -ModuleName $moduleSpecification -Method Test -Property @{TestScript = { Write-Host 'test'; return $true }; GetScript = { return @{ } }; SetScript = { return } } -ErrorAction Stop
                 } |
                 Should -Throw -ErrorId 'InvalidResourceSpecification,Invoke-DscResource' -ExpectedMessage 'Invalid Resource Name ''Script'' or module specification.'
+            }
+
+            it "Resource with embedded resource not supported and a warning should be produced"  -Skip:(!(Test-IsInvokeDscResourceEnable)) {
+
+                try {
+                    Invoke-DscResource -Name xWebSite -ModuleName 'xWebAdministration' -Method Test -Property @{TestScript = 'foobar' } -ErrorAction Stop -WarningVariable warnings
+                }
+                catch{
+                    #this will fail too, but that is nat what we are testing...
+                }
+
+                $warnings.Count | Should -Be 1
+                $warnings[0] | Should -Match 'embedded resources.*not support'
+            }
+
+            it "Using PsDscRunAsCredential should say not supported" -Skip:(!(Test-IsInvokeDscResourceEnable)) {
+                {
+                    Invoke-DscResource -Name Script -ModuleName PSDscResources -Method Set -Property @{TestScript = { Write-Output 'test'; return $false }; GetScript = { return @{ } }; SetScript = {return}; PsDscRunAsCredential='natoheu'}  -ErrorAction Stop
+                } |
+                Should -Throw -ErrorId 'PsDscRunAsCredentialNotSupport,Invoke-DscResource'
             }
 
             # waiting on Get-DscResource to be fixed
