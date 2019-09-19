@@ -431,6 +431,11 @@ Describe "Test PSDesiredStateConfiguration" -tags CI {
 
             it "Resource with embedded resource not supported and a warning should be produced"  -Skip:(!(Test-IsInvokeDscResourceEnable)) {
 
+                if ($IsWindows)
+                {
+                    Set-ItResult -Skipped -Because "Not applicable on Windows"
+                }
+
                 try {
                     Invoke-DscResource -Name xWebSite -ModuleName 'xWebAdministration' -Method Test -Property @{TestScript = 'foobar' } -ErrorAction Stop -WarningVariable warnings
                 }
@@ -438,7 +443,7 @@ Describe "Test PSDesiredStateConfiguration" -tags CI {
                     #this will fail too, but that is nat what we are testing...
                 }
 
-                $warnings.Count | Should -Be 1
+                $warnings.Count | Should -Be 1 -because "There should be 1 warning on macOS and Linux"
                 $warnings[0] | Should -Match 'embedded resources.*not support'
             }
 
