@@ -431,17 +431,12 @@ Describe "Test PSDesiredStateConfiguration" -tags CI {
 
             it "Resource with embedded resource not supported and a warning should be produced"  {
 
-                if (Test-IsInvokeDscResourceEnable)
-                {
-                    Write-Verbose 'Feature enabled running test' -Verbose
-                }
-                else
-                {
+                if (!(Test-IsInvokeDscResourceEnable)) {
                     Set-ItResult -Skipped -Because "Feature not enabled"
                 }
 
-                if ($IsWindows) {
-                    Set-ItResult -Skipped -Because "Not applicable on Windows"
+                if (!$IsMacOS) {
+                    Set-ItResult -Skipped -Because "Not applicable on Windows and xWebAdministration resources don't load on linux"
                 }
 
                 try {
