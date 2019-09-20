@@ -66,6 +66,7 @@ data LocalizedData
     ImportDscResourceWarningForInbuiltResource=The configuration '{0}' is loading one or more built-in resources without explicitly importing associated modules. Add Import-DscResource -ModuleName 'PSDesiredStateConfiguration' to your configuration to avoid this message.
     PasswordTooLong=An error occurred during encryption of a password in node '{0}'. Most likely the password entered is too long to be encrypted using the selected certificate.  Please either use a shorter password or select a certificate with a larger key.
     PsDscRunAsCredentialNotSupport=The 'PsDscRunAsCredential' property is not currently support when using Invoke-DscResource.
+    EmbeddedResourcesNotSupported=Embedded resources are not support on Linux or macOS.  Please see https://aka.ms/PSCoreDSC for more details.
 '@
 }
 Set-StrictMode -Off
@@ -1902,6 +1903,10 @@ function Configuration
         $moduleInfos = Get-Module -ListAvailable -FullyQualifiedName $moduleToImport | Sort-Object -Property Version -Descending
 
         return $moduleInfos
+    }
+
+    if ( $IsMacOS -or $IsLinux ) {
+        Write-Warning -Message $LocalizedData.EmbeddedResourcesNotSupported
     }
 
     try
@@ -4685,6 +4690,10 @@ function Invoke-DscResource
         $errorMessage = $LocalizedData.InvalidResourceSpecification -f $name
         $exception = [System.ArgumentException]::new($errorMessage,'Name')
         ThrowError -ExceptionName 'System.ArgumentException' -ExceptionMessage $errorMessage -ExceptionObject $exception -ErrorId 'InvalidResourceSpecification,Invoke-DscResource' -ErrorCategory InvalidArgument
+    }
+
+    if ( @($resource.Properties | Where-Object { $_.PropertyType -eq '' }).Count -gt 0 -and ($IsMacOS -or $IsLinux)) {
+        Write-Warning -Message $LocalizedData.EmbeddedResourcesNotSupported
     }
 
     [Microsoft.PowerShell.DesiredStateConfiguration.DscResourceInfo] $resource = $resource[0]
