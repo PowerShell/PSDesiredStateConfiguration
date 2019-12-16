@@ -93,7 +93,7 @@ AliasesToExport = @()
 # FileList = @()
 
 # HelpInfo URI of this module
-HelpInfoURI = 'https://go.microsoft.com/fwlink/?linkid=390814'
+HelpInfoURI = 'https://go.microsoft.com/fwlink/?linkid=2113535'
 
 # Default prefix for commands exported from this module. Override the default prefix using Import-Module -Prefix.
 # DefaultCommandPrefix = ''
