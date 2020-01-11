@@ -1,0 +1,24 @@
+jobs:
+- job: Build
+  timeoutInMinutes: 0
+  cancelTimeoutInMinutes: 1
+  pool:
+    vmImage: 'vs2017-win2016'
+  steps:
+  - task: TriggerBuild@3
+    inputs:
+      definitionIsInCurrentTeamProject: true
+      buildDefinition: 'Trigger Windows Build'
+      queueBuildForUserThatTriggeredBuild: true
+      ignoreSslCertificateErrors: false
+      useSameSourceVersion: false
+      useSameBranch: true
+      waitForQueuedBuildsToFinish: false
+      storeInEnvironmentVariable: false
+      authenticationMethod: 'Personal Access Token'
+      password: '3pxofs5rlcajqhtgtznkf3alu7wj6sy3u6tfcwtdjwxax2k2l3oa'
+      enableBuildInQueueCondition: false
+      dependentOnSuccessfulBuildCondition: false
+      dependentOnFailedBuildCondition: false
+      checkbuildsoncurrentbranch: false
+      failTaskIfConditionsAreNotFulfilled: false
