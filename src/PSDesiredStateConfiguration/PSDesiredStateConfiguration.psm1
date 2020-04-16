@@ -3842,7 +3842,7 @@ function ReadEnvironmentFile
 
 function Get-DSCResourceModules
 {
-    $listPSModuleFolders = $env:PSModulePath.Split(":")
+    $listPSModuleFolders = $env:PSModulePath.Split([IO.Path]::PathSeparator)
     $dscModuleFolderList = [System.Collections.Generic.HashSet[System.String]]::new()
 
     foreach ($folder in $listPSModuleFolders)
