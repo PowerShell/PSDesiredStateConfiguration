@@ -1905,10 +1905,6 @@ function Configuration
         return $moduleInfos
     }
 
-    if ( $IsMacOS -or $IsLinux ) {
-        Write-Warning -Message $LocalizedData.EmbeddedResourcesNotSupported
-    }
-
     try
     {
         Write-Debug -Message "BEGIN CONFIGURATION '$Name' PROCESSING: OutputPath: '$OutputPath'"
@@ -3842,7 +3838,7 @@ function ReadEnvironmentFile
 
 function Get-DSCResourceModules
 {
-    $listPSModuleFolders = $env:PSModulePath.Split(":")
+    $listPSModuleFolders = $env:PSModulePath.Split([IO.Path]::PathSeparator)
     $dscModuleFolderList = [System.Collections.Generic.HashSet[System.String]]::new()
 
     foreach ($folder in $listPSModuleFolders)
@@ -4013,9 +4009,11 @@ function Get-DscResource
                 (!$_.IsReservedKeyword) -and ($null -ne $_.ResourceName) -and !(IsHiddenResource $_.ResourceName) -and (![bool]$Module -or ($_.ImplementingModule -like $ModuleString))
             }
 
+            $dscResourceNames = $keywords.keyword
+
             $Resources += $keywords |
             ForEach-Object -Process {
-                GetResourceFromKeyword -keyword $_ -patterns $patterns -modules $modules
+                GetResourceFromKeyword -keyword $_ -patterns $patterns -modules $modules -dscResourceNames $dscResourceNames
             } |
             Where-Object -FilterScript {
                 $_ -ne $null
@@ -4088,9 +4086,11 @@ function GetResourceFromKeyword
         $patterns,
         [Parameter(Mandatory)]
         [System.Management.Automation.PSModuleInfo[]]
-        $modules
+        $modules,
+        [Parameter(Mandatory)]
+        [Object[]]
+        $dscResourceNames
     )
-
     $implementationDetail = 'ScriptBased'
 
     # Find whether $name follows the pattern
@@ -4199,7 +4199,7 @@ function GetResourceFromKeyword
 
     # add properties
     $keyword.Properties.Values | ForEach-Object -Process {
-        AddDscResourceProperty $resource $_
+        AddDscResourceProperty $resource $_ $dscResourceNames
     }
 
     # sort properties
@@ -4291,7 +4291,9 @@ function AddDscResourceProperty
         [Microsoft.PowerShell.DesiredStateConfiguration.DscResourceInfo]
         $dscresource,
         [Parameter(Mandatory)]
-        $property
+        $property,
+        [Parameter(Mandatory)]
+        $dscResourceNames
     )
 
     $convertTypeMap = @{
@@ -4315,6 +4317,11 @@ function AddDscResourceProperty
     else
     {
         $Type = [System.Management.Automation.LanguagePrimitives]::ConvertTypeNameToPSTypeName($property.TypeConstraint)
+        if (($null -eq $Type) -or ($Type -eq "")) {
+            $dscResourceNames | ForEach-Object -Process {
+                if (($property.TypeConstraint -eq $_) -or ($property.TypeConstraint -eq ($_ + "[]"))) { $Type = "[$($property.TypeConstraint)]" }
+            }
+        }
     }
 
     if ($null -ne $property.ValueMap)
@@ -4690,10 +4697,6 @@ function Invoke-DscResource
         $errorMessage = $LocalizedData.InvalidResourceSpecification -f $name
         $exception = [System.ArgumentException]::new($errorMessage,'Name')
         ThrowError -ExceptionName 'System.ArgumentException' -ExceptionMessage $errorMessage -ExceptionObject $exception -ErrorId 'InvalidResourceSpecification,Invoke-DscResource' -ErrorCategory InvalidArgument
-    }
-
-    if ( @($resource.Properties | Where-Object { $_.PropertyType -eq '' }).Count -gt 0 -and ($IsMacOS -or $IsLinux)) {
-        Write-Warning -Message $LocalizedData.EmbeddedResourcesNotSupported
     }
 
     [Microsoft.PowerShell.DesiredStateConfiguration.DscResourceInfo] $resource = $resource[0]
