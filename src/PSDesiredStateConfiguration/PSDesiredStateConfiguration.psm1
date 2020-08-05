@@ -3660,7 +3660,7 @@ function New-DscChecksum
     # Retrieve all valid configuration files at the specified $Path
     $allConfigFiles = $Path | ForEach-Object  -Process {
         (Get-ChildItem -Path $_ -Recurse | Where-Object -FilterScript {
-                $_.Extension -eq '.mof' -or $_.Extension -eq '.zip'
+                $_.Extension -eq '.json' -or $_.Extension -eq '.zip'
             }
         )
     }
@@ -3890,7 +3890,7 @@ function Get-DSCResourceModules
 
 #
 # Gets DSC resources on the machine. Allows to filter on a particular resource.
-# It parses all the resources defined in the schema.mof file and also the composite
+# It parses all the resources defined in the schema.json file and also the composite
 # resources defined or imported from PowerShell modules
 #
 function Get-DscResource
@@ -4164,6 +4164,31 @@ function GetResourceFromKeyword
         $resource.Module = $moduleInfo
         $resource.Path = GetImplementingModulePath $schemaFileName
         $resource.ParentPath = Split-Path $schemaFileName
+
+        # fill $resource.ExportedCommands
+        $implementingModulePath = $resource.Path
+        if (Test-Path($implementingModulePath))
+        {
+            $implementingModule = Import-Module -PassThru -Scope Local -Name $resource.Path
+            $ExportedCommandsHashtable = @{}
+            foreach($cmdInfo in $implementingModule.ExportedCommands.GetEnumerator())
+            {
+                $cmdName = $cmdInfo.Key
+                $cmdParamList = @()
+                # filter out common PowerShell parameters (e.g. -ErrorAction)
+                foreach($p in $cmdInfo.Value.Parameters.GetEnumerator())
+                {
+                    if (-not [System.Management.Automation.Cmdlet]::CommonParameters.Contains($p.Value.Name))
+                    {
+                        $cmdParamList += $p.Value
+                    }
+                }
+
+                $cmdInfo = @{Parameters = $cmdParamList}
+                $ExportedCommandsHashtable.Add($cmdName, $cmdInfo)
+            }
+            $resource.ExportedCommands = $ExportedCommandsHashtable
+        }
     }
     else
     {
@@ -4445,13 +4470,13 @@ function GetImplementingModulePath
         $schemaFileName
     )
 
-    $moduleFileName = ($schemaFileName -replace ".schema.mof$", '') + '.psd1'
+    $moduleFileName = ($schemaFileName -replace ".schema.json$", '') + '.psd1'
     if (Test-Path $moduleFileName)
     {
         return $moduleFileName
     }
 
-    $moduleFileName = ($schemaFileName -replace ".schema.mof$", '') + '.psm1'
+    $moduleFileName = ($schemaFileName -replace ".schema.json$", '') + '.psm1'
     if (Test-Path $moduleFileName)
     {
         return $moduleFileName
@@ -4481,9 +4506,9 @@ function GetModule
     }
 
     $schemaFileExt = $null
-    if ($schemaFileName -match '.schema.mof')
+    if ($schemaFileName -match '.schema.json')
     {
-        $schemaFileExt = ".schema.mof$"
+        $schemaFileExt = ".schema.json$"
     }
 
     if ($schemaFileName -match '.schema.psm1')

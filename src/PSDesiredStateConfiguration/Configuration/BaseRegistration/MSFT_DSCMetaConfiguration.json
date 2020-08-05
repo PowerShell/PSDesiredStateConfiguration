@@ -1,0 +1,429 @@
+[
+  {
+    "CimSystemProperties": {
+      "Namespace": null,
+      "ServerName": null,
+      "ClassName": "MSFT_DSCMetaConfiguration",
+      "Path": null
+    },
+    "CimSuperClassName": null,
+    "CimClassQualifiers": [
+      {
+        "Name": "ClassVersion",
+        "Value": "1.0.0",
+        "CimType": "String",
+        "Flags": "EnableOverride, Restricted"
+      },
+      {
+        "Name": "FriendlyName",
+        "Value": "LocalConfigurationManager",
+        "CimType": "String",
+        "Flags": "EnableOverride, Restricted"
+      }
+    ],
+    "CimClassProperties": [
+      {
+        "Name": "ConfigurationModeFrequencyMins",
+        "Value": null,
+        "CimType": "UInt32",
+        "Flags": "Property, NullValue",
+        "Qualifiers": [],
+        "ReferenceClassName": null
+      },
+      {
+        "Name": "RebootNodeIfNeeded",
+        "Value": null,
+        "CimType": "Boolean",
+        "Flags": "Property, NullValue",
+        "Qualifiers": [],
+        "ReferenceClassName": null
+      },
+      {
+        "Name": "ConfigurationMode",
+        "Value": null,
+        "CimType": "String",
+        "Flags": "Property, NullValue",
+        "Qualifiers": [
+          {
+            "Name": "ValueMap",
+            "Value": [
+              "ApplyOnly",
+              "ApplyAndMonitor",
+              "ApplyAndAutoCorrect",
+              "MonitorOnly"
+            ],
+            "CimType": "StringArray",
+            "Flags": "EnableOverride, ToSubclass"
+          },
+          {
+            "Name": "Values",
+            "Value": [
+              "ApplyOnly",
+              "ApplyAndMonitor",
+              "ApplyAndAutoCorrect",
+              "MonitorOnly"
+            ],
+            "CimType": "StringArray",
+            "Flags": "EnableOverride, ToSubclass, Translatable"
+          }
+        ],
+        "ReferenceClassName": null
+      },
+      {
+        "Name": "ActionAfterReboot",
+        "Value": null,
+        "CimType": "String",
+        "Flags": "Property, NullValue",
+        "Qualifiers": [
+          {
+            "Name": "ValueMap",
+            "Value": [
+              "ContinueConfiguration",
+              "StopConfiguration"
+            ],
+            "CimType": "StringArray",
+            "Flags": "EnableOverride, ToSubclass"
+          },
+          {
+            "Name": "Values",
+            "Value": [
+              "ContinueConfiguration",
+              "StopConfiguration"
+            ],
+            "CimType": "StringArray",
+            "Flags": "EnableOverride, ToSubclass, Translatable"
+          }
+        ],
+        "ReferenceClassName": null
+      },
+      {
+        "Name": "Credential",
+        "Value": null,
+        "CimType": "Instance",
+        "Flags": "Property, NullValue",
+        "Qualifiers": [
+          {
+            "Name": "EmbeddedInstance",
+            "Value": "MSFT_Credential",
+            "CimType": "String",
+            "Flags": "EnableOverride, ToSubclass"
+          }
+        ],
+        "ReferenceClassName": "MSFT_Credential"
+      },
+      {
+        "Name": "RefreshMode",
+        "Value": null,
+        "CimType": "String",
+        "Flags": "Property, NullValue",
+        "Qualifiers": [
+          {
+            "Name": "ValueMap",
+            "Value": [
+              "Push",
+              "Pull",
+              "Disabled"
+            ],
+            "CimType": "StringArray",
+            "Flags": "EnableOverride, ToSubclass"
+          },
+          {
+            "Name": "Values",
+            "Value": [
+              "Push",
+              "Pull",
+              "Disabled"
+            ],
+            "CimType": "StringArray",
+            "Flags": "EnableOverride, ToSubclass, Translatable"
+          }
+        ],
+        "ReferenceClassName": null
+      },
+      {
+        "Name": "CertificateID",
+        "Value": null,
+        "CimType": "String",
+        "Flags": "Property, NullValue",
+        "Qualifiers": [],
+        "ReferenceClassName": null
+      },
+      {
+        "Name": "ConfigurationID",
+        "Value": null,
+        "CimType": "String",
+        "Flags": "Property, NullValue",
+        "Qualifiers": [],
+        "ReferenceClassName": null
+      },
+      {
+        "Name": "DownloadManagerName",
+        "Value": null,
+        "CimType": "String",
+        "Flags": "Property, NullValue",
+        "Qualifiers": [],
+        "ReferenceClassName": null
+      },
+      {
+        "Name": "DownloadManagerCustomData",
+        "Value": null,
+        "CimType": "InstanceArray",
+        "Flags": "Property, NullValue",
+        "Qualifiers": [
+          {
+            "Name": "EmbeddedInstance",
+            "Value": "MSFT_KeyValuePair",
+            "CimType": "String",
+            "Flags": "EnableOverride, ToSubclass"
+          }
+        ],
+        "ReferenceClassName": "MSFT_KeyValuePair"
+      },
+      {
+        "Name": "RefreshFrequencyMins",
+        "Value": null,
+        "CimType": "UInt32",
+        "Flags": "Property, NullValue",
+        "Qualifiers": [],
+        "ReferenceClassName": null
+      },
+      {
+        "Name": "AllowModuleOverwrite",
+        "Value": null,
+        "CimType": "Boolean",
+        "Flags": "Property, NullValue",
+        "Qualifiers": [],
+        "ReferenceClassName": null
+      },
+      {
+        "Name": "DebugMode",
+        "Value": null,
+        "CimType": "StringArray",
+        "Flags": "Property, NullValue",
+        "Qualifiers": [
+          {
+            "Name": "ValueMap",
+            "Value": [
+              "None",
+              "ForceModuleImport",
+              "All",
+              "ResourceScriptBreakAll",
+              "ResourceScriptBreakpoint"
+            ],
+            "CimType": "StringArray",
+            "Flags": "EnableOverride, ToSubclass"
+          },
+          {
+            "Name": "Values",
+            "Value": [
+              "None",
+              "ForceModuleImport",
+              "All",
+              "ResourceScriptBreakAll",
+              "ResourceScriptBreakpoint"
+            ],
+            "CimType": "StringArray",
+            "Flags": "EnableOverride, ToSubclass, Translatable"
+          }
+        ],
+        "ReferenceClassName": null
+      },
+      {
+        "Name": "LCMVersion",
+        "Value": null,
+        "CimType": "String",
+        "Flags": "Property, ReadOnly, NullValue",
+        "Qualifiers": [
+          {
+            "Name": "Read",
+            "Value": true,
+            "CimType": "Boolean",
+            "Flags": "EnableOverride, ToSubclass"
+          }
+        ],
+        "ReferenceClassName": null
+      },
+      {
+        "Name": "LCMCompatibleVersions",
+        "Value": null,
+        "CimType": "StringArray",
+        "Flags": "Property, ReadOnly, NullValue",
+        "Qualifiers": [
+          {
+            "Name": "Read",
+            "Value": true,
+            "CimType": "Boolean",
+            "Flags": "EnableOverride, ToSubclass"
+          }
+        ],
+        "ReferenceClassName": null
+      },
+      {
+        "Name": "LCMState",
+        "Value": null,
+        "CimType": "String",
+        "Flags": "Property, ReadOnly, NullValue",
+        "Qualifiers": [
+          {
+            "Name": "Read",
+            "Value": true,
+            "CimType": "Boolean",
+            "Flags": "EnableOverride, ToSubclass"
+          },
+          {
+            "Name": "ValueMap",
+            "Value": [
+              "Idle",
+              "Busy",
+              "PendingReboot",
+              "PendingConfiguration"
+            ],
+            "CimType": "StringArray",
+            "Flags": "EnableOverride, ToSubclass"
+          },
+          {
+            "Name": "Values",
+            "Value": [
+              "Idle",
+              "Busy",
+              "PendingReboot",
+              "PendingConfiguration"
+            ],
+            "CimType": "StringArray",
+            "Flags": "EnableOverride, ToSubclass, Translatable"
+          }
+        ],
+        "ReferenceClassName": null
+      },
+      {
+        "Name": "LCMStateDetail",
+        "Value": null,
+        "CimType": "String",
+        "Flags": "Property, ReadOnly, NullValue",
+        "Qualifiers": [
+          {
+            "Name": "Read",
+            "Value": true,
+            "CimType": "Boolean",
+            "Flags": "EnableOverride, ToSubclass"
+          }
+        ],
+        "ReferenceClassName": null
+      },
+      {
+        "Name": "ConfigurationDownloadManagers",
+        "Value": null,
+        "CimType": "InstanceArray",
+        "Flags": "Property, NullValue",
+        "Qualifiers": [
+          {
+            "Name": "EmbeddedInstance",
+            "Value": "OMI_ConfigurationDownloadManager",
+            "CimType": "String",
+            "Flags": "EnableOverride, ToSubclass"
+          }
+        ],
+        "ReferenceClassName": "OMI_ConfigurationDownloadManager"
+      },
+      {
+        "Name": "ResourceModuleManagers",
+        "Value": null,
+        "CimType": "InstanceArray",
+        "Flags": "Property, NullValue",
+        "Qualifiers": [
+          {
+            "Name": "EmbeddedInstance",
+            "Value": "OMI_ResourceModuleManager",
+            "CimType": "String",
+            "Flags": "EnableOverride, ToSubclass"
+          }
+        ],
+        "ReferenceClassName": "OMI_ResourceModuleManager"
+      },
+      {
+        "Name": "ReportManagers",
+        "Value": null,
+        "CimType": "InstanceArray",
+        "Flags": "Property, NullValue",
+        "Qualifiers": [
+          {
+            "Name": "EmbeddedInstance",
+            "Value": "OMI_ReportManager",
+            "CimType": "String",
+            "Flags": "EnableOverride, ToSubclass"
+          }
+        ],
+        "ReferenceClassName": "OMI_ReportManager"
+      },
+      {
+        "Name": "PartialConfigurations",
+        "Value": null,
+        "CimType": "InstanceArray",
+        "Flags": "Property, NullValue",
+        "Qualifiers": [
+          {
+            "Name": "EmbeddedInstance",
+            "Value": "MSFT_PartialConfiguration",
+            "CimType": "String",
+            "Flags": "EnableOverride, ToSubclass"
+          }
+        ],
+        "ReferenceClassName": "MSFT_PartialConfiguration"
+      },
+      {
+        "Name": "StatusRetentionTimeInDays",
+        "Value": null,
+        "CimType": "UInt32",
+        "Flags": "Property, NullValue",
+        "Qualifiers": [],
+        "ReferenceClassName": null
+      },
+      {
+        "Name": "AgentId",
+        "Value": null,
+        "CimType": "String",
+        "Flags": "Property, ReadOnly, NullValue",
+        "Qualifiers": [
+          {
+            "Name": "Read",
+            "Value": true,
+            "CimType": "Boolean",
+            "Flags": "EnableOverride, ToSubclass"
+          }
+        ],
+        "ReferenceClassName": null
+      },
+      {
+        "Name": "SignatureValidationPolicy",
+        "Value": null,
+        "CimType": "String",
+        "Flags": "Property, NullValue",
+        "Qualifiers": [],
+        "ReferenceClassName": null
+      },
+      {
+        "Name": "SignatureValidations",
+        "Value": null,
+        "CimType": "InstanceArray",
+        "Flags": "Property, NullValue",
+        "Qualifiers": [
+          {
+            "Name": "EmbeddedInstance",
+            "Value": "MSFT_SignatureValidation",
+            "CimType": "String",
+            "Flags": "EnableOverride, ToSubclass"
+          }
+        ],
+        "ReferenceClassName": "MSFT_SignatureValidation"
+      },
+      {
+        "Name": "MaximumDownloadSizeMB",
+        "Value": null,
+        "CimType": "UInt32",
+        "Flags": "Property, NullValue",
+        "Qualifiers": [],
+        "ReferenceClassName": null
+      }
+    ]
+  }
+]

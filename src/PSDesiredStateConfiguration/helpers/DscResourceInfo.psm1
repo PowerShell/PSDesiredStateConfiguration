@@ -24,7 +24,7 @@ namespace Microsoft.PowerShell.DesiredStateConfiguration
         /// DSC resource implementation type not known
         /// </summary>
         None = 0,
-        
+
         /// <summary>
         /// DSC resource is implemented using PowerShell module
         /// </summary>
@@ -70,13 +70,13 @@ namespace Microsoft.PowerShell.DesiredStateConfiguration
         public string FriendlyName { get; set; }
 
         /// <summary>
-        /// Gets or sets module which implements the resource. This could point to parent module, if the DSC resource is implemented 
+        /// Gets or sets module which implements the resource. This could point to parent module, if the DSC resource is implemented
         /// by one of nested modules.
         /// </summary>
         public PSModuleInfo Module { get; set; }
 
         /// <summary>
-        /// Gets name of the module which implements the resource. 
+        /// Gets name of the module which implements the resource.
         /// </summary>
         public string ModuleName
         {
@@ -88,7 +88,7 @@ namespace Microsoft.PowerShell.DesiredStateConfiguration
         }
 
         /// <summary>
-        /// Gets version of the module which implements the resource. 
+        /// Gets version of the module which implements the resource.
         /// </summary>
         public Version Version
         {
@@ -100,7 +100,7 @@ namespace Microsoft.PowerShell.DesiredStateConfiguration
         }
 
         /// <summary>
-        /// Gets or sets of the file which implements the resource. For the reosurces which are defined using 
+        /// Gets or sets of the file which implements the resource. For the reosurces which are defined using
         /// MOF file, this will be path to a module which resides in the same folder where schema.mof file is present.
         /// For composite resources, this will be the module which implements the resource
         /// </summary>
@@ -108,7 +108,7 @@ namespace Microsoft.PowerShell.DesiredStateConfiguration
 
         /// <summary>
         /// Gets or sets parent folder, where the resource is defined
-        /// It is the folder containing either the implementing module(=Path) or folder containing ".schema.mof". 
+        /// It is the folder containing either the implementing module(=Path) or folder containing ".schema.mof".
         /// For native providers, Path will be null and only ParentPath will be present.
         /// </summary>
         public string ParentPath { get; set; }
@@ -136,6 +136,11 @@ namespace Microsoft.PowerShell.DesiredStateConfiguration
         {
             this.Properties = properties;
         }
+
+        /// <summary>
+        /// Get/Set/Test method declarations from resource implementation script module
+        /// </summary>
+        public System.Collections.Hashtable ExportedCommands;
     }
 
     /// <summary>
@@ -150,7 +155,7 @@ namespace Microsoft.PowerShell.DesiredStateConfiguration
         {
             this.Values = new List<string>();
         }
-        
+
         /// <summary>
         /// Gets or sets name of the property
         /// </summary>

@@ -1,0 +1,595 @@
+[
+  {
+    "CimSystemProperties": {
+      "Namespace": null,
+      "ServerName": null,
+      "ClassName": "MSFT_Credential",
+      "Path": null
+    },
+    "CimSuperClassName": null,
+    "CimClassQualifiers": [
+      {
+        "Name": "ClassVersion",
+        "Value": "1.0.0",
+        "CimType": "String",
+        "Flags": "EnableOverride, Restricted"
+      }
+    ],
+    "CimClassProperties": [
+      {
+        "Name": "UserName",
+        "Value": null,
+        "CimType": "String",
+        "Flags": "Property, NullValue",
+        "Qualifiers": [
+          {
+            "Name": "MaxLen",
+            "Value": 256,
+            "CimType": "UInt32",
+            "Flags": "EnableOverride, ToSubclass"
+          }
+        ],
+        "ReferenceClassName": null
+      },
+      {
+        "Name": "Password",
+        "Value": null,
+        "CimType": "String",
+        "Flags": "Property, NullValue",
+        "Qualifiers": [],
+        "ReferenceClassName": null
+      }
+    ]
+  },
+  {
+    "CimSystemProperties": {
+      "Namespace": null,
+      "ServerName": null,
+      "ClassName": "OMI_BaseResource",
+      "Path": null
+    },
+    "CimSuperClassName": null,
+    "CimClassQualifiers": [
+      {
+        "Name": "Abstract",
+        "Value": true,
+        "CimType": "Boolean",
+        "Flags": "EnableOverride, Restricted"
+      },
+      {
+        "Name": "ClassVersion",
+        "Value": "1.0.0",
+        "CimType": "String",
+        "Flags": "EnableOverride, Restricted"
+      }
+    ],
+    "CimClassProperties": [
+      {
+        "Name": "ResourceId",
+        "Value": null,
+        "CimType": "String",
+        "Flags": "Property, Required, NullValue",
+        "Qualifiers": [
+          {
+            "Name": "Required",
+            "Value": true,
+            "CimType": "Boolean",
+            "Flags": "DisableOverride, ToSubclass"
+          }
+        ],
+        "ReferenceClassName": null
+      },
+      {
+        "Name": "SourceInfo",
+        "Value": null,
+        "CimType": "String",
+        "Flags": "Property, NullValue",
+        "Qualifiers": [
+          {
+            "Name": "Write",
+            "Value": true,
+            "CimType": "Boolean",
+            "Flags": "EnableOverride, ToSubclass"
+          }
+        ],
+        "ReferenceClassName": null
+      },
+      {
+        "Name": "DependsOn",
+        "Value": null,
+        "CimType": "StringArray",
+        "Flags": "Property, NullValue",
+        "Qualifiers": [
+          {
+            "Name": "Write",
+            "Value": true,
+            "CimType": "Boolean",
+            "Flags": "EnableOverride, ToSubclass"
+          }
+        ],
+        "ReferenceClassName": null
+      },
+      {
+        "Name": "ModuleName",
+        "Value": null,
+        "CimType": "String",
+        "Flags": "Property, Required, NullValue",
+        "Qualifiers": [
+          {
+            "Name": "Required",
+            "Value": true,
+            "CimType": "Boolean",
+            "Flags": "DisableOverride, ToSubclass"
+          }
+        ],
+        "ReferenceClassName": null
+      },
+      {
+        "Name": "ModuleVersion",
+        "Value": null,
+        "CimType": "String",
+        "Flags": "Property, Required, NullValue",
+        "Qualifiers": [
+          {
+            "Name": "Required",
+            "Value": true,
+            "CimType": "Boolean",
+            "Flags": "DisableOverride, ToSubclass"
+          }
+        ],
+        "ReferenceClassName": null
+      },
+      {
+        "Name": "ConfigurationName",
+        "Value": null,
+        "CimType": "String",
+        "Flags": "Property, NullValue",
+        "Qualifiers": [
+          {
+            "Name": "Write",
+            "Value": true,
+            "CimType": "Boolean",
+            "Flags": "EnableOverride, ToSubclass"
+          }
+        ],
+        "ReferenceClassName": null
+      },
+      {
+        "Name": "PsDscRunAsCredential",
+        "Value": null,
+        "CimType": "Instance",
+        "Flags": "Property, NullValue",
+        "Qualifiers": [
+          {
+            "Name": "Write",
+            "Value": true,
+            "CimType": "Boolean",
+            "Flags": "EnableOverride, ToSubclass"
+          },
+          {
+            "Name": "EmbeddedInstance",
+            "Value": "MSFT_Credential",
+            "CimType": "String",
+            "Flags": "EnableOverride, ToSubclass"
+          }
+        ],
+        "ReferenceClassName": "MSFT_Credential"
+      }
+    ]
+  },
+  {
+    "CimSystemProperties": {
+      "Namespace": null,
+      "ServerName": null,
+      "ClassName": "MSFT_KeyValuePair",
+      "Path": null
+    },
+    "CimSuperClassName": null,
+    "CimClassQualifiers": [
+      {
+        "Name": "Abstract",
+        "Value": true,
+        "CimType": "Boolean",
+        "Flags": "EnableOverride, Restricted"
+      },
+      {
+        "Name": "ClassVersion",
+        "Value": "1.0.0",
+        "CimType": "String",
+        "Flags": "EnableOverride, Restricted"
+      }
+    ],
+    "CimClassProperties": [
+      {
+        "Name": "Key",
+        "Value": null,
+        "CimType": "String",
+        "Flags": "Property, Key, NullValue",
+        "Qualifiers": [
+          {
+            "Name": "Key",
+            "Value": true,
+            "CimType": "Boolean",
+            "Flags": "DisableOverride, ToSubclass"
+          }
+        ],
+        "ReferenceClassName": null
+      },
+      {
+        "Name": "Value",
+        "Value": null,
+        "CimType": "String",
+        "Flags": "Property, NullValue",
+        "Qualifiers": [
+          {
+            "Name": "Write",
+            "Value": true,
+            "CimType": "Boolean",
+            "Flags": "EnableOverride, ToSubclass"
+          }
+        ],
+        "ReferenceClassName": null
+      }
+    ]
+  },
+  {
+    "CimSystemProperties": {
+      "Namespace": null,
+      "ServerName": null,
+      "ClassName": "MSFT_BaseConfigurationProviderRegistration",
+      "Path": null
+    },
+    "CimSuperClassName": null,
+    "CimClassQualifiers": [
+      {
+        "Name": "Abstract",
+        "Value": true,
+        "CimType": "Boolean",
+        "Flags": "EnableOverride, Restricted"
+      },
+      {
+        "Name": "ClassVersion",
+        "Value": "1.0.0",
+        "CimType": "String",
+        "Flags": "EnableOverride, Restricted"
+      }
+    ],
+    "CimClassProperties": [
+      {
+        "Name": "ClassName",
+        "Value": null,
+        "CimType": "String",
+        "Flags": "Property, Key, NullValue",
+        "Qualifiers": [
+          {
+            "Name": "Key",
+            "Value": true,
+            "CimType": "Boolean",
+            "Flags": "DisableOverride, ToSubclass"
+          }
+        ],
+        "ReferenceClassName": null
+      },
+      {
+        "Name": "DSCEngineCompatVersion",
+        "Value": null,
+        "CimType": "String",
+        "Flags": "Property, NullValue",
+        "Qualifiers": [],
+        "ReferenceClassName": null
+      },
+      {
+        "Name": "DSCModuleVersion",
+        "Value": null,
+        "CimType": "String",
+        "Flags": "Property, NullValue",
+        "Qualifiers": [],
+        "ReferenceClassName": null
+      }
+    ]
+  },
+  {
+    "CimSystemProperties": {
+      "Namespace": null,
+      "ServerName": null,
+      "ClassName": "MSFT_CimConfigurationProviderRegistration",
+      "Path": null
+    },
+    "CimSuperClassName": "MSFT_BaseConfigurationProviderRegistration",
+    "CimClassQualifiers": [
+      {
+        "Name": "ClassVersion",
+        "Value": "1.0.0",
+        "CimType": "String",
+        "Flags": "EnableOverride, Restricted"
+      }
+    ],
+    "CimClassProperties": [
+      {
+        "Name": "Namespace",
+        "Value": null,
+        "CimType": "String",
+        "Flags": "Property, NullValue",
+        "Qualifiers": [],
+        "ReferenceClassName": null
+      }
+    ]
+  },
+  {
+    "CimSystemProperties": {
+      "Namespace": null,
+      "ServerName": null,
+      "ClassName": "MSFT_PSConfigurationProviderRegistration",
+      "Path": null
+    },
+    "CimSuperClassName": "MSFT_BaseConfigurationProviderRegistration",
+    "CimClassQualifiers": [
+      {
+        "Name": "ClassVersion",
+        "Value": "1.0.0",
+        "CimType": "String",
+        "Flags": "EnableOverride, Restricted"
+      }
+    ],
+    "CimClassProperties": [
+      {
+        "Name": "ModuleName",
+        "Value": null,
+        "CimType": "String",
+        "Flags": "Property, NullValue",
+        "Qualifiers": [],
+        "ReferenceClassName": null
+      },
+      {
+        "Name": "ProviderPath",
+        "Value": null,
+        "CimType": "String",
+        "Flags": "Property, NullValue",
+        "Qualifiers": [],
+        "ReferenceClassName": null
+      },
+      {
+        "Name": "ModulePath",
+        "Value": null,
+        "CimType": "String",
+        "Flags": "Property, NullValue",
+        "Qualifiers": [],
+        "ReferenceClassName": null
+      }
+    ]
+  },
+  {
+    "CimSystemProperties": {
+      "Namespace": null,
+      "ServerName": null,
+      "ClassName": "OMI_ConfigurationDocument",
+      "Path": null
+    },
+    "CimSuperClassName": null,
+    "CimClassQualifiers": [
+      {
+        "Name": "ClassVersion",
+        "Value": "1.0.0",
+        "CimType": "String",
+        "Flags": "EnableOverride, Restricted"
+      }
+    ],
+    "CimClassProperties": [
+      {
+        "Name": "Version",
+        "Value": null,
+        "CimType": "String",
+        "Flags": "Property, NullValue",
+        "Qualifiers": [],
+        "ReferenceClassName": null
+      },
+      {
+        "Name": "Author",
+        "Value": null,
+        "CimType": "String",
+        "Flags": "Property, NullValue",
+        "Qualifiers": [],
+        "ReferenceClassName": null
+      },
+      {
+        "Name": "Copyright",
+        "Value": null,
+        "CimType": "String",
+        "Flags": "Property, NullValue",
+        "Qualifiers": [],
+        "ReferenceClassName": null
+      },
+      {
+        "Name": "HelpInfoUri",
+        "Value": null,
+        "CimType": "String",
+        "Flags": "Property, NullValue",
+        "Qualifiers": [],
+        "ReferenceClassName": null
+      },
+      {
+        "Name": "ContentType",
+        "Value": null,
+        "CimType": "String",
+        "Flags": "Property, NullValue",
+        "Qualifiers": [],
+        "ReferenceClassName": null
+      },
+      {
+        "Name": "GenerationDate",
+        "Value": null,
+        "CimType": "String",
+        "Flags": "Property, NullValue",
+        "Qualifiers": [],
+        "ReferenceClassName": null
+      },
+      {
+        "Name": "GenerationHost",
+        "Value": null,
+        "CimType": "String",
+        "Flags": "Property, NullValue",
+        "Qualifiers": [],
+        "ReferenceClassName": null
+      },
+      {
+        "Name": "Name",
+        "Value": null,
+        "CimType": "String",
+        "Flags": "Property, NullValue",
+        "Qualifiers": [],
+        "ReferenceClassName": null
+      },
+      {
+        "Name": "MinimumCompatibleVersion",
+        "Value": null,
+        "CimType": "String",
+        "Flags": "Property, NullValue",
+        "Qualifiers": [],
+        "ReferenceClassName": null
+      },
+      {
+        "Name": "CompatibleVersionAdditionalProperties",
+        "Value": null,
+        "CimType": "StringArray",
+        "Flags": "Property, NullValue",
+        "Qualifiers": [],
+        "ReferenceClassName": null
+      },
+      {
+        "Name": "UseCms",
+        "Value": null,
+        "CimType": "Boolean",
+        "Flags": "Property, NullValue",
+        "Qualifiers": [],
+        "ReferenceClassName": null
+      }
+    ]
+  },
+  {
+    "CimSystemProperties": {
+      "Namespace": null,
+      "ServerName": null,
+      "ClassName": "OMI_MetaConfigurationResource",
+      "Path": null
+    },
+    "CimSuperClassName": null,
+    "CimClassQualifiers": [
+      {
+        "Name": "Abstract",
+        "Value": true,
+        "CimType": "Boolean",
+        "Flags": "EnableOverride, Restricted"
+      },
+      {
+        "Name": "ClassVersion",
+        "Value": "1.0.0",
+        "CimType": "String",
+        "Flags": "EnableOverride, Restricted"
+      }
+    ],
+    "CimClassProperties": [
+      {
+        "Name": "ResourceId",
+        "Value": null,
+        "CimType": "String",
+        "Flags": "Property, Required, NullValue",
+        "Qualifiers": [
+          {
+            "Name": "Required",
+            "Value": true,
+            "CimType": "Boolean",
+            "Flags": "DisableOverride, ToSubclass"
+          }
+        ],
+        "ReferenceClassName": null
+      },
+      {
+        "Name": "SourceInfo",
+        "Value": null,
+        "CimType": "String",
+        "Flags": "Property, NullValue",
+        "Qualifiers": [
+          {
+            "Name": "Write",
+            "Value": true,
+            "CimType": "Boolean",
+            "Flags": "EnableOverride, ToSubclass"
+          }
+        ],
+        "ReferenceClassName": null
+      }
+    ]
+  },
+  {
+    "CimSystemProperties": {
+      "Namespace": null,
+      "ServerName": null,
+      "ClassName": "OMI_ResourceModuleManager",
+      "Path": null
+    },
+    "CimSuperClassName": "OMI_MetaConfigurationResource",
+    "CimClassQualifiers": [
+      {
+        "Name": "Abstract",
+        "Value": true,
+        "CimType": "Boolean",
+        "Flags": "EnableOverride, Restricted"
+      },
+      {
+        "Name": "ClassVersion",
+        "Value": "1.0.0",
+        "CimType": "String",
+        "Flags": "EnableOverride, Restricted"
+      }
+    ],
+    "CimClassProperties": []
+  },
+  {
+    "CimSystemProperties": {
+      "Namespace": null,
+      "ServerName": null,
+      "ClassName": "OMI_ConfigurationDownloadManager",
+      "Path": null
+    },
+    "CimSuperClassName": "OMI_MetaConfigurationResource",
+    "CimClassQualifiers": [
+      {
+        "Name": "Abstract",
+        "Value": true,
+        "CimType": "Boolean",
+        "Flags": "EnableOverride, Restricted"
+      },
+      {
+        "Name": "ClassVersion",
+        "Value": "1.0.0",
+        "CimType": "String",
+        "Flags": "EnableOverride, Restricted"
+      }
+    ],
+    "CimClassProperties": []
+  },
+  {
+    "CimSystemProperties": {
+      "Namespace": null,
+      "ServerName": null,
+      "ClassName": "OMI_ReportManager",
+      "Path": null
+    },
+    "CimSuperClassName": "OMI_MetaConfigurationResource",
+    "CimClassQualifiers": [
+      {
+        "Name": "Abstract",
+        "Value": true,
+        "CimType": "Boolean",
+        "Flags": "EnableOverride, Restricted"
+      },
+      {
+        "Name": "ClassVersion",
+        "Value": "1.0.0",
+        "CimType": "String",
+        "Flags": "EnableOverride, Restricted"
+      }
+    ],
+    "CimClassProperties": []
+  }
+]
