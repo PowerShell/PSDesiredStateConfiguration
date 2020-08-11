@@ -16,7 +16,7 @@ data LocalizedData
     InvalidConfigurationName = Invalid Configuration Name '{0}' is specified. Standard names may only contain letters (a-z, A-Z), numbers (0-9), and underscore (_). The name may not be null or empty, and should start with a letter.
     InvalidResourceSpecification = Found more than one resource named '{0}'. Please use the module specification to be more specific.
     UnsupportedResourceImplementation = The resource '{0}' implemented as '{1}' is not supported by Invoke-DscResource.
-    NoValidConfigFileFound = No valid config files (mof,zip) were found.
+    NoValidConfigFileFound = No valid config files (json,zip) were found.
     InputFileNotExist=File {0} doesn't exist.
     FileReadError=Error Reading file {0}.
     MatchingFileNotFound=No matching file found.
@@ -3669,7 +3669,6 @@ function New-DscChecksum
     if ($allConfigFiles.Length -eq 0)
     {
         Write-Log -Message $LocalizedData.NoValidConfigFileFound
-
         return
     }
 
@@ -4165,11 +4164,12 @@ function GetResourceFromKeyword
         $resource.Path = GetImplementingModulePath $schemaFileName
         $resource.ParentPath = Split-Path $schemaFileName
 
-        # fill $resource.ExportedCommands
+        # fill $resource.ExportedCommands for script-based resources
+        # for class-based resources $resource.ExportedCommands is expected to be empty.
         $implementingModulePath = $resource.Path
         if (Test-Path($implementingModulePath))
         {
-            $implementingModule = Import-Module -PassThru -Scope Local -Name $resource.Path
+            $implementingModule = Import-Module -PassThru -Force -Scope Local -Name $resource.Path
             $ExportedCommandsHashtable = @{}
             foreach($cmdInfo in $implementingModule.ExportedCommands.GetEnumerator())
             {

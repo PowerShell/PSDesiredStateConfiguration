@@ -140,7 +140,7 @@ namespace Microsoft.PowerShell.DesiredStateConfiguration
         /// <summary>
         /// Get/Set/Test method declarations from resource implementation script module
         /// </summary>
-        public System.Collections.Hashtable ExportedCommands;
+        public System.Collections.Hashtable ExportedCommands { get; set; }
     }
 
     /// <summary>
