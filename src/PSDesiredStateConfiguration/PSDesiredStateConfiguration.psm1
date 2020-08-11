@@ -66,7 +66,6 @@ data LocalizedData
     ImportDscResourceWarningForInbuiltResource=The configuration '{0}' is loading one or more built-in resources without explicitly importing associated modules. Add Import-DscResource -ModuleName 'PSDesiredStateConfiguration' to your configuration to avoid this message.
     PasswordTooLong=An error occurred during encryption of a password in node '{0}'. Most likely the password entered is too long to be encrypted using the selected certificate.  Please either use a shorter password or select a certificate with a larger key.
     PsDscRunAsCredentialNotSupport=The 'PsDscRunAsCredential' property is not currently support when using Invoke-DscResource.
-    EmbeddedResourcesNotSupported=Embedded resources are not support on Linux or macOS.  Please see https://aka.ms/PSCoreDSC for more details.
 '@
 }
 Set-StrictMode -Off
@@ -4317,7 +4316,7 @@ function AddDscResourceProperty
     else
     {
         $Type = [System.Management.Automation.LanguagePrimitives]::ConvertTypeNameToPSTypeName($property.TypeConstraint)
-        if (($null -eq $Type) -or ($Type -eq "")) {
+        if ([string]::IsNullOrEmpty($Type)) {
             $dscResourceNames | ForEach-Object -Process {
                 if (($property.TypeConstraint -eq $_) -or ($property.TypeConstraint -eq ($_ + "[]"))) { $Type = "[$($property.TypeConstraint)]" }
             }
