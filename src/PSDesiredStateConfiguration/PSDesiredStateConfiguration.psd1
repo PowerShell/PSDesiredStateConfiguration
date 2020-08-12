@@ -71,6 +71,7 @@ FunctionsToExport = @(
         'New-DscChecksum'
         'Get-DscResource'
         'Invoke-DscResource'
+        'ConvertTo-DscJsonSchema'
     )
 
 

@@ -3883,6 +3883,124 @@ function Get-DSCResourceModules
     $dscModuleFolderList
 }
 
+function CimPropertyIsInherited
+{
+    param(
+        [parameter(Mandatory)]
+        [string]
+        $PropertyName,
+        
+        [parameter(Mandatory)]
+        [AllowNull()]
+        [System.Object]
+        $ParentClass)
+
+    if (-not ($ParentClass))
+    {
+        return $false;
+    }
+    else
+    {
+        foreach($property in $ParentClass.CimClassProperties)
+        {
+            if ($property.Name -eq $PropertyName)
+            {
+                return $true;
+            }
+        }
+
+        return CimPropertyIsInherited -PropertyName $PropertyName -ParentClass $ParentClass.CimSuperClass
+    }
+}
+
+function PrepareCimClassesForJsonConvertion
+{
+    param(
+    [parameter(Mandatory)]
+    $classList)
+
+    $resultList = New-Object -TypeName 'System.Collections.Generic.List[PSObject]'
+
+    foreach($class in $classList)
+    {
+        Write-Verbose "Preprocessing class $($class.CimSystemProperties.ClassName)"
+        $properties = New-Object -TypeName 'System.Collections.Generic.List[System.Object]'
+
+        # remove inherited properties
+        foreach($property in $class.CimClassProperties)
+        {
+            if (-not (CimPropertyIsInherited -PropertyName $property.Name -ParentClass $class.CimSuperClass))
+            {
+                Write-Verbose "Adding property $($property.Name)"
+                $properties.Add($property);
+            }
+            else
+            {
+                Write-Verbose "Property $($property.Name) is inherited, ignoring it"
+            }
+        }
+
+        # construct the processed class
+        $processedClass = [pscustomobject]@{
+            CimSystemProperties = $class.CimSystemProperties
+            CimSuperClassName = $class.CimSuperClassName
+            CimClassQualifiers = $class.CimClassQualifiers
+            CimClassProperties = $properties
+            }
+
+        $resultList.Add($processedClass)
+    }
+
+    return $resultList
+}
+
+###########################################################
+#  ConvertTo-DscJsonSchema
+###########################################################
+
+#
+# Reads CIM MOF schema files and creates json files with equivalent json schema
+#
+function ConvertTo-DscJsonSchema
+{
+    param (
+        [Parameter(ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true)]
+        [ValidateNotNullOrEmpty()]
+        [Alias("Path")]
+        [string[]]
+        $Directory
+    )
+
+    Process
+    {
+        foreach($dir in $Directory)
+        {
+            Write-Verbose "Processing $dir"
+            if (-not (Test-Path -Path $dir))
+            {
+                Write-Error "Can not find directory $dir" # non-terminating error
+            }
+            else
+            {
+                [Microsoft.PowerShell.DesiredStateConfiguration.Internal.Mof.DscClassCache]::Initialize()
+                $schemaFilePaths = Get-ChildItem -Recurse -File -Path $dir -Filter '*.schema.mof'
+
+                foreach($mofPath in $schemaFilePaths)
+                {
+                    $cimClasses = [Microsoft.PowerShell.DesiredStateConfiguration.Internal.Mof.DscClassCache]::ReadCimSchemaMof($mofPath)
+                    Write-Verbose "Read $($cimClasses.Count) classes from $mofPath"
+                    $preprocessedCimClasses = PrepareCimClassesForJsonConvertion $cimClasses
+
+                    [string] $jsonPath = $mofPath.FullName.Substring(0, $mofPath.FullName.LastIndexOf('.')) + ".json";
+                    Write-Verbose "Writing $jsonPath"
+                    ConvertTo-Json -InputObject $preprocessedCimClasses -Depth 100 -EnumsAsStrings | Out-File -Force -Path $jsonPath
+                }
+            }
+            
+        }
+    }
+}
+
 ###########################################################
 #  Get-DSCResource
 ###########################################################
@@ -4859,6 +4977,7 @@ function Get-InvokeDscResourceResult
 
 Export-ModuleMember -Function @(
         'Invoke-DscResource'
+        'ConvertTo-DscJsonSchema'
     )
 
 ###########################################################
