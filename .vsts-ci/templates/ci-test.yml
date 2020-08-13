@@ -49,19 +49,27 @@ jobs:
     displayName: Capture PSRepository
 
   - ${{ parameters.powershellExecutable }}: |
-      Install-Module -Name "platyPS" -Force
       Install-module Pester -Force -MaximumVersion 4.99
-    displayName: Install dependencies
+    displayName: Install dependencies - Pester
+    timeoutInMinutes: 10
+    
+  - ${{ parameters.powershellExecutable }}: |
+      Install-Module -Name "platyPS" -Force
+    displayName: Install dependencies - PlatyPS
     timeoutInMinutes: 10
 
   - ${{ parameters.powershellExecutable }}: |
         Install-Module -Name "PSScriptAnalyzer" -RequiredVersion 1.18.0 -Force
-    displayName: Install dependencies
+    displayName: Install dependencies - PSScriptAnalyzer
     timeoutInMinutes: 10
 
   - ${{ parameters.powershellExecutable }}: |
       Install-Module -Name PSPackageProject -Force
     displayName: Install PSPackageProject module
+
+  - ${{ parameters.powershellExecutable }}: |
+      Get-Module -ListAvailable Pester, platyPS, PSScriptAnalyzer, PSPackageProject
+    displayName: List Available Modules
 
   - task: DownloadBuildArtifacts@0
     displayName: 'Download artifacts'
@@ -111,3 +119,9 @@ jobs:
     displayName: Unregister temporary PSRepository
     condition: always()
     timeoutInMinutes: 10
+    
+  - ${{ parameters.powershellExecutable }}: |
+      Get-Module -ListAvailable Pester, platyPS, PSScriptAnalyzer, PSPackageProject
+    condition: always()
+    displayName: List Available Modules
+
