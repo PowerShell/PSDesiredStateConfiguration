@@ -52,7 +52,7 @@ jobs:
       Install-module Pester -Force -MaximumVersion 4.99
     displayName: Install dependencies - Pester
     timeoutInMinutes: 10
-    
+
   - ${{ parameters.powershellExecutable }}: |
       Install-Module -Name "platyPS" -Force
     displayName: Install dependencies - PlatyPS
@@ -64,8 +64,16 @@ jobs:
     timeoutInMinutes: 10
 
   - ${{ parameters.powershellExecutable }}: |
+      Get-Module -ListAvailable Pester, platyPS, PSScriptAnalyzer, PSPackageProject
+    displayName: List Available Modules
+
+  - ${{ parameters.powershellExecutable }}: |
       Install-Module -Name PSPackageProject -Force
     displayName: Install PSPackageProject module
+
+  - ${{ parameters.powershellExecutable }}: |
+      Get-InstalledModule -Name pester  -AllVersions | Where-Object {$_.Version -ge ([version]::new(5,0,0))} | Uninstall-Module -Force
+    displayName: Remove >= 5.0.0 Pester
 
   - ${{ parameters.powershellExecutable }}: |
       Get-Module -ListAvailable Pester, platyPS, PSScriptAnalyzer, PSPackageProject
@@ -119,7 +127,7 @@ jobs:
     displayName: Unregister temporary PSRepository
     condition: always()
     timeoutInMinutes: 10
-    
+
   - ${{ parameters.powershellExecutable }}: |
       Get-Module -ListAvailable Pester, platyPS, PSScriptAnalyzer, PSPackageProject
     condition: always()
