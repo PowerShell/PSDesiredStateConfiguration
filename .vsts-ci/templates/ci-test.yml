@@ -49,7 +49,8 @@ jobs:
     displayName: Capture PSRepository
 
   - ${{ parameters.powershellExecutable }}: |
-      Install-Module -Name "platyPS","Pester" -Force
+      Install-Module -Name "platyPS" -Force
+      Install-module Pester -Force -MaximumVersion 4.99
     displayName: Install dependencies
     timeoutInMinutes: 10
 
