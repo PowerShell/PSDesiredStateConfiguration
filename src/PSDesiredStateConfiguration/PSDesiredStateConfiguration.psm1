@@ -3982,12 +3982,12 @@ function ConvertTo-DscJsonSchema
             }
             else
             {
-                [Microsoft.PowerShell.DesiredStateConfiguration.DscClassCache]::Initialize()
+                [Microsoft.PowerShell.DesiredStateConfiguration.Internal.DscClassCache]::Initialize()
                 $schemaFilePaths = Get-ChildItem -Recurse -File -Path $dir -Filter '*.schema.mof'
 
                 foreach($mofPath in $schemaFilePaths)
                 {
-                    $cimClasses = [Microsoft.PowerShell.DesiredStateConfiguration.DscClassCache]::ReadCimSchemaMof($mofPath)
+                    $cimClasses = [Microsoft.PowerShell.DesiredStateConfiguration.Internal.DscClassCache]::ReadCimSchemaMof($mofPath)
                     Write-Verbose "Read $($cimClasses.Count) classes from $mofPath"
                     $preprocessedCimClasses = PrepareCimClassesForJsonConvertion $cimClasses
 
