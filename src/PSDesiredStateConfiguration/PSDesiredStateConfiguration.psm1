@@ -3932,7 +3932,36 @@ function PrepareCimClassesForJsonConvertion
             if (-not (CimPropertyIsInherited -PropertyName $property.Name -ParentClass $class.CimSuperClass))
             {
                 Write-Verbose "Adding property $($property.Name)"
-                $properties.Add($property);
+                
+                $qualifiers = New-Object -TypeName 'System.Collections.Generic.Dictionary[System.String,System.Object]'
+                foreach($qualifier in $property.Qualifiers)
+                {
+                    $qualifiers.Add($qualifier.Name, $qualifier.Value)
+                }
+
+                if ($qualifiers.Count -eq 0) { $qualifiers = $null}
+
+                $flags = $property.Flags
+                $flags = $flags -band -bnot [Microsoft.Management.Infrastructure.CimFlags]::Property # this is set for all properties
+                $flags = $flags -band -bnot [Microsoft.Management.Infrastructure.CimFlags]::NullValue # this is set for all properties
+                $flags = $flags -band -bnot [Microsoft.Management.Infrastructure.CimFlags]::Required # this is also specified in Qualifiers
+                $flags = $flags -band -bnot [Microsoft.Management.Infrastructure.CimFlags]::Key # this is also specified in Qualifiers
+                $flags = $flags -band -bnot [Microsoft.Management.Infrastructure.CimFlags]::ReadOnly # this is also specified in Qualifiers
+                if ($flags -eq 0) { $flags = $null}
+
+                $p = [pscustomobject]@{
+                    Name = $property.Name
+                    Value = $property.Value
+                    CimType = $property.CimType
+                    Flags = $flags
+                    ReferenceClassName = $property.ReferenceClassName
+                    Qualifiers = $qualifiers
+                }
+
+                # remove properties that have null value
+                $p.PSobject.Properties | % {if ($_.Value -eq $null) {$p.PSobject.Properties.Remove($_.Name)}}
+
+                $properties.Add($p);
             }
             else
             {
@@ -3940,13 +3969,20 @@ function PrepareCimClassesForJsonConvertion
             }
         }
 
+        if ($properties.Count -eq 0) { $properties = $null}
+
         # construct the processed class
         $processedClass = [pscustomobject]@{
-            CimSystemProperties = $class.CimSystemProperties
-            CimSuperClassName = $class.CimSuperClassName
-            CimClassQualifiers = $class.CimClassQualifiers
-            CimClassProperties = $properties
+            ClassName = $class.CimSystemProperties.ClassName
+            FriendlyName = ($class.CimClassQualifiers | Where-Object {$_.Name -eq "FriendlyName"}).Value
+            ClassVersion = ($class.CimClassQualifiers | Where-Object {$_.Name -eq "ClassVersion"}).Value
+            Description = ($class.CimClassQualifiers | Where-Object {$_.Name -eq "Description"}).Value
+            SuperClassName = $class.CimSuperClassName
+            ClassProperties = $properties
             }
+
+        # remove properties that have null value
+        $processedClass.PSobject.Properties | % {if ($_.Value -eq $null) {$processedClass.PSobject.Properties.Remove($_.Name)}}
 
         $resultList.Add($processedClass)
     }
