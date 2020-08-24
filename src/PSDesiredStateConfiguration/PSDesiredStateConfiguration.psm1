@@ -4292,7 +4292,7 @@ function GetResourceFromKeyword
             {
                 # check if the resource is proper DSC resource that always derives from OMI_BaseResource.
                 $schemaToProcess = $classesFromSchema | ForEach-Object -Process {
-                    if(($_.CimSystemProperties.ClassName -ieq $keyword.ResourceName) -and ($_.CimSuperClassName -ieq 'OMI_BaseResource'))
+                    if(($_.ClassName -ieq $keyword.ResourceName) -and ($_.SuperClassName -ieq 'OMI_BaseResource'))
                     {
                         if ([ExperimentalFeature]::IsEnabled("PSDesiredStateConfiguration.InvokeDscResource"))
                         {
