@@ -429,25 +429,39 @@ Describe "Test PSDesiredStateConfiguration" -tags CI {
                 Should -Throw -ErrorId 'InvalidResourceSpecification,Invoke-DscResource' -ExpectedMessage 'Invalid Resource Name ''Script'' or module specification.'
             }
 
-            it "Resource with embedded resource not supported and a warning should be produced"  {
-
+            it "Test an embedded DSC resource"  {
                 if (!(Test-IsInvokeDscResourceEnable)) {
                     Set-ItResult -Skipped -Because "Feature not enabled"
                 }
 
-                if (!$IsMacOS) {
-                    Set-ItResult -Skipped -Because "Not applicable on Windows and xWebAdministration resources don't load on linux"
-                }
+                $resourceName="TestRes"
+                $moduleName="TestEmbeddedDSCResource"
+                $moduleVersion="1.0"
+                $moduleSpecification = @{ModuleName=$moduleName;RequiredVersion=$moduleVersion}
+                $embObj = @(New-Object -TypeName psobject -Property @{embclassprop="property1"})
 
-                try {
-                    Invoke-DscResource -Name xWebSite -ModuleName 'xWebAdministration' -Method Test -Property @{TestScript = 'foobar' } -ErrorAction Stop -WarningVariable warnings
-                }
-                catch{
-                    #this will fail too, but that is nat what we are testing...
-                }
+                Install-ModuleIfMissing -Name $moduleName -Force
 
-                $warnings.Count | Should -Be 1 -because "There should be 1 warning on macOS and Linux"
-                $warnings[0] | Should -Match 'embedded resources.*not support'
+                $resource = Get-DscResource -Name $resourceName -Module $moduleSpecification -ErrorAction Stop
+                $resource | Should -Not -BeNullOrEmpty
+                $resource.Name | Should -Be $resourceName
+
+                $methodName="Test"
+                $result = Invoke-DscResource -Name $resourceName -ModuleName $moduleSpecification -Method $methodName -Property @{embclassobj=$embObj;propName="property1"}
+                $result.InDesiredState | Should -BeTrue
+                $result = Invoke-DscResource -Name $resourceName -ModuleName $moduleSpecification -Method $methodName -Property  @{embclassobj=$embObj;propName="property2"}
+                $result.InDesiredState | Should -BeFalse
+
+                $methodName="Get"
+                $result = Invoke-DscResource -Name $resourceName -ModuleName $moduleSpecification -Method $methodName -Property @{embclassobj=$embObj;propName="property1"}
+                $result.propName | Should -Be "property1"
+                $result = Invoke-DscResource -Name $resourceName -ModuleName $moduleSpecification -Method $methodName -Property @{embclassobj=$embObj;propName="property2"}
+                $result.propName | Should -Not -Be "property1"
+
+                $methodName="Set"
+                $result = Invoke-DscResource -Name $resourceName -ModuleName $moduleSpecification -Method $methodName -Property @{embclassobj=$embObj;propName="property1"}
+                $result | Should -Not -BeNullOrEmpty
+                $result.RebootRequired | Should -BeFalse
             }
 
             it "Using PsDscRunAsCredential should say not supported" -Skip:(!(Test-IsInvokeDscResourceEnable)) {
