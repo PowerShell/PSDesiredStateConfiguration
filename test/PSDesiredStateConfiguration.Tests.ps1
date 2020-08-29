@@ -547,4 +547,3 @@ Describe "Test PSDesiredStateConfiguration" -tags CI {
         }
     }
 }
-
