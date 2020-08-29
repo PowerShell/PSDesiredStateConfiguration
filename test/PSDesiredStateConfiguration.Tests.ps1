@@ -437,29 +437,28 @@ Describe "Test PSDesiredStateConfiguration" -tags CI {
                 $resourceName="TestRes"
                 $moduleName="TestEmbeddedDSCResource"
                 $moduleVersion="1.0"
-                $moduleSpecification = @{ModuleName=$moduleName;RequiredVersion=$moduleVersion}
                 $embObj = @(New-Object -TypeName psobject -Property @{embclassprop="property1"})
 
                 Install-ModuleIfMissing -Name $moduleName -Force
 
-                $resource = Get-DscResource -Name $resourceName -Module $moduleSpecification -ErrorAction Stop
+                $resource = Get-DscResource -Name $resourceName -Module $moduleName -ErrorAction Stop
                 $resource | Should -Not -BeNullOrEmpty
                 $resource.Name | Should -Be $resourceName
 
                 $methodName="Test"
-                $result = Invoke-DscResource -Name $resourceName -ModuleName $moduleSpecification -Method $methodName -Property @{embclassobj=$embObj;propName="property1"}
+                $result = Invoke-DscResource -Name $resourceName -ModuleName $moduleName -Method $methodName -Property @{embclassobj=$embObj;propName="property1"}
                 $result.InDesiredState | Should -BeTrue
-                $result = Invoke-DscResource -Name $resourceName -ModuleName $moduleSpecification -Method $methodName -Property  @{embclassobj=$embObj;propName="property2"}
+                $result = Invoke-DscResource -Name $resourceName -ModuleName $moduleName -Method $methodName -Property  @{embclassobj=$embObj;propName="property2"}
                 $result.InDesiredState | Should -BeFalse
 
                 $methodName="Get"
-                $result = Invoke-DscResource -Name $resourceName -ModuleName $moduleSpecification -Method $methodName -Property @{embclassobj=$embObj;propName="property1"}
+                $result = Invoke-DscResource -Name $resourceName -ModuleName $moduleName -Method $methodName -Property @{embclassobj=$embObj;propName="property1"}
                 $result.propName | Should -Be "property1"
-                $result = Invoke-DscResource -Name $resourceName -ModuleName $moduleSpecification -Method $methodName -Property @{embclassobj=$embObj;propName="property2"}
+                $result = Invoke-DscResource -Name $resourceName -ModuleName $moduleName -Method $methodName -Property @{embclassobj=$embObj;propName="property2"}
                 $result.propName | Should -Not -Be "property1"
 
                 $methodName="Set"
-                $result = Invoke-DscResource -Name $resourceName -ModuleName $moduleSpecification -Method $methodName -Property @{embclassobj=$embObj;propName="property1"}
+                $result = Invoke-DscResource -Name $resourceName -ModuleName $moduleName -Method $methodName -Property @{embclassobj=$embObj;propName="property1"}
                 $result | Should -Not -BeNullOrEmpty
                 $result.RebootRequired | Should -BeFalse
             }
