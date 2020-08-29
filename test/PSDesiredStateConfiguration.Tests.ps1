@@ -436,7 +436,6 @@ Describe "Test PSDesiredStateConfiguration" -tags CI {
 
                 $resourceName="TestRes"
                 $moduleName="TestEmbeddedDSCResource"
-                $moduleVersion="1.0"
                 $embObj = @(New-Object -TypeName psobject -Property @{embclassprop="property1"})
 
                 Install-ModuleIfMissing -Name $moduleName -Force
