@@ -308,7 +308,7 @@ function ConvertTo-MOFInstance
         elseif ($Value -is [PSCredential] )
         {
             # If the input object is a PSCredential, turn it into an MSFT_Credential with an encrypted password.
-            $clearText = [Microsoft.PowerShell.DesiredStateConfiguration.Json.DscClassCache]::GetStringFromSecureString($Value.Password)
+            $clearText = [Microsoft.PowerShell.DesiredStateConfiguration.Internal.Json.DscClassCache]::GetStringFromSecureString($Value.Password)
             $newValue = @{
                 UserName = $Value.UserName
                 Password = $clearText
@@ -1976,7 +1976,7 @@ function Configuration
 
             # Load the default CIM keyword/function definitions set, populating the function collection
             # with the default functions.
-            [Microsoft.PowerShell.DesiredStateConfiguration.Json.DscClassCache]::LoadDefaultCimKeywords($functionsToDefine)
+            [Microsoft.PowerShell.DesiredStateConfiguration.Internal.Json.DscClassCache]::LoadDefaultCimKeywords($functionsToDefine)
 
             # Set up the rest of the configuration runtime state.
             Initialize-ConfigurationRuntimeState $Name
@@ -2321,7 +2321,7 @@ function Configuration
         {
             Write-Debug -Message "  CONFIGURATION $Name : DOING TOP-LEVEL CLEAN UP"
             [System.Management.Automation.Language.DynamicKeyword]::Reset()
-            [Microsoft.PowerShell.DesiredStateConfiguration.Json.DscClassCache]::ClearCache()
+            [Microsoft.PowerShell.DesiredStateConfiguration.Internal.Json.DscClassCache]::ClearCache()
 
             Initialize-ConfigurationRuntimeState
         }
@@ -2498,7 +2498,7 @@ function ImportClassResourcesFromModule
         $functionsToDefine
     )
 
-    $resourcesFound = [Microsoft.PowerShell.DesiredStateConfiguration.Json.DscClassCache]::ImportClassResourcesFromModule($Module, $Resources, $functionsToDefine)
+    $resourcesFound = [Microsoft.PowerShell.DesiredStateConfiguration.Internal.Json.DscClassCache]::ImportClassResourcesFromModule($Module, $Resources, $functionsToDefine)
     return ,$resourcesFound
 }
 
@@ -2524,7 +2524,7 @@ function ImportCimAndScriptKeywordsFromModule
 
     $keywordErrors = New-Object -TypeName 'System.Collections.ObjectModel.Collection[System.Exception]'
 
-    $foundCimSchema = [Microsoft.PowerShell.DesiredStateConfiguration.Json.DscClassCache]::ImportCimKeywordsFromModule(
+    $foundCimSchema = [Microsoft.PowerShell.DesiredStateConfiguration.Internal.Json.DscClassCache]::ImportCimKeywordsFromModule(
     $Module, $resource, [ref] $SchemaFilePath, $functionsToDefine, $keywordErrors)
 
     foreach($ex in $keywordErrors)
@@ -2542,7 +2542,7 @@ function ImportCimAndScriptKeywordsFromModule
     $SchemaFilePath = $null
     $oldCount = $functionsToDefine.Count
 
-    $foundScriptSchema = [Microsoft.PowerShell.DesiredStateConfiguration.Json.DscClassCache]::ImportScriptKeywordsFromModule(
+    $foundScriptSchema = [Microsoft.PowerShell.DesiredStateConfiguration.Internal.Json.DscClassCache]::ImportScriptKeywordsFromModule(
     $Module, $resource, [ref] $SchemaFilePath, $functionsToDefine )
 
     $functionsAdded = $functionsToDefine.Count - $oldCount
@@ -2950,16 +2950,6 @@ function Write-NodeMOFFile
     }
     # Fix up newlines to be CRLF
     $nodeDoc = $nodeDoc -replace "`n", "`r`n"
-
-    $errMsg = Test-MofInstanceText $nodeDoc
-    if($errMsg)
-    {
-        $errorMessage = $LocalizedData.InvalidMOFDefinition -f @($mofNode, $errMsg)
-        $exception = New-Object -TypeName System.InvalidOperationException -ArgumentList $errorMessage
-        Write-Error -Exception $exception -Message $errorMessage -Category InvalidOperation -ErrorId InvalidMOFDefinition
-        Update-ConfigurationErrorCount
-        $nodeOutfile = "$ConfigurationOutputDirectory/$($mofNode).mof.error"
-    }
 
     if($nodeDocCount -gt 0)
     {
@@ -3417,7 +3407,7 @@ function Test-MofInstanceText
     {
         try
         {
-            [Microsoft.PowerShell.DesiredStateConfiguration.Json.DscClassCache]::ValidateInstanceText($instanceText)
+            [Microsoft.PowerShell.DesiredStateConfiguration.Internal.Json.DscClassCache]::ValidateInstanceText($instanceText)
         }
         catch [System.Management.Automation.MethodInvocationException]
         {
@@ -4077,7 +4067,7 @@ function Get-DscResource
         $keywordErrors = New-Object -TypeName 'System.Collections.ObjectModel.Collection[System.Exception]'
 
         # Load the default Inbox providers (keyword) in cache, also allow caching the resources from multiple versions of modules.
-        [Microsoft.PowerShell.DesiredStateConfiguration.Json.DscClassCache]::LoadDefaultCimKeywords($keywordErrors, $true)
+        [Microsoft.PowerShell.DesiredStateConfiguration.Internal.Json.DscClassCache]::LoadDefaultCimKeywords($keywordErrors, $true)
 
         foreach($ex in $keywordErrors)
         {
@@ -4162,7 +4152,7 @@ function Get-DscResource
             Write-Progress -Id 3 -Activity $LocalizedData.CreatingResourceList
 
             # Get resources for CIM cache
-            $keywords = [Microsoft.PowerShell.DesiredStateConfiguration.Json.DscClassCache]::GetCachedKeywords() | Where-Object -FilterScript {
+            $keywords = [Microsoft.PowerShell.DesiredStateConfiguration.Internal.Json.DscClassCache]::GetCachedKeywords() | Where-Object -FilterScript {
                 (!$_.IsReservedKeyword) -and ($null -ne $_.ResourceName) -and !(IsHiddenResource $_.ResourceName) -and (![bool]$Module -or ($_.ImplementingModule -like $ModuleString))
             }
 
@@ -4192,7 +4182,7 @@ function Get-DscResource
             if ($initialized)
             {
                 [System.Management.Automation.Language.DynamicKeyword]::Reset()
-                [Microsoft.PowerShell.DesiredStateConfiguration.Json.DscClassCache]::ClearCache()
+                [Microsoft.PowerShell.DesiredStateConfiguration.Internal.Json.DscClassCache]::ClearCache()
 
                 $initialized = $false
             }
@@ -4220,7 +4210,7 @@ function Get-DscResource
         if ($initialized)
         {
             [System.Management.Automation.Language.DynamicKeyword]::Reset()
-            [Microsoft.PowerShell.DesiredStateConfiguration.Json.DscClassCache]::ClearCache()
+            [Microsoft.PowerShell.DesiredStateConfiguration.Internal.Json.DscClassCache]::ClearCache()
 
             $initialized = $false
         }
@@ -4271,7 +4261,7 @@ function GetResourceFromKeyword
 
     $resource.Name = $keyword.Keyword
 
-    $schemaFiles = [Microsoft.PowerShell.DesiredStateConfiguration.Json.DscClassCache]::GetFileDefiningClass($keyword.ResourceName)
+    $schemaFiles = [Microsoft.PowerShell.DesiredStateConfiguration.Internal.Json.DscClassCache]::GetFileDefiningClass($keyword.ResourceName)
 
     if ($schemaFiles.Count)
     {
@@ -4287,7 +4277,7 @@ function GetResourceFromKeyword
         # if the class is not a resource we will ignore it except if it is DSC inbox resource.
         if(-not $schemaFileName.StartsWith("$env:windir\system32\configuration",[stringComparison]::OrdinalIgnoreCase))
         {
-            $classesFromSchema = [Microsoft.PowerShell.DesiredStateConfiguration.Json.DscClassCache]::GetCachedClassByFileName($schemaFileName)
+            $classesFromSchema = [Microsoft.PowerShell.DesiredStateConfiguration.Internal.Json.DscClassCache]::GetCachedClassByFileName($schemaFileName)
             if($null -ne  $classesFromSchema)
             {
                 # check if the resource is proper DSC resource that always derives from OMI_BaseResource.
