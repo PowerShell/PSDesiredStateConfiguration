@@ -77,7 +77,7 @@ Import-LocalizedData  -BindingVariable LocalizedData -FileName PSDesiredStateCon
 Import-Module $PSScriptRoot/helpers/DscResourceInfo.psm1
 
 # Set DSC HOME environment variable.
-$env:DSC_HOME = "$PSScriptRoot/Configuration"
+$env:DSC_HOME = Join-Path $PSScriptRoot "Configuration"
 
 $script:V1MetaConfigPropertyList = @('ConfigurationModeFrequencyMins', 'RebootNodeIfNeeded', 'ConfigurationMode', 'ActionAfterReboot', 'RefreshMode', 'CertificateID', 'ConfigurationID', 'DownloadManagerName', 'DownloadManagerCustomData', 'RefreshFrequencyMins', 'AllowModuleOverwrite', 'DebugMode', 'Credential')
 $script:DirectAccessMetaConfigPropertyList = @('AllowModuleOverWrite', 'CertificateID', 'ConfigurationDownloadManagers', 'ResourceModuleManagers', 'DebugMode', 'RebootNodeIfNeeded', 'RefreshMode', 'ConfigurationAgent')
