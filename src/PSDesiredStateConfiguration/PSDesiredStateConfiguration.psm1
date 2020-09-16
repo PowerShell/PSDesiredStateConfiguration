@@ -4161,16 +4161,6 @@ function Get-DscResource
                 $_ -ne $null
             }
 
-            # Get composite resources
-            $Resources += Get-Command -CommandType Configuration |
-            ForEach-Object -Process {
-                GetCompositeResource $patterns $_ $ignoreResourceParameters -modules $modules
-            } |
-            Where-Object -FilterScript {
-                $_ -ne $null -and (![bool]$ModuleString -or ($_.Module -like $ModuleString)) -and
-                ($_.Path -and ((Split-Path -Leaf $_.Path) -eq "$($_.Name).schema.psm1"))
-            }
-
             # check whether all resources are found
             CheckResourceFound $Name $Resources
         }
