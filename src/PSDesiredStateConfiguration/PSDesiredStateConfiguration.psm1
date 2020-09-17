@@ -4196,8 +4196,8 @@ function Get-DscResource
 
         if ($initialized)
         {
-            [System.Management.Automation.Language.DynamicKeyword]::Reset()
-            [Microsoft.PowerShell.DesiredStateConfiguration.Internal.Json.DscClassCache]::ClearCache()
+            <#[System.Management.Automation.Language.DynamicKeyword]::Reset()
+            [Microsoft.PowerShell.DesiredStateConfiguration.Internal.Json.DscClassCache]::ClearCache()#>
 
             $initialized = $false
         }
