@@ -4329,7 +4329,7 @@ function GetResourceFromKeyword
         $Module = $modules | Where-Object -FilterScript {
             $_.Name -eq $keyword.ImplementingModule -and
             $_.Version -eq $keyword.ImplementingModuleVersion
-        }
+        } | Select-Object -First 1
 
         if ($Module -and $Module.ExportedDscResources -contains $keyword.Keyword)
         {
