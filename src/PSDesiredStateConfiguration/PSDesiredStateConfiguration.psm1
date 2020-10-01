@@ -4908,6 +4908,8 @@ function Invoke-DscClassBasedResource
 
     Write-Debug "Importing $path ..."
     $iss = [System.Management.Automation.Runspaces.InitialSessionState]::CreateDefault2()
+    # next line prevents PSModulePath from being reset to default
+    $iss.EnvironmentVariables.Add([System.Management.Automation.Runspaces.SessionStateVariableEntry]::new("PSModulePath", $env:PSModulePath, $null))
     $powershell = [PowerShell]::Create($iss)
     $script = @"
 using module $path
