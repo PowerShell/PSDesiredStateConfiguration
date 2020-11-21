@@ -4338,6 +4338,11 @@ function GetResourceFromKeyword
             $resource.Path = $Module.Path
             $resource.ParentPath = Split-Path -Path $Module.Path
         }
+        else
+        {
+            # a class-based keyword must be in the ExportedDscResources of the module that implements it
+            return $null
+        }
     }
 
     if ([system.string]::IsNullOrEmpty($resource.Path) -eq $false)
@@ -4490,7 +4495,6 @@ function AddDscResourceProperty
             $dscProperty.Values.Add($_)
         }
     }
-
     $dscProperty.PropertyType = $Type
     $dscProperty.IsMandatory = $property.Mandatory
 
