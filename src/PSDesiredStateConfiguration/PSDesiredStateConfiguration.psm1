@@ -4913,26 +4913,24 @@ function Invoke-DscClassBasedResource
     $powershell = [PowerShell]::Create($iss)
     $script = @"
 using module $path
-
-Write-Host -Message ([$type]::new | out-string)
-return [$type]::new()
+return [$type]
 "@
 
-
-    $null= $powershell.AddScript($script)
-    $dscType=$powershell.Invoke() | Select-object -First 1
+    $null = $powershell.AddScript($script)
+    $dscType = $powershell.Invoke() | Select-object -First 1
+    Write-Debug "Imported Type: $($dscType | Out-String)"
+    $dscObj = $dscType::new()
     foreach($key in $Property.Keys)
     {
         $value = $Property.$key
         Write-Debug "Setting $key to $value"
-        $dscType.$key = $value
+        $dscObj.$key = $value
     }
-    $info = $dscType | Out-String
-    Write-Debug $info
+    Write-Debug "Object with filled keys: $($dscObj | Out-String)"
 
-    Write-Debug "calling $type.$Method() ..."
+    Write-Debug "Calling $type.$Method() ..."
     $global:DSCMachineStatus = $null
-    $output = $dscType.$Method()
+    $output = $dscObj.$Method()
     return Get-InvokeDscResourceResult -Output $output -Method $Method
 }
 
