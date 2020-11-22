@@ -2493,7 +2493,15 @@ function ImportClassResourcesFromModule
         $functionsToDefine
     )
 
-    $resourcesFound = [Microsoft.PowerShell.DesiredStateConfiguration.Internal.Json.DscClassCache]::ImportClassResourcesFromModule($Module, $Resources, $functionsToDefine)
+    $Errors = New-Object -TypeName 'System.Collections.ObjectModel.Collection[System.Exception]'
+
+    $resourcesFound = [Microsoft.PowerShell.DesiredStateConfiguration.Internal.Json.DscClassCache]::ImportClassResourcesFromModule($Module, $Resources, $functionsToDefine, $Errors)
+
+    foreach($ex in $Errors)
+    {
+        Write-Error -Exception $ex
+    }
+
     return ,$resourcesFound
 }
 
