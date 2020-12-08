@@ -136,11 +136,6 @@ namespace Microsoft.PowerShell.DesiredStateConfiguration
         {
             this.Properties = properties;
         }
-
-        /// <summary>
-        /// Get/Set/Test method declarations from resource implementation script module
-        /// </summary>
-        public System.Collections.Hashtable ExportedCommands { get; set; }
     }
 
     /// <summary>
