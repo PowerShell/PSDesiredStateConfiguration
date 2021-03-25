@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="15.0">
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <AssemblyName>Microsoft.PowerShell.DscSubsystem</AssemblyName>
+    
+    <DelaySign>true</DelaySign>
+    <AssemblyOriginatorKeyFile>visualstudiopublic.snk</AssemblyOriginatorKeyFile>
+    <SignAssembly>true</SignAssembly>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="C:\anmenaga-PowerShell\src\powershell-win-core\bin\Debug\net6.0\win7-x64\publish\System.Management.Automation.dll"></Reference>
+  </ItemGroup>
+  
+</Project>
