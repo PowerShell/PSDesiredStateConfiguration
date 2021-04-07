@@ -1,36 +1,30 @@
-name: $(BuildDefinitionName)_$(date:yyMM).$(date:dd)$(rev:rrr)
+name: $(BuildDefinitionName)-$(date:yyMM).$(date:dd)$(rev:rrr)
 
 trigger:
   batch: true
   branches:
     include:
       - master
-  paths:
-    exclude:
-      - /.dependabot/*
-      - /.poshchan/*
-      - /.github/**/*
-      - /.vscode/**/*
-      - /.vsts-ci/misc-analysis.yml
-      - /tools/**/*
-      - .editorconfig
-      - .gitattributes
-      - .gitignore
-      - /docs/**/*
-      - /CHANGELOG.md
-      - /CONTRIBUTING.md
-      - /README.md
-      - /LICENSE.txt
-      - /CODE_OF_CONDUCT.md
+pr:
+  branches:
+    include:
+    - master
+
+resources:
+  repositories:
+  - repository: ComplianceRepo
+    type: github
+    endpoint: ComplianceGHRepo
+    name: PowerShell/compliance
 
 stages:
 - stage: Build
-  displayName: Build PowerShell Package
+  displayName: Build PSDesiredStateConfiguration Module Package
   jobs:
   - job: BuildPkg
     displayName: Build Package
     pool:
-      name: 'Package ES CodeHub Lab E'
+      vmImage: windows-latest
     steps:
     - powershell: |
         $powerShellPath = Join-Path -Path $env:AGENT_TEMPDIRECTORY -ChildPath 'powershell'
@@ -40,109 +34,6 @@ stages:
         Write-Host "sending " + $vstsCommandString
         Write-Host "##$vstsCommandString"
       displayName: Install PowerShell Core
-
-    - task: PkgESSetupBuild@10
-      displayName: 'Package ES - Setup Build'
-      inputs:
-        productName: PSDesiredStateConfiguration
-
-    - template: templates/shouldsign.yml
-
-    - powershell: |
-        Get-ChildItem -Path env:
-      displayName: Capture environment
-      condition: succeededOrFailed()
-
-    - template: templates/ci-build.yml
-
-    - powershell: |
-        Write-Verbose "BUILD_OUTPUT_PATH- $env:BUILD_OUTPUT_PATH" -Verbose
-        Write-Verbose "SIGNED_OUTPUT_PATH- $env:SIGNED_OUTPUT_PATH" -Verbose
-        Copy-Item $env:BUILD_OUTPUT_PATH $env:SIGNED_OUTPUT_PATH -Recurse -Force
-      displayName: Copy unsigned files first
-
-    - task: PkgESCodeSign@10
-      displayName: 'CodeSign tools/releaseBuild/signing.xml'
-      env:
-        SYSTEM_ACCESSTOKEN: $(System.AccessToken)
-      inputs:
-        signConfigXml: tools/releaseBuild/signing.xml
-        inPathRoot: '$(BUILD_OUTPUT_PATH)'
-        outPathRoot: '$(SIGNED_OUTPUT_PATH)'
-      condition: and(succeeded(), eq(variables['SHOULD_SIGN'], 'true'))
-
-    - task: PowerShell@1
-      displayName: 'Create catalog file'
-      inputs:
-        scriptType: inlineScript
-        inlineScript: |
-          $signedDir = "$env:SIGNED_OUTPUT_PATH\PSDesiredStateConfiguration"
-          New-FileCatalog -CatalogFilePath "$env:SIGNED_OUTPUT_PATH\PSDesiredStateConfiguration\PSDesiredStateConfiguration.cat" -Path "$signedDir"
-
-    - task: PkgESCodeSign@10
-      displayName: 'CodeSign tools/releaseBuild/FileCatalogSigning.xml'
-      env:
-        SYSTEM_ACCESSTOKEN: $(System.AccessToken)
-      inputs:
-        signConfigXml: tools/releaseBuild/FileCatalogSigning.xml
-        inPathRoot: '$(SIGNED_OUTPUT_PATH)'
-        outPathRoot: '$(SIGNED_OUTPUT_PATH)'
-      condition: and(succeeded(), eq(variables['SHOULD_SIGN'], 'true'))
-
-    - task: ms.vss-governance-buildtask.governance-build-task-component-detection.ComponentGovernanceComponentDetection@0
-      displayName: 'Component Detection'
-
-    - task: AntiMalware@3
-      inputs:
-        InputType: 'Basic'
-        ScanType: 'CustomScan'
-        FileDirPath: '$(SIGNED_OUTPUT_PATH)'
-        EnableServices: false
-        SupportLogOnError: false
-        TreatSignatureUpdateFailureAs: 'Warning'
-        SignatureFreshness: 'UpToDate'
-        TreatStaleSignatureAs: 'Error'
-
-    - task: PoliCheck@1
-      condition: succeededOrFailed()
-      inputs:
-        targetType: F
-        optionsFC: 0
-        optionsXS: 0
-        optionsPE: '1|2|3|4'
-        optionsHMENABLE: 0
-        optionsFTPATH: '$(Build.SourcesDirectory)\tools\terms\FileTypeSet.xml'
-
-    - task: CredScan@2
-      condition: succeededOrFailed()
-
-    # Publish results as artifacts
-    - task: PublishSecurityAnalysisLogs@3
-      condition: succeededOrFailed()
-      inputs:
-        ArtifactName: 'CodeAnalysisLogs'
-        ArtifactType: 'Container'
-
-    # Publish to TSA server
-    # - task: TSAUpload@1
-    #   condition: succeededOrFailed()
-    #   continueOnError: true
-    #   inputs:
-    #     tsaVersion: 'TsaV2'
-    #     codebase: 'Existing'
-    #     tsaEnvironment: 'PROD'
-    #     codeBaseName: 'PSDesiredStateConfiguration_20190828'
-    #     uploadAPIScan: false
-    #     uploadBinSkim: false
-    #     uploadCredScan: true
-    #     uploadFortifySCA: false
-    #     uploadFxCop: false
-    #     uploadModernCop: false
-    #     uploadPoliCheck: true
-    #     uploadPREfast: false
-    #     uploadRoslyn: false
-    #     uploadTSLint: false
-    #     uploadAsync: true
 
     - pwsh: |
         $(Build.SourcesDirectory)/build.ps1 -Publish -Signed
