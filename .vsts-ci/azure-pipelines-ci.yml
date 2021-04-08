@@ -9,33 +9,22 @@ pr:
   branches:
     include:
     - master
-    - feature-*
-  paths:
-    exclude:
-      - /.dependabot/*
-      - /.poshchan/*
-      - /.github/**/*
-      - /.vscode/**/*
-      - /.vsts-ci/misc-analysis.yml
-      - /tools/**/*
-      - .editorconfig
-      - .gitattributes
-      - .gitignore
-      - /docs/**/*
-      - /CHANGELOG.md
-      - /CONTRIBUTING.md
-      - /README.md
-      - /LICENSE.txt
-      - /CODE_OF_CONDUCT.md
+
+resources:
+  repositories:
+  - repository: ComplianceRepo
+    type: github
+    endpoint: ComplianceGHRepo
+    name: PowerShell/compliance
 
 stages:
 - stage: Build
-  displayName: Build PowerShell Package
+  displayName: Build PSDesiredStateConfiguration module
   jobs:
   - job: BuildPkg
     displayName: Build Package
     pool:
-      vmImage: windows-2019
+      vmImage: windows-latest
     steps:
     - template: templates/ci-build.yml
     - pwsh: |
@@ -47,32 +36,3 @@ stages:
         $(Build.SourcesDirectory)/build.ps1 -Publish -Signed
       displayName: Publish
       timeoutInMinutes: 10
-
-- stage: Test
-  displayName: Test Package
-  jobs:
-  - template: templates/ci-test.yml
-    parameters:
-      jobName: TestPkgWin
-      displayName: PowerShell Core on Windows
-      imageName: windows-2019
-
-  # Not supported on Windows PowerShell per PSD1
-  # - template: test.yml
-  #   parameters:
-  #     jobName: TestPkgWinPS
-  #     displayName: Windows PowerShell on Windows
-  #     imageName: windows-2019
-  #     powershellExecutable: powershell
-
-  - template: templates/ci-test.yml
-    parameters:
-      jobName: TestPkgUbuntu16
-      displayName: PowerShell Core on Ubuntu 16.04
-      imageName: ubuntu-16.04
-
-  - template: templates/ci-test.yml
-    parameters:
-      jobName: TestPkgWinMacOS
-      displayName: PowerShell Core on macOS
-      imageName: macOS-10.14
