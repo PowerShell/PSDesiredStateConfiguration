@@ -1365,7 +1365,7 @@ namespace Microsoft.PowerShell.DesiredStateConfiguration.Internal.CrossPlatform
                 cimSuperClassName = "OMI_BaseResource";
             }
 
-            var cimClassProperties = ProcessMembers(embeddedInstanceTypes, typeAst, className).ToArray();
+            var cimClassProperties = ProcessMembers(embeddedInstanceTypes, typeAst, className);
 
             Queue<object> bases = new Queue<object>();
             foreach (var b in typeAst.BaseTypes)
@@ -1386,7 +1386,7 @@ namespace Microsoft.PowerShell.DesiredStateConfiguration.Internal.CrossPlatform
                         var td = tc.TypeName as TypeName;
                         if (td is not null && td._typeDefinitionAst is not null)
                         {
-                            ProcessMembers(embeddedInstanceTypes, td._typeDefinitionAst, className);
+                            cimClassProperties.AddRange(ProcessMembers(embeddedInstanceTypes, td._typeDefinitionAst, className));
                             foreach (var b1 in td._typeDefinitionAst.BaseTypes)
                             {
                                 bases.Enqueue(b1);
@@ -1402,7 +1402,7 @@ namespace Microsoft.PowerShell.DesiredStateConfiguration.Internal.CrossPlatform
             result.Properties.Add(new PSNoteProperty("ClassName", className));
             result.Properties.Add(new PSNoteProperty("FriendlyName", className));
             result.Properties.Add(new PSNoteProperty("SuperClassName", cimSuperClassName));
-            result.Properties.Add(new PSNoteProperty("ClassProperties", cimClassProperties));
+            result.Properties.Add(new PSNoteProperty("ClassProperties", cimClassProperties.ToArray()));
 
             return new[] { result };
         }
