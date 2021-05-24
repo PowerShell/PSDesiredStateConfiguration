@@ -1,36 +1,24 @@
 name: $(BuildDefinitionName)_$(date:yyMM).$(date:dd)$(rev:rrr)
 
-trigger:
-  batch: true
-  branches:
-    include:
-      - master
-  paths:
-    exclude:
-      - /.dependabot/*
-      - /.poshchan/*
-      - /.github/**/*
-      - /.vscode/**/*
-      - /.vsts-ci/misc-analysis.yml
-      - /tools/**/*
-      - .editorconfig
-      - .gitattributes
-      - .gitignore
-      - /docs/**/*
-      - /CHANGELOG.md
-      - /CONTRIBUTING.md
-      - /README.md
-      - /LICENSE.txt
-      - /CODE_OF_CONDUCT.md
+trigger: none
+
+resources:
+  repositories:
+  - repository: ComplianceRepo
+    type: github
+    endpoint: ComplianceGHRepo
+    name: PowerShell/compliance
 
 stages:
 - stage: Build
-  displayName: Build PowerShell Package
+  displayName: Build PSDesiredStateConfiguration module
+  pool:
+      name: Package ES CodeHub Lab E
   jobs:
   - job: BuildPkg
     displayName: Build Package
-    pool:
-      name: 'Package ES CodeHub Lab E'
+    variables:
+    - group: ESRP
     steps:
     - powershell: |
         $powerShellPath = Join-Path -Path $env:AGENT_TEMPDIRECTORY -ChildPath 'powershell'
@@ -41,110 +29,158 @@ stages:
         Write-Host "##$vstsCommandString"
       displayName: Install PowerShell Core
 
-    - task: PkgESSetupBuild@10
-      displayName: 'Package ES - Setup Build'
+    - task: NuGetToolInstaller@1
+      displayName: 'Install NuGet 5.9.1'
       inputs:
-        productName: PSDesiredStateConfiguration
-
-    - template: templates/shouldsign.yml
-
-    - powershell: |
-        Get-ChildItem -Path env:
-      displayName: Capture environment
-      condition: succeededOrFailed()
-
-    - template: templates/ci-build.yml
-
-    - powershell: |
-        Write-Verbose "BUILD_OUTPUT_PATH- $env:BUILD_OUTPUT_PATH" -Verbose
-        Write-Verbose "SIGNED_OUTPUT_PATH- $env:SIGNED_OUTPUT_PATH" -Verbose
-        Copy-Item $env:BUILD_OUTPUT_PATH $env:SIGNED_OUTPUT_PATH -Recurse -Force
-      displayName: Copy unsigned files first
-
-    - task: PkgESCodeSign@10
-      displayName: 'CodeSign tools/releaseBuild/signing.xml'
-      env:
-        SYSTEM_ACCESSTOKEN: $(System.AccessToken)
-      inputs:
-        signConfigXml: tools/releaseBuild/signing.xml
-        inPathRoot: '$(BUILD_OUTPUT_PATH)'
-        outPathRoot: '$(SIGNED_OUTPUT_PATH)'
-      condition: and(succeeded(), eq(variables['SHOULD_SIGN'], 'true'))
-
-    - task: PowerShell@1
-      displayName: 'Create catalog file'
-      inputs:
-        scriptType: inlineScript
-        inlineScript: |
-          $signedDir = "$env:SIGNED_OUTPUT_PATH\PSDesiredStateConfiguration"
-          New-FileCatalog -CatalogFilePath "$env:SIGNED_OUTPUT_PATH\PSDesiredStateConfiguration\PSDesiredStateConfiguration.cat" -Path "$signedDir"
-
-    - task: PkgESCodeSign@10
-      displayName: 'CodeSign tools/releaseBuild/FileCatalogSigning.xml'
-      env:
-        SYSTEM_ACCESSTOKEN: $(System.AccessToken)
-      inputs:
-        signConfigXml: tools/releaseBuild/FileCatalogSigning.xml
-        inPathRoot: '$(SIGNED_OUTPUT_PATH)'
-        outPathRoot: '$(SIGNED_OUTPUT_PATH)'
-      condition: and(succeeded(), eq(variables['SHOULD_SIGN'], 'true'))
-
-    - task: ms.vss-governance-buildtask.governance-build-task-component-detection.ComponentGovernanceComponentDetection@0
-      displayName: 'Component Detection'
-
-    - task: AntiMalware@3
-      inputs:
-        InputType: 'Basic'
-        ScanType: 'CustomScan'
-        FileDirPath: '$(SIGNED_OUTPUT_PATH)'
-        EnableServices: false
-        SupportLogOnError: false
-        TreatSignatureUpdateFailureAs: 'Warning'
-        SignatureFreshness: 'UpToDate'
-        TreatStaleSignatureAs: 'Error'
-
-    - task: PoliCheck@1
-      condition: succeededOrFailed()
-      inputs:
-        targetType: F
-        optionsFC: 0
-        optionsXS: 0
-        optionsPE: '1|2|3|4'
-        optionsHMENABLE: 0
-        optionsFTPATH: '$(Build.SourcesDirectory)\tools\terms\FileTypeSet.xml'
-
-    - task: CredScan@2
-      condition: succeededOrFailed()
-
-    # Publish results as artifacts
-    - task: PublishSecurityAnalysisLogs@3
-      condition: succeededOrFailed()
-      inputs:
-        ArtifactName: 'CodeAnalysisLogs'
-        ArtifactType: 'Container'
-
-    # Publish to TSA server
-    # - task: TSAUpload@1
-    #   condition: succeededOrFailed()
-    #   continueOnError: true
-    #   inputs:
-    #     tsaVersion: 'TsaV2'
-    #     codebase: 'Existing'
-    #     tsaEnvironment: 'PROD'
-    #     codeBaseName: 'PSDesiredStateConfiguration_20190828'
-    #     uploadAPIScan: false
-    #     uploadBinSkim: false
-    #     uploadCredScan: true
-    #     uploadFortifySCA: false
-    #     uploadFxCop: false
-    #     uploadModernCop: false
-    #     uploadPoliCheck: true
-    #     uploadPREfast: false
-    #     uploadRoslyn: false
-    #     uploadTSLint: false
-    #     uploadAsync: true
+        checkLatest: false
+        version: 5.9.1
 
     - pwsh: |
-        $(Build.SourcesDirectory)/build.ps1 -Publish -Signed
-      displayName: Publish
-      timeoutInMinutes: 10
+        Get-ChildItem -Path env:
+      displayName: Capture environment for build
+      condition: succeededOrFailed()
+
+    - pwsh: |
+        $modulePath = Join-Path -Path $env:AGENT_TEMPDIRECTORY -ChildPath 'TempModules'
+        if (Test-Path -Path $modulePath) {
+          Write-Verbose -Verbose "Deleting existing temp module path: $modulePath"
+          Remove-Item -Path $modulePath -Recurse -Force -ErrorAction Ignore
+        }
+        if (! (Test-Path -Path $modulePath)) {
+          Write-Verbose -Verbose "Creating new temp module path: $modulePath"
+          $null = New-Item -Path $modulePath -ItemType Directory
+        }
+      displayName: Create temporary module path
+
+    - pwsh: |
+        $modulePath = Join-Path -Path $env:AGENT_TEMPDIRECTORY -ChildPath 'TempModules'
+        Write-Verbose -Verbose "Install PowerShellGet V3 to temp module path"
+        Save-Module -Name PowerShellGet -Path $modulePath -MinimumVersion 3.0.0-beta10 -AllowPrerelease -Force
+        Write-Verbose -Verbose "Install PlatyPS to temp module path"
+        Save-Module -Name "platyPS" -Path $modulePath -Force
+        Write-Verbose -Verbose "Install PSScriptAnalyzer to temp module path"
+        Save-Module -Name "PSScriptAnalyzer" -Path $modulePath -RequiredVersion 1.18.0 -Force
+        Write-Verbose -Verbose "Install Pester 4.X to temp module path"
+        Save-Module -Name "Pester" -MaximumVersion 4.99 -Path $modulePath -Force
+        Write-Verbose -Verbose "Install PSPackageProject to temp module path"
+        Save-Module -Name PSPackageProject -Path $modulePath -Force
+      displayName: Install PSPackageProject and dependencies
+
+    - pwsh: |
+        $modulePath = Join-Path -Path $env:AGENT_TEMPDIRECTORY -ChildPath 'TempModules'
+        $env:PSModulePath = $modulePath + [System.IO.Path]::PathSeparator + $env:PSModulePath
+        $modPath = Join-Path -Path $modulePath -ChildPath PSPackageProject
+        Write-Verbose -Verbose "Importing PSPackageProject from: $modPath"
+        Import-Module -Name $modPath -Force
+        #
+        $(Build.SourcesDirectory)/build.ps1 -Build -Clean
+      displayName: Execute build
+
+    - pwsh: |
+        $signSrcPath = "$(Build.SourcesDirectory)\out\PSDesiredStateConfiguration"
+        # Set signing src path variable
+        $vstsCommandString = "vso[task.setvariable variable=signSrcPath]${signSrcPath}"
+        Write-Host "sending " + $vstsCommandString
+        Write-Host "##$vstsCommandString"
+        $signOutPath = "$(Build.SourcesDirectory)\signed\PSDesiredStateConfiguration"
+        $null = New-Item -ItemType Directory -Path $signOutPath
+        # Set signing out path variable
+        $vstsCommandString = "vso[task.setvariable variable=signOutPath]${signOutPath}"
+        Write-Host "sending " + $vstsCommandString
+        Write-Host "##$vstsCommandString"
+        # Set path variable for guardian codesign validation
+        $vstsCommandString = "vso[task.setvariable variable=GDN_CODESIGN_TARGETDIRECTORY]${signOutPath}"
+        Write-Host "sending " + $vstsCommandString
+        Write-Host "##$vstsCommandString"
+      displayName: Setup variables for signing
+
+    - template: EsrpSign.yml@ComplianceRepo
+      parameters:
+        # the folder which contains the binaries to sign
+        buildOutputPath: $(signSrcPath)
+        # the location to put the signed output
+        signOutputPath: $(signOutPath)
+        # the certificate ID to use
+        certificateId: "CP-230012"
+        # the file pattern to use, comma separated
+        pattern: '*.psm1,*.psd1'
+
+    - pwsh: |
+        $repoName = [guid]::newGuid().ToString("N")
+        $packageRoot = "$(Build.SourcesDirectory)\signed\PSDesiredStateConfiguration"
+        Register-PSRepository -Name $repoName -SourceLocation $packageRoot -InstallationPolicy Trusted
+        Publish-Module -Path $packageRoot -Repository $repoName
+        Unregister-PSRepository -Name $repoName
+        Get-ChildItem -Recurse -Path $packageRoot | Write-Verbose -Verbose
+        $nupkgPath = (Get-ChildItem -Recurse -Path $packageRoot -Filter "PSDesiredStateConfiguration*.nupkg" | select -First 1).FullName
+        Write-Host "##vso[artifact.upload containerfolder=nupkg;artifactname=nupkg]$nupkgPath"
+      displayName: Package and publish nupkg
+      name: ProduceNupkg
+
+    - publish: "$(signSrcPath)"
+      artifact: Build
+      displayName: Publish build
+
+    - publish: "$(signOutPath)"
+      artifact: SignedBuild
+      displayName: Publish signed build
+
+- stage: Compliance
+  displayName: Compliance
+  dependsOn: Build
+  jobs:
+  - job: Compliance_Job
+    pool:
+      name: Package ES CodeHub Lab E
+    steps:
+    - checkout: self
+    - checkout: ComplianceRepo
+    - download: current
+      artifact: SignedBuild
+
+    - pwsh: |
+        Get-ChildItem -Path "$(Pipeline.Workspace)\SignedBuild" -Recurse
+      displayName: Capture downloaded artifacts
+    - template: script-module-compliance.yml@ComplianceRepo
+      parameters:
+        # component-governance
+        sourceScanPath: '$(Pipeline.Workspace)\SignedBuild'
+        # credscan
+        suppressionsFile: ''
+        # TermCheck
+        optionsRulesDBPath: ''
+        optionsFTPath: ''
+        # tsa-upload
+        codeBaseName: 'PSDesiredStateConfiguration_20210423'
+        # selections
+        APIScan: false # set to false when not using Windows APIs.
+
+- stage: Deploy
+  displayName: Publish to PowerShell gallery
+  dependsOn: 
+  - Build
+  - Compliance
+  jobs:
+  - deployment: DeployPowerShellGallery
+    displayName: Deploy nupkg to PowerShell Gallery
+    pool:
+      vmImage: windows-latest
+    environment: 'PSDesiredStateConfiguration-ReleaseApproval'
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - download: current
+            artifact: 'nupkg'
+          - task: NuGetToolInstaller@1
+            displayName: 'Install NuGet 5.9.1'
+            inputs:
+              checkLatest: false
+              version: 5.9.1
+          - task: NuGetCommand@2
+            displayName: 'NuGet push'
+            inputs:
+              command: push
+              packagesToPush: '$(Pipeline.Workspace)\nupkg\PSDesiredStateConfiguration.*.nupkg'
+              nuGetFeedType: external
+              publishFeedCredentials: 'PowerShellGallery'
