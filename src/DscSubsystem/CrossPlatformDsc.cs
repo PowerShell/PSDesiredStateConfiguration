@@ -10,7 +10,7 @@ using System.Management.Automation;
 using System.Management.Automation.Internal;
 using System.Management.Automation.Language;
 
-namespace System.Management.Automation.Subsystem
+namespace System.Management.Automation.Subsystem.DSC
 {
     /// <summary>
     /// Interface for implementing a cross platform desired state configuration component.
@@ -41,7 +41,7 @@ namespace System.Management.Automation.Subsystem
         /// <summary>
         /// Test.
         /// </summary>
-        public void LoadDefaultCimKeywords(Collection<Exception> errors)
+        public void LoadDefaultKeywords(Collection<Exception> errors)
         {
             Microsoft.PowerShell.DesiredStateConfiguration.Internal.CrossPlatform.DscClassCache.LoadDefaultCimKeywords(errors);
         }
@@ -57,36 +57,33 @@ namespace System.Management.Automation.Subsystem
         /// <summary>
         /// Default summary.
         /// </summary>
-        public bool NewApiIsUsed
-        {
-            get
-            {
-                return Microsoft.PowerShell.DesiredStateConfiguration.Internal.CrossPlatform.DscClassCache.NewApiIsUsed;
-            }
-        }
-
-        /// <summary>
-        /// Default summary.
-        /// </summary>
         public string GetDSCResourceUsageString(DynamicKeyword keyword)
         {
             return Microsoft.PowerShell.DesiredStateConfiguration.Internal.CrossPlatform.DscClassCache.GetDSCResourceUsageString(keyword);
         }
 
         /// <summary>
-        /// Test.
+        /// Checks if a string is one of dynamic keywords that can be used in both configuration and meta configuration.
         /// </summary>
-        public void RegisterSubsystemIfNotAlready()
+        public bool IsSystemResourceName(string name)
+        {
+            return Microsoft.PowerShell.DesiredStateConfiguration.Internal.CrossPlatform.DscClassCache.SystemResourceNames.Contains(name);
+        }
+
+        /// <summary>
+        /// Checks if a string matches default module name used for meta configuration resources.
+        /// </summary>
+        public bool IsDefaultModuleNameForMetaConfigResource(string name)
+        {
+            return name.Equals(Microsoft.PowerShell.DesiredStateConfiguration.Internal.CrossPlatform.DscClassCache.DefaultModuleInfoForMetaConfigResource.Item1, StringComparison.OrdinalIgnoreCase);
+        }
+
+        public void OnImport()
         {
             if (SubsystemManager.GetSubsystem<ICrossPlatformDsc>() == null)
             {
                 SubsystemManager.RegisterSubsystem(SubsystemKind.CrossPlatformDsc, this);
             }
-        }
-
-        public void OnImport()
-        {
-            RegisterSubsystemIfNotAlready();
         }
     }
 }

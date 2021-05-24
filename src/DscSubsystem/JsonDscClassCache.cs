@@ -142,6 +142,18 @@ namespace Microsoft.PowerShell.DesiredStateConfiguration.Internal.CrossPlatform
         private static readonly Tuple<string, Version> s_defaultModuleInfoForResource = new Tuple<string, Version>("PSDesiredStateConfiguration", new Version(3, 0));
 
         /// <summary>
+        /// Default ModuleName and ModuleVersion to use for meta configuration resources.
+        /// </summary>
+        internal static readonly Tuple<string, Version> DefaultModuleInfoForMetaConfigResource =
+            new("PSDesiredStateConfigurationEngine", new Version("2.0"));
+
+        /// <summary>
+        /// A set of dynamic keywords that can be used in both configuration and meta configuration.
+        /// </summary>
+        internal static readonly HashSet<string> SystemResourceNames =
+            new(StringComparer.OrdinalIgnoreCase) { "Node", "OMI_ConfigurationDocument" };
+
+        /// <summary>
         /// When this property is set to true, DSC Cache will cache multiple versions of a resource.
         /// That means it will cache duplicate resource classes (class names for a resource in two different module versions are same).
         /// NOTE: This property should be set to false for DSC compiler related methods/functionality, such as Import-DscResource,
@@ -160,25 +172,6 @@ namespace Microsoft.PowerShell.DesiredStateConfiguration.Internal.CrossPlatform
             set
             {
                 t_cacheResourcesFromMultipleModuleVersions = value;
-            }
-        }
-
-        [ThreadStatic]
-        private static bool t_newApiIsUsed = false;
-
-        /// <summary>
-        /// Flag shows if PS7 DSC APIs were used.
-        /// </summary>
-        public static bool NewApiIsUsed
-        {
-            get
-            {
-                return t_newApiIsUsed;
-            }
-
-            set
-            {
-                t_newApiIsUsed = value;
             }
         }
 
@@ -353,11 +346,6 @@ namespace Microsoft.PowerShell.DesiredStateConfiguration.Internal.CrossPlatform
         /// </summary>
         public static void ClearCache()
         {
-            if (!ExperimentalFeature.IsEnabled(ICrossPlatformDsc.DscExperimentalFeatureName))
-            {
-                throw new InvalidOperationException(ParserStrings.PS7DscSupportDisabled);
-            }
-
             s_tracer.WriteLine("DSC class: clearing the cache and associated keywords.");
             ClassCache.Clear();
             ByClassModuleCache.Clear();
@@ -393,11 +381,6 @@ namespace Microsoft.PowerShell.DesiredStateConfiguration.Internal.CrossPlatform
         /// <returns>Class declaration from cache.</returns>
         public static PSObject GetGuestConfigCachedClass(string moduleName, string moduleVersion, string className, string resourceName)
         {
-            if (!ExperimentalFeature.IsEnabled(ICrossPlatformDsc.DscExperimentalFeatureName))
-            {
-                throw new InvalidOperationException(ParserStrings.PS7DscSupportDisabled);
-            }
-
             var moduleQualifiedResourceName = GetModuleQualifiedResourceName(moduleName, moduleVersion, className, string.IsNullOrEmpty(resourceName) ? className : resourceName);
             DscClassCacheEntry classCacheEntry = null;
             if (GuestConfigClassCache.TryGetValue(moduleQualifiedResourceName, out classCacheEntry))
@@ -444,11 +427,6 @@ namespace Microsoft.PowerShell.DesiredStateConfiguration.Internal.CrossPlatform
         /// <returns>Dynamic keyword collection.</returns>
         public static Collection<DynamicKeyword> GetKeywordsFromCachedClasses()
         {
-            if (!ExperimentalFeature.IsEnabled(ICrossPlatformDsc.DscExperimentalFeatureName))
-            {
-                throw new InvalidOperationException(ParserStrings.PS7DscSupportDisabled);
-            }
-
             Collection<DynamicKeyword> keywords = new Collection<DynamicKeyword>();
 
             foreach (KeyValuePair<string, DscClassCacheEntry> cachedClass in ClassCache)
@@ -755,14 +733,6 @@ namespace Microsoft.PowerShell.DesiredStateConfiguration.Internal.CrossPlatform
             List<string> modulePathList,
             bool cacheResourcesFromMultipleModuleVersions)
         {
-            if (!ExperimentalFeature.IsEnabled(ICrossPlatformDsc.DscExperimentalFeatureName))
-            {
-                Exception exception = new InvalidOperationException(ParserStrings.PS7DscSupportDisabled);
-                errors.Add(exception);
-                return;
-            }
-            
-            NewApiIsUsed = true;
             DynamicKeyword.Reset();
             Initialize(errors, modulePathList);
 
@@ -1250,11 +1220,6 @@ namespace Microsoft.PowerShell.DesiredStateConfiguration.Internal.CrossPlatform
         /// <returns>The list of resources imported from this module.</returns>
         public static List<string> ImportClassResourcesFromModule(PSModuleInfo moduleInfo, ICollection<string> resourcesToImport, Dictionary<string, ScriptBlock> functionsToDefine, Collection<Exception> errors)
         {
-            if (!ExperimentalFeature.IsEnabled(ICrossPlatformDsc.DscExperimentalFeatureName))
-            {
-                throw new InvalidOperationException(ParserStrings.PS7DscSupportDisabled);
-            }
-
             var resourcesImported = new List<string>();
             LoadPowerShellClassResourcesFromModule(moduleInfo, moduleInfo, resourcesToImport, resourcesImported, errors, functionsToDefine);
             return resourcesImported;

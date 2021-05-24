@@ -9,7 +9,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Reference Include="C:\anmenaga-PowerShell\src\powershell-win-core\bin\Debug\net6.0\win7-x64\publish\System.Management.Automation.dll"></Reference>
+  <!-- TEMPORARY: This needs to be replaced with <PackageReference Include="System.Management.Automation" /> when Preview 6 is published with subsystem interface. -->
+    <Reference Include="C:\Temp\SMA-Reference\System.Management.Automation.dll"></Reference>
   </ItemGroup>
   
 </Project>
