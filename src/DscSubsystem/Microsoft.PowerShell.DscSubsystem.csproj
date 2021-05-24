@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="15.0">
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <AssemblyName>Microsoft.PowerShell.DscSubsystem</AssemblyName>
+    
+    <DelaySign>true</DelaySign>
+    <AssemblyOriginatorKeyFile>visualstudiopublic.snk</AssemblyOriginatorKeyFile>
+    <SignAssembly>true</SignAssembly>
+  </PropertyGroup>
+
+  <ItemGroup>
+  <!-- TEMPORARY: This needs to be replaced with <PackageReference Include="System.Management.Automation" /> when Preview 6 is published with subsystem interface. -->
+    <Reference Include="C:\Temp\SMA-Reference\System.Management.Automation.dll"></Reference>
+  </ItemGroup>
+  
+</Project>

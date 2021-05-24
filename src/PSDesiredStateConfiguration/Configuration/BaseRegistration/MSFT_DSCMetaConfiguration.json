@@ -1,0 +1,218 @@
+{
+  "ClassName": "MSFT_DSCMetaConfiguration",
+  "FriendlyName": "LocalConfigurationManager",
+  "ClassVersion": "1.0.0",
+  "ClassProperties": [
+    {
+      "Name": "ConfigurationModeFrequencyMins",
+      "CimType": "UInt32"
+    },
+    {
+      "Name": "RebootNodeIfNeeded",
+      "CimType": "Boolean"
+    },
+    {
+      "Name": "ConfigurationMode",
+      "CimType": "String",
+      "Qualifiers": {
+        "ValueMap": [
+          "ApplyOnly",
+          "ApplyAndMonitor",
+          "ApplyAndAutoCorrect",
+          "MonitorOnly"
+        ],
+        "Values": [
+          "ApplyOnly",
+          "ApplyAndMonitor",
+          "ApplyAndAutoCorrect",
+          "MonitorOnly"
+        ]
+      }
+    },
+    {
+      "Name": "ActionAfterReboot",
+      "CimType": "String",
+      "Qualifiers": {
+        "ValueMap": [
+          "ContinueConfiguration",
+          "StopConfiguration"
+        ],
+        "Values": [
+          "ContinueConfiguration",
+          "StopConfiguration"
+        ]
+      }
+    },
+    {
+      "Name": "Credential",
+      "CimType": "Instance",
+      "ReferenceClassName": "MSFT_Credential",
+      "Qualifiers": {
+        "EmbeddedInstance": "MSFT_Credential"
+      }
+    },
+    {
+      "Name": "RefreshMode",
+      "CimType": "String",
+      "Qualifiers": {
+        "ValueMap": [
+          "Push",
+          "Pull",
+          "Disabled"
+        ],
+        "Values": [
+          "Push",
+          "Pull",
+          "Disabled"
+        ]
+      }
+    },
+    {
+      "Name": "CertificateID",
+      "CimType": "String"
+    },
+    {
+      "Name": "ConfigurationID",
+      "CimType": "String"
+    },
+    {
+      "Name": "DownloadManagerName",
+      "CimType": "String"
+    },
+    {
+      "Name": "DownloadManagerCustomData",
+      "CimType": "InstanceArray",
+      "ReferenceClassName": "MSFT_KeyValuePair",
+      "Qualifiers": {
+        "EmbeddedInstance": "MSFT_KeyValuePair"
+      }
+    },
+    {
+      "Name": "RefreshFrequencyMins",
+      "CimType": "UInt32"
+    },
+    {
+      "Name": "AllowModuleOverwrite",
+      "CimType": "Boolean"
+    },
+    {
+      "Name": "DebugMode",
+      "CimType": "StringArray",
+      "Qualifiers": {
+        "ValueMap": [
+          "None",
+          "ForceModuleImport",
+          "All",
+          "ResourceScriptBreakAll",
+          "ResourceScriptBreakpoint"
+        ],
+        "Values": [
+          "None",
+          "ForceModuleImport",
+          "All",
+          "ResourceScriptBreakAll",
+          "ResourceScriptBreakpoint"
+        ]
+      }
+    },
+    {
+      "Name": "LCMVersion",
+      "CimType": "String",
+      "Qualifiers": {
+        "Read": true
+      }
+    },
+    {
+      "Name": "LCMCompatibleVersions",
+      "CimType": "StringArray",
+      "Qualifiers": {
+        "Read": true
+      }
+    },
+    {
+      "Name": "LCMState",
+      "CimType": "String",
+      "Qualifiers": {
+        "Read": true,
+        "ValueMap": [
+          "Idle",
+          "Busy",
+          "PendingReboot",
+          "PendingConfiguration"
+        ],
+        "Values": [
+          "Idle",
+          "Busy",
+          "PendingReboot",
+          "PendingConfiguration"
+        ]
+      }
+    },
+    {
+      "Name": "LCMStateDetail",
+      "CimType": "String",
+      "Qualifiers": {
+        "Read": true
+      }
+    },
+    {
+      "Name": "ConfigurationDownloadManagers",
+      "CimType": "InstanceArray",
+      "ReferenceClassName": "OMI_ConfigurationDownloadManager",
+      "Qualifiers": {
+        "EmbeddedInstance": "OMI_ConfigurationDownloadManager"
+      }
+    },
+    {
+      "Name": "ResourceModuleManagers",
+      "CimType": "InstanceArray",
+      "ReferenceClassName": "OMI_ResourceModuleManager",
+      "Qualifiers": {
+        "EmbeddedInstance": "OMI_ResourceModuleManager"
+      }
+    },
+    {
+      "Name": "ReportManagers",
+      "CimType": "InstanceArray",
+      "ReferenceClassName": "OMI_ReportManager",
+      "Qualifiers": {
+        "EmbeddedInstance": "OMI_ReportManager"
+      }
+    },
+    {
+      "Name": "PartialConfigurations",
+      "CimType": "InstanceArray",
+      "ReferenceClassName": "MSFT_PartialConfiguration",
+      "Qualifiers": {
+        "EmbeddedInstance": "MSFT_PartialConfiguration"
+      }
+    },
+    {
+      "Name": "StatusRetentionTimeInDays",
+      "CimType": "UInt32"
+    },
+    {
+      "Name": "AgentId",
+      "CimType": "String",
+      "Qualifiers": {
+        "Read": true
+      }
+    },
+    {
+      "Name": "SignatureValidationPolicy",
+      "CimType": "String"
+    },
+    {
+      "Name": "SignatureValidations",
+      "CimType": "InstanceArray",
+      "ReferenceClassName": "MSFT_SignatureValidation",
+      "Qualifiers": {
+        "EmbeddedInstance": "MSFT_SignatureValidation"
+      }
+    },
+    {
+      "Name": "MaximumDownloadSizeMB",
+      "CimType": "UInt32"
+    }
+  ]
+}
