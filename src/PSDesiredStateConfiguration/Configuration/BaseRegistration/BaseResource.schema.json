@@ -1,0 +1,232 @@
+[
+  {
+    "ClassName": "MSFT_Credential",
+    "ClassVersion": "1.0.0",
+    "ClassProperties": [
+      {
+        "Name": "UserName",
+        "CimType": "String",
+        "Qualifiers": {
+          "MaxLen": 256
+        }
+      },
+      {
+        "Name": "Password",
+        "CimType": "String"
+      }
+    ]
+  },
+  {
+    "ClassName": "OMI_BaseResource",
+    "ClassVersion": "1.0.0",
+    "ClassProperties": [
+      {
+        "Name": "ResourceId",
+        "CimType": "String",
+        "Qualifiers": {
+          "Required": true
+        }
+      },
+      {
+        "Name": "SourceInfo",
+        "CimType": "String",
+        "Qualifiers": {
+          "Write": true
+        }
+      },
+      {
+        "Name": "DependsOn",
+        "CimType": "StringArray",
+        "Qualifiers": {
+          "Write": true
+        }
+      },
+      {
+        "Name": "ModuleName",
+        "CimType": "String",
+        "Qualifiers": {
+          "Required": true
+        }
+      },
+      {
+        "Name": "ModuleVersion",
+        "CimType": "String",
+        "Qualifiers": {
+          "Required": true
+        }
+      },
+      {
+        "Name": "ConfigurationName",
+        "CimType": "String",
+        "Qualifiers": {
+          "Write": true
+        }
+      },
+      {
+        "Name": "PsDscRunAsCredential",
+        "CimType": "Instance",
+        "ReferenceClassName": "MSFT_Credential",
+        "Qualifiers": {
+          "Write": true,
+          "EmbeddedInstance": "MSFT_Credential"
+        }
+      }
+    ]
+  },
+  {
+    "ClassName": "MSFT_KeyValuePair",
+    "ClassVersion": "1.0.0",
+    "ClassProperties": [
+      {
+        "Name": "Key",
+        "CimType": "String",
+        "Qualifiers": {
+          "Key": true
+        }
+      },
+      {
+        "Name": "Value",
+        "CimType": "String",
+        "Qualifiers": {
+          "Write": true
+        }
+      }
+    ]
+  },
+  {
+    "ClassName": "MSFT_BaseConfigurationProviderRegistration",
+    "ClassVersion": "1.0.0",
+    "ClassProperties": [
+      {
+        "Name": "ClassName",
+        "CimType": "String",
+        "Qualifiers": {
+          "Key": true
+        }
+      },
+      {
+        "Name": "DSCEngineCompatVersion",
+        "CimType": "String"
+      },
+      {
+        "Name": "DSCModuleVersion",
+        "CimType": "String"
+      }
+    ]
+  },
+  {
+    "ClassName": "MSFT_CimConfigurationProviderRegistration",
+    "ClassVersion": "1.0.0",
+    "SuperClassName": "MSFT_BaseConfigurationProviderRegistration",
+    "ClassProperties": [
+      {
+        "Name": "Namespace",
+        "CimType": "String"
+      }
+    ]
+  },
+  {
+    "ClassName": "MSFT_PSConfigurationProviderRegistration",
+    "ClassVersion": "1.0.0",
+    "SuperClassName": "MSFT_BaseConfigurationProviderRegistration",
+    "ClassProperties": [
+      {
+        "Name": "ModuleName",
+        "CimType": "String"
+      },
+      {
+        "Name": "ProviderPath",
+        "CimType": "String"
+      },
+      {
+        "Name": "ModulePath",
+        "CimType": "String"
+      }
+    ]
+  },
+  {
+    "ClassName": "OMI_ConfigurationDocument",
+    "ClassVersion": "1.0.0",
+    "ClassProperties": [
+      {
+        "Name": "Version",
+        "CimType": "String"
+      },
+      {
+        "Name": "Author",
+        "CimType": "String"
+      },
+      {
+        "Name": "Copyright",
+        "CimType": "String"
+      },
+      {
+        "Name": "HelpInfoUri",
+        "CimType": "String"
+      },
+      {
+        "Name": "ContentType",
+        "CimType": "String"
+      },
+      {
+        "Name": "GenerationDate",
+        "CimType": "String"
+      },
+      {
+        "Name": "GenerationHost",
+        "CimType": "String"
+      },
+      {
+        "Name": "Name",
+        "CimType": "String"
+      },
+      {
+        "Name": "MinimumCompatibleVersion",
+        "CimType": "String"
+      },
+      {
+        "Name": "CompatibleVersionAdditionalProperties",
+        "CimType": "StringArray"
+      },
+      {
+        "Name": "UseCms",
+        "CimType": "Boolean"
+      }
+    ]
+  },
+  {
+    "ClassName": "OMI_MetaConfigurationResource",
+    "ClassVersion": "1.0.0",
+    "ClassProperties": [
+      {
+        "Name": "ResourceId",
+        "CimType": "String",
+        "Qualifiers": {
+          "Required": true
+        }
+      },
+      {
+        "Name": "SourceInfo",
+        "CimType": "String",
+        "Qualifiers": {
+          "Write": true
+        }
+      }
+    ]
+  },
+  {
+    "ClassName": "OMI_ResourceModuleManager",
+    "ClassVersion": "1.0.0",
+    "SuperClassName": "OMI_MetaConfigurationResource"
+  },
+  {
+    "ClassName": "OMI_ConfigurationDownloadManager",
+    "ClassVersion": "1.0.0",
+    "SuperClassName": "OMI_MetaConfigurationResource"
+  },
+  {
+    "ClassName": "OMI_ReportManager",
+    "ClassVersion": "1.0.0",
+    "SuperClassName": "OMI_MetaConfigurationResource"
+  }
+]

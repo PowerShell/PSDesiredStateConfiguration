@@ -9,7 +9,7 @@
 RootModule = 'PSDesiredStateConfiguration.psm1'
 
 # Version number of this module.
-moduleVersion = '2.0.5'
+moduleVersion = '3.0.0'
 
 # Supported PSEditions
 CompatiblePSEditions = @('Core')
@@ -30,7 +30,7 @@ Copyright = '(c) Microsoft Corporation. All rights reserved.'
 Description = 'PowerShell Desired State Configuration'
 
 # Minimum version of the Windows PowerShell engine required by this module
-PowerShellVersion = '6.1'
+PowerShellVersion = '7.1'
 
 # Name of the Windows PowerShell host required by this module
 # PowerShellHostName = ''
@@ -48,7 +48,7 @@ PowerShellVersion = '6.1'
 # ProcessorArchitecture = ''
 
 # Modules that must be imported into the global environment prior to importing this module
-# RequiredModules = @()
+ #RequiredModules = @()
 
 # Assemblies that must be loaded prior to importing this module
 # RequiredAssemblies = @()
@@ -63,7 +63,7 @@ PowerShellVersion = '6.1'
 # FormatsToProcess = @()
 
 # Modules to import as nested modules of the module specified in RootModule/ModuleToProcess
-# NestedModules = @()
+ NestedModules = @('Microsoft.PowerShell.DscSubsystem.dll')
 
 # Functions to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no functions to export.
 FunctionsToExport = @(
@@ -71,6 +71,7 @@ FunctionsToExport = @(
         'New-DscChecksum'
         'Get-DscResource'
         'Invoke-DscResource'
+        'ConvertTo-DscJsonSchema'
     )
 
 

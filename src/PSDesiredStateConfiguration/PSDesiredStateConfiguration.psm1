@@ -16,7 +16,7 @@ data LocalizedData
     InvalidConfigurationName = Invalid Configuration Name '{0}' is specified. Standard names may only contain letters (a-z, A-Z), numbers (0-9), and underscore (_). The name may not be null or empty, and should start with a letter.
     InvalidResourceSpecification = Found more than one resource named '{0}'. Please use the module specification to be more specific.
     UnsupportedResourceImplementation = The resource '{0}' implemented as '{1}' is not supported by Invoke-DscResource.
-    NoValidConfigFileFound = No valid config files (mof,zip) were found.
+    NoValidConfigFileFound = No valid config files (json,zip) were found.
     InputFileNotExist=File {0} doesn't exist.
     FileReadError=Error Reading file {0}.
     MatchingFileNotFound=No matching file found.
@@ -76,7 +76,7 @@ Import-LocalizedData  -BindingVariable LocalizedData -FileName PSDesiredStateCon
 Import-Module $PSScriptRoot/helpers/DscResourceInfo.psm1
 
 # Set DSC HOME environment variable.
-$env:DSC_HOME = "$PSScriptRoot/Configuration"
+$env:DSC_HOME = Join-Path $PSScriptRoot "Configuration"
 
 $script:V1MetaConfigPropertyList = @('ConfigurationModeFrequencyMins', 'RebootNodeIfNeeded', 'ConfigurationMode', 'ActionAfterReboot', 'RefreshMode', 'CertificateID', 'ConfigurationID', 'DownloadManagerName', 'DownloadManagerCustomData', 'RefreshFrequencyMins', 'AllowModuleOverwrite', 'DebugMode', 'Credential')
 $script:DirectAccessMetaConfigPropertyList = @('AllowModuleOverWrite', 'CertificateID', 'ConfigurationDownloadManagers', 'ResourceModuleManagers', 'DebugMode', 'RebootNodeIfNeeded', 'RefreshMode', 'ConfigurationAgent')
@@ -307,7 +307,7 @@ function ConvertTo-MOFInstance
         elseif ($Value -is [PSCredential] )
         {
             # If the input object is a PSCredential, turn it into an MSFT_Credential with an encrypted password.
-            $clearText = [Microsoft.PowerShell.DesiredStateConfiguration.Internal.DscClassCache]::GetStringFromSecureString($Value.Password)
+            $clearText = [Microsoft.PowerShell.DesiredStateConfiguration.Internal.CrossPlatform.DscClassCache]::GetStringFromSecureString($Value.Password)
             $newValue = @{
                 UserName = $Value.UserName
                 Password = $clearText
@@ -1793,59 +1793,6 @@ function ValidateUpdate-ConfigurationData
     return $true
 }
 
-##############################################################
-#
-# Checks to see if a module defining composite resources should be reloaded
-# based the last write time of the schema file. Returns true if the file exists
-# and the last modified time was either not recorded or has change.
-#
-function Test-ModuleReloadRequired
-{
-    [OutputType([bool])]
-    param (
-        [Parameter(Mandatory)]
-        [string]
-        $SchemaFilePath
-    )
-
-    if (-not $SchemaFilePath -or  $SchemaFilePath -notmatch '\.schema\.psm1$')
-    {
-        # not a composite res
-        return $false
-    }
-
-    # If the path doesn't exist, then we can't reload it.
-    # Note: this condition is explicitly not an error for this function.
-    if ( -not (Test-Path $SchemaFilePath))
-    {
-        if ($schemaFileLastUpdate.ContainsKey($SchemaFilePath))
-        {
-            $schemaFileLastUpdate.Remove($SchemaFilePath)
-        }
-        return $false
-    }
-
-    # If we have a modified date, then return it.
-    if ($schemaFileLastUpdate.ContainsKey($SchemaFilePath))
-    {
-        if ( (Get-Item $SchemaFilePath).LastWriteTime -eq $schemaFileLastUpdate[$SchemaFilePath] )
-        {
-            return $false
-        }
-        else
-        {
-            return $true
-        }
-    }
-
-    # Otherwise, record the last write time and return true.
-    $script:schemaFileLastUpdate[$SchemaFilePath] = (Get-Item $SchemaFilePath).LastWriteTime
-    $true
-}
-# Holds the schema file to lastwritetime mapping.
-[System.Collections.Generic.Dictionary[string,DateTime]] $script:schemaFileLastUpdate =
-New-Object -TypeName 'System.Collections.Generic.Dictionary[string,datetime]'
-
 ###########################################################
 # Configuration keyword implementation
 ###########################################################
@@ -1971,7 +1918,7 @@ function Configuration
 
             # Load the default CIM keyword/function definitions set, populating the function collection
             # with the default functions.
-            [Microsoft.PowerShell.DesiredStateConfiguration.Internal.DscClassCache]::LoadDefaultCimKeywords($functionsToDefine)
+            [Microsoft.PowerShell.DesiredStateConfiguration.Internal.CrossPlatform.DscClassCache]::LoadDefaultCimKeywords($functionsToDefine)
 
             # Set up the rest of the configuration runtime state.
             Initialize-ConfigurationRuntimeState $Name
@@ -2062,25 +2009,8 @@ function Configuration
             foreach ($mod in $modulesInfo) {
 
                 $null = ImportClassResourcesFromModule -Module $mod -Resources $res -functionsToDefine $functionsToDefine
-                $dscResourcesPath = Join-Path -Path $mod.ModuleBase -ChildPath 'DscResources'
-                if(Test-Path $dscResourcesPath)
-                {
-                    foreach($requiredResource in $res)
-                    {
-                        if ($requiredResource.Contains('*')) {
-                            # we historically resolve wildcards by Get-Item File System rules.
-                            # We don't support wildcards resolutions for Friendly names.
-                            foreach ($resource in Get-ChildItem -Path $dscResourcesPath -Directory -Name -Filter $requiredResource)
-                            {
-                                $null = ImportCimAndScriptKeywordsFromModule -Module $mod -Resource $resource -functionsToDefine $functionsToDefine
-                            }
-                        } else {
-                            # ImportCimAndScriptKeywordsFromModule takes care about resolving $requiredResources names to ClassNames or FriendlyNames.
-                            $null = ImportCimAndScriptKeywordsFromModule -Module $mod -Resource $requiredResource -functionsToDefine $functionsToDefine
-                        }
-                    }
-                }
-                elseif ($moduleInfos.Count -eq 1)
+                
+                if ($moduleInfos.Count -eq 1)
                 {
                     $modules.Add($moduleInfos)
                 }
@@ -2316,7 +2246,7 @@ function Configuration
         {
             Write-Debug -Message "  CONFIGURATION $Name : DOING TOP-LEVEL CLEAN UP"
             [System.Management.Automation.Language.DynamicKeyword]::Reset()
-            [Microsoft.PowerShell.DesiredStateConfiguration.Internal.DscClassCache]::ClearCache()
+            [Microsoft.PowerShell.DesiredStateConfiguration.Internal.CrossPlatform.DscClassCache]::ClearCache()
 
             Initialize-ConfigurationRuntimeState
         }
@@ -2493,66 +2423,16 @@ function ImportClassResourcesFromModule
         $functionsToDefine
     )
 
-    $resourcesFound = [Microsoft.PowerShell.DesiredStateConfiguration.Internal.DscClassCache]::ImportClassResourcesFromModule($Module, $Resources, $functionsToDefine)
-    return ,$resourcesFound
-}
+    $Errors = New-Object -TypeName 'System.Collections.ObjectModel.Collection[System.Exception]'
 
-function ImportCimAndScriptKeywordsFromModule
-{
-    param (
-        [Parameter(Mandatory)]
-        $Module,
+    $resourcesFound = [Microsoft.PowerShell.DesiredStateConfiguration.Internal.CrossPlatform.DscClassCache]::ImportClassResourcesFromModule($Module, $Resources, $functionsToDefine, $Errors)
 
-        [Parameter(Mandatory)]
-        $resource,
-
-        $functionsToDefine
-    )
-
-    trap
-    {
-        continue
-    }
-
-    $SchemaFilePath = $null
-    $oldCount = $functionsToDefine.Count
-
-    $keywordErrors = New-Object -TypeName 'System.Collections.ObjectModel.Collection[System.Exception]'
-
-    $foundCimSchema = [Microsoft.PowerShell.DesiredStateConfiguration.Internal.DscClassCache]::ImportCimKeywordsFromModule(
-    $Module, $resource, [ref] $SchemaFilePath, $functionsToDefine, $keywordErrors)
-
-    foreach($ex in $keywordErrors)
+    foreach($ex in $Errors)
     {
         Write-Error -Exception $ex
-        if($ex.InnerException)
-        {
-            Write-Error -Exception $ex.InnerException
-        }
     }
 
-    $functionsAdded = $functionsToDefine.Count - $oldCount
-    Write-Debug -Message "  $Name : PROCESSING RESOURCE FILE: Added $functionsAdded type handler functions from  '$SchemaFilePath'"
-
-    $SchemaFilePath = $null
-    $oldCount = $functionsToDefine.Count
-
-    $foundScriptSchema = [Microsoft.PowerShell.DesiredStateConfiguration.Internal.DscClassCache]::ImportScriptKeywordsFromModule(
-    $Module, $resource, [ref] $SchemaFilePath, $functionsToDefine )
-
-    $functionsAdded = $functionsToDefine.Count - $oldCount
-    Write-Debug -Message "  $Name : PROCESSING RESOURCE FILE: Added $functionsAdded type handler functions from  '$SchemaFilePath'"
-
-    if ($foundScriptSchema -and $SchemaFilePath)
-    {
-        $resourceDirectory = Split-Path $SchemaFilePath
-        if($null -ne $resourceDirectory)
-        {
-            Import-Module -Force: (Test-ModuleReloadRequired $SchemaFilePath) -Verbose:$false -Name $resourceDirectory -Global -ErrorAction SilentlyContinue
-        }
-    }
-
-    return $foundCimSchema -or $foundScriptSchema
+    return ,$resourcesFound
 }
 
 #
@@ -2945,16 +2825,6 @@ function Write-NodeMOFFile
     }
     # Fix up newlines to be CRLF
     $nodeDoc = $nodeDoc -replace "`n", "`r`n"
-
-    $errMsg = Test-MofInstanceText $nodeDoc
-    if($errMsg)
-    {
-        $errorMessage = $LocalizedData.InvalidMOFDefinition -f @($mofNode, $errMsg)
-        $exception = New-Object -TypeName System.InvalidOperationException -ArgumentList $errorMessage
-        Write-Error -Exception $exception -Message $errorMessage -Category InvalidOperation -ErrorId InvalidMOFDefinition
-        Update-ConfigurationErrorCount
-        $nodeOutfile = "$ConfigurationOutputDirectory/$($mofNode).mof.error"
-    }
 
     if($nodeDocCount -gt 0)
     {
@@ -3412,7 +3282,7 @@ function Test-MofInstanceText
     {
         try
         {
-            [Microsoft.PowerShell.DesiredStateConfiguration.Internal.DscClassCache]::ValidateInstanceText($instanceText)
+            [Microsoft.PowerShell.DesiredStateConfiguration.Internal.CrossPlatform.DscClassCache]::ValidateInstanceText($instanceText)
         }
         catch [System.Management.Automation.MethodInvocationException]
         {
@@ -3655,7 +3525,7 @@ function New-DscChecksum
     # Retrieve all valid configuration files at the specified $Path
     $allConfigFiles = $Path | ForEach-Object  -Process {
         (Get-ChildItem -Path $_ -Recurse | Where-Object -FilterScript {
-                $_.Extension -eq '.mof' -or $_.Extension -eq '.zip'
+                $_.Extension -eq '.json' -or $_.Extension -eq '.zip'
             }
         )
     }
@@ -3664,7 +3534,6 @@ function New-DscChecksum
     if ($allConfigFiles.Length -eq 0)
     {
         Write-Log -Message $LocalizedData.NoValidConfigFileFound
-
         return
     }
 
@@ -3850,22 +3719,12 @@ function Get-DSCResourceModules
         foreach($moduleFolder in Get-ChildItem $folder -Directory)
         {
             $addModule = $false
-
-            $dscFolders = Get-childitem "$($moduleFolder.FullName)\DscResources","$($moduleFolder.FullName)\*\DscResources" -ErrorAction Ignore
-            if($null -ne $dscFolders)
+            foreach($psd1 in Get-ChildItem -Recurse -Filter "$($moduleFolder.Name).psd1" -Path $moduleFolder.fullname -Depth 2)
             {
-                $addModule = $true
-            }
-
-            if(-not $addModule)
-            {
-                foreach($psd1 in Get-ChildItem -Recurse -Filter "$($moduleFolder.Name).psd1" -Path $moduleFolder.fullname -Depth 2)
+                $containsDSCResource = select-string -LiteralPath $psd1 -pattern '^[^#]*\bDscResourcesToExport\b.*'
+                if($null -ne $containsDSCResource)
                 {
-                    $containsDSCResource = select-string -LiteralPath $psd1 -pattern '^[^#]*\bDscResourcesToExport\b.*'
-                    if($null -ne $containsDSCResource)
-                    {
-                        $addModule = $true
-                    }
+                    $addModule = $true
                 }
             }
 
@@ -3879,14 +3738,167 @@ function Get-DSCResourceModules
     $dscModuleFolderList
 }
 
+function CimPropertyIsInherited
+{
+    param(
+        [parameter(Mandatory)]
+        [string]
+        $PropertyName,
+        
+        [parameter(Mandatory)]
+        [AllowNull()]
+        [System.Object]
+        $ParentClass)
+
+    if (-not ($ParentClass))
+    {
+        return $false;
+    }
+    else
+    {
+        foreach($property in $ParentClass.CimClassProperties)
+        {
+            if ($property.Name -eq $PropertyName)
+            {
+                return $true;
+            }
+        }
+
+        return CimPropertyIsInherited -PropertyName $PropertyName -ParentClass $ParentClass.CimSuperClass
+    }
+}
+
+function PrepareCimClassesForJsonConvertion
+{
+    param(
+    [parameter(Mandatory)]
+    $classList)
+
+    $resultList = New-Object -TypeName 'System.Collections.Generic.List[PSObject]'
+
+    foreach($class in $classList)
+    {
+        Write-Verbose "Preprocessing class $($class.CimSystemProperties.ClassName)"
+        $properties = New-Object -TypeName 'System.Collections.Generic.List[System.Object]'
+
+        # remove inherited properties
+        foreach($property in $class.CimClassProperties)
+        {
+            if (-not (CimPropertyIsInherited -PropertyName $property.Name -ParentClass $class.CimSuperClass))
+            {
+                Write-Verbose "Adding property $($property.Name)"
+                
+                $qualifiers = New-Object -TypeName 'System.Collections.Generic.Dictionary[System.String,System.Object]'
+                foreach($qualifier in $property.Qualifiers)
+                {
+                    $qualifiers.Add($qualifier.Name, $qualifier.Value)
+                }
+
+                if ($qualifiers.Count -eq 0) { $qualifiers = $null}
+
+                $flags = $property.Flags
+                $flags = $flags -band -bnot [Microsoft.Management.Infrastructure.CimFlags]::Property # this is set for all properties
+                $flags = $flags -band -bnot [Microsoft.Management.Infrastructure.CimFlags]::NullValue # this is set for all properties
+                $flags = $flags -band -bnot [Microsoft.Management.Infrastructure.CimFlags]::Required # this is also specified in Qualifiers
+                $flags = $flags -band -bnot [Microsoft.Management.Infrastructure.CimFlags]::Key # this is also specified in Qualifiers
+                $flags = $flags -band -bnot [Microsoft.Management.Infrastructure.CimFlags]::ReadOnly # this is also specified in Qualifiers
+                if ($flags -eq 0) { $flags = $null}
+
+                $p = [pscustomobject]@{
+                    Name = $property.Name
+                    Value = $property.Value
+                    CimType = $property.CimType
+                    Flags = $flags
+                    ReferenceClassName = $property.ReferenceClassName
+                    Qualifiers = $qualifiers
+                }
+
+                # remove properties that have null value
+                $p.PSobject.Properties | % {if ($_.Value -eq $null) {$p.PSobject.Properties.Remove($_.Name)}}
+
+                $properties.Add($p);
+            }
+            else
+            {
+                Write-Verbose "Property $($property.Name) is inherited, ignoring it"
+            }
+        }
+
+        if ($properties.Count -eq 0) { $properties = $null}
+
+        # construct the processed class
+        $processedClass = [pscustomobject]@{
+            ClassName = $class.CimSystemProperties.ClassName
+            FriendlyName = ($class.CimClassQualifiers | Where-Object {$_.Name -eq "FriendlyName"}).Value
+            ClassVersion = ($class.CimClassQualifiers | Where-Object {$_.Name -eq "ClassVersion"}).Value
+            Description = ($class.CimClassQualifiers | Where-Object {$_.Name -eq "Description"}).Value
+            SuperClassName = $class.CimSuperClassName
+            ClassProperties = $properties
+            }
+
+        # remove properties that have null value
+        $processedClass.PSobject.Properties | % {if ($_.Value -eq $null) {$processedClass.PSobject.Properties.Remove($_.Name)}}
+
+        $resultList.Add($processedClass)
+    }
+
+    return $resultList
+}
+
+###########################################################
+#  ConvertTo-DscJsonSchema
+###########################################################
+
+#
+# Reads CIM MOF schema files and creates json files with equivalent json schema
+#
+function ConvertTo-DscJsonSchema
+{
+    param (
+        [Parameter(ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true)]
+        [ValidateNotNullOrEmpty()]
+        [Alias("Path")]
+        [string[]]
+        $Directory
+    )
+
+    Process
+    {
+        foreach($dir in $Directory)
+        {
+            Write-Verbose "Processing $dir"
+            if (-not (Test-Path -Path $dir))
+            {
+                Write-Error "Can not find directory $dir" # non-terminating error
+            }
+            else
+            {
+                [Microsoft.PowerShell.DesiredStateConfiguration.Internal.DscClassCache]::Initialize()
+                $schemaFilePaths = Get-ChildItem -Recurse -File -Path $dir -Filter '*.schema.mof'
+
+                foreach($mofPath in $schemaFilePaths)
+                {
+                    $cimClasses = [Microsoft.PowerShell.DesiredStateConfiguration.Internal.DscClassCache]::ReadCimSchemaMof($mofPath)
+                    Write-Verbose "Read $($cimClasses.Count) classes from $mofPath"
+                    $preprocessedCimClasses = PrepareCimClassesForJsonConvertion $cimClasses
+
+                    [string] $jsonPath = $mofPath.FullName.Substring(0, $mofPath.FullName.LastIndexOf('.')) + ".json";
+                    Write-Verbose "Writing $jsonPath"
+                    ConvertTo-Json -InputObject $preprocessedCimClasses -Depth 100 -EnumsAsStrings | Out-File -Force -Path $jsonPath
+                }
+            }
+            
+        }
+    }
+}
+
 ###########################################################
 #  Get-DSCResource
 ###########################################################
 
 #
 # Gets DSC resources on the machine. Allows to filter on a particular resource.
-# It parses all the resources defined in the schema.mof file and also the composite
-# resources defined or imported from PowerShell modules
+# It parses class-based resources defined in the psm1 module files.
 #
 function Get-DscResource
 {
@@ -3919,7 +3931,7 @@ function Get-DscResource
         $keywordErrors = New-Object -TypeName 'System.Collections.ObjectModel.Collection[System.Exception]'
 
         # Load the default Inbox providers (keyword) in cache, also allow caching the resources from multiple versions of modules.
-        [Microsoft.PowerShell.DesiredStateConfiguration.Internal.DscClassCache]::LoadDefaultCimKeywords($keywordErrors, $true)
+        [Microsoft.PowerShell.DesiredStateConfiguration.Internal.CrossPlatform.DscClassCache]::LoadDefaultCimKeywords($keywordErrors, $true)
 
         foreach($ex in $keywordErrors)
         {
@@ -3966,15 +3978,6 @@ function Get-DscResource
             {
                 $null = ImportClassResourcesFromModule -Module $mod -Resources * -functionsToDefine $functionsToDefine
             }
-
-            $dscResources = Join-Path -Path $mod.ModuleBase -ChildPath 'DscResources'
-            if(Test-Path $dscResources)
-            {
-                foreach ($resource in Get-ChildItem -Path $dscResources -Directory -Name)
-                {
-                    $null = ImportCimAndScriptKeywordsFromModule -Module $mod -Resource $resource -functionsToDefine $functionsToDefine
-                }
-            }
         }
 
         $Resources = @()
@@ -4004,7 +4007,7 @@ function Get-DscResource
             Write-Progress -Id 3 -Activity $LocalizedData.CreatingResourceList
 
             # Get resources for CIM cache
-            $keywords = [Microsoft.PowerShell.DesiredStateConfiguration.Internal.DscClassCache]::GetCachedKeywords() | Where-Object -FilterScript {
+            $keywords = [Microsoft.PowerShell.DesiredStateConfiguration.Internal.CrossPlatform.DscClassCache]::GetKeywordsFromCachedClasses() | Where-Object -FilterScript {
                 (!$_.IsReservedKeyword) -and ($null -ne $_.ResourceName) -and !(IsHiddenResource $_.ResourceName) -and (![bool]$Module -or ($_.ImplementingModule -like $ModuleString))
             }
 
@@ -4018,16 +4021,6 @@ function Get-DscResource
                 $_ -ne $null
             }
 
-            # Get composite resources
-            $Resources += Get-Command -CommandType Configuration |
-            ForEach-Object -Process {
-                GetCompositeResource $patterns $_ $ignoreResourceParameters -modules $modules
-            } |
-            Where-Object -FilterScript {
-                $_ -ne $null -and (![bool]$ModuleString -or ($_.Module -like $ModuleString)) -and
-                ($_.Path -and ((Split-Path -Leaf $_.Path) -eq "$($_.Name).schema.psm1"))
-            }
-
             # check whether all resources are found
             CheckResourceFound $Name $Resources
         }
@@ -4036,7 +4029,7 @@ function Get-DscResource
             if ($initialized)
             {
                 [System.Management.Automation.Language.DynamicKeyword]::Reset()
-                [Microsoft.PowerShell.DesiredStateConfiguration.Internal.DscClassCache]::ClearCache()
+                [Microsoft.PowerShell.DesiredStateConfiguration.Internal.CrossPlatform.DscClassCache]::ClearCache()
 
                 $initialized = $false
             }
@@ -4064,7 +4057,7 @@ function Get-DscResource
         if ($initialized)
         {
             [System.Management.Automation.Language.DynamicKeyword]::Reset()
-            [Microsoft.PowerShell.DesiredStateConfiguration.Internal.DscClassCache]::ClearCache()
+            [Microsoft.PowerShell.DesiredStateConfiguration.Internal.CrossPlatform.DscClassCache]::ClearCache()
 
             $initialized = $false
         }
@@ -4117,68 +4110,23 @@ function GetResourceFromKeyword
 
     $resource.Name = $keyword.Keyword
 
-    $schemaFiles = [Microsoft.PowerShell.DesiredStateConfiguration.Internal.DscClassCache]::GetFileDefiningClass($keyword.ResourceName)
+    # only supporting class-based resources at this time
+    $implementationDetail = 'ClassBased'
+    $Module = $modules | Where-Object -FilterScript {
+        $_.Name -eq $keyword.ImplementingModule -and
+        $_.Version -eq $keyword.ImplementingModuleVersion
+    } | Select-Object -First 1
 
-    if ($schemaFiles.Count)
+    if ($Module -and $Module.ExportedDscResources -contains $keyword.Keyword)
     {
-        # Find the correct schema file that matches module name and version
-        # if same module/version is installed in multiple locations, then pick the first schema file.
-        foreach ($schemaFileName in $schemaFiles){
-            $moduleInfo = GetModule $modules $schemaFileName;
-            if ($moduleInfo.Name -eq $keyword.ImplementingModule -and $moduleInfo.Version -eq $keyword.ImplementingModuleVersion){
-                break
-            }
-        }
-
-        # if the class is not a resource we will ignore it except if it is DSC inbox resource.
-        if(-not $schemaFileName.StartsWith("$env:windir\system32\configuration",[stringComparison]::OrdinalIgnoreCase))
-        {
-            $classesFromSchema = [Microsoft.PowerShell.DesiredStateConfiguration.Internal.DscClassCache]::GetCachedClassByFileName($schemaFileName)
-            if($null -ne  $classesFromSchema)
-            {
-                # check if the resource is proper DSC resource that always derives from OMI_BaseResource.
-                $schemaToProcess = $classesFromSchema | ForEach-Object -Process {
-                    if(($_.CimSystemProperties.ClassName -ieq $keyword.ResourceName) -and ($_.CimSuperClassName -ieq 'OMI_BaseResource'))
-                    {
-                        if ([ExperimentalFeature]::IsEnabled("PSDesiredStateConfiguration.InvokeDscResource"))
-                        {
-                            $_ | Add-Member -MemberType NoteProperty -Name 'ImplementationDetail' -Value $implementationDetail -PassThru
-                        }
-                        else
-                        {
-                            $_
-                        }
-                    }
-                }
-                if($null -eq  $schemaToProcess)
-                {
-                    return
-                }
-            }
-        }
-
-        $message = $LocalizedData.SchemaFileForResource -f @($schemaFileName)
-        Write-Verbose -Message $message
-
-        $resource.Module = $moduleInfo
-        $resource.Path = GetImplementingModulePath $schemaFileName
-        $resource.ParentPath = Split-Path $schemaFileName
+        $resource.Module = $Module
+        $resource.Path = $Module.Path
+        $resource.ParentPath = Split-Path -Path $Module.Path
     }
     else
     {
-        $implementationDetail = 'ClassBased'
-        $Module = $modules | Where-Object -FilterScript {
-            $_.Name -eq $keyword.ImplementingModule -and
-            $_.Version -eq $keyword.ImplementingModuleVersion
-        }
-
-        if ($Module -and $Module.ExportedDscResources -contains $keyword.Keyword)
-        {
-            $implementationDetail = 'ClassBased'
-            $resource.Module = $Module
-            $resource.Path = $Module.Path
-            $resource.ParentPath = Split-Path -Path $Module.Path
-        }
+        # a class-based keyword must be in the ExportedDscResources of the module that implements it
+        return $null
     }
 
     if ([system.string]::IsNullOrEmpty($resource.Path) -eq $false)
@@ -4331,7 +4279,6 @@ function AddDscResourceProperty
             $dscProperty.Values.Add($_)
         }
     }
-
     $dscProperty.PropertyType = $Type
     $dscProperty.IsMandatory = $property.Mandatory
 
@@ -4451,13 +4398,13 @@ function GetImplementingModulePath
         $schemaFileName
     )
 
-    $moduleFileName = ($schemaFileName -replace ".schema.mof$", '') + '.psd1'
+    $moduleFileName = ($schemaFileName -replace ".schema.json$", '') + '.psd1'
     if (Test-Path $moduleFileName)
     {
         return $moduleFileName
     }
 
-    $moduleFileName = ($schemaFileName -replace ".schema.mof$", '') + '.psm1'
+    $moduleFileName = ($schemaFileName -replace ".schema.json$", '') + '.psm1'
     if (Test-Path $moduleFileName)
     {
         return $moduleFileName
@@ -4487,9 +4434,9 @@ function GetModule
     }
 
     $schemaFileExt = $null
-    if ($schemaFileName -match '.schema.mof')
+    if ($schemaFileName -match '.schema.json')
     {
-        $schemaFileExt = ".schema.mof$"
+        $schemaFileExt = ".schema.json$"
     }
 
     if ($schemaFileName -match '.schema.psm1')
@@ -4749,29 +4696,29 @@ function Invoke-DscClassBasedResource
 
     Write-Debug "Importing $path ..."
     $iss = [System.Management.Automation.Runspaces.InitialSessionState]::CreateDefault2()
+    # next line prevents PSModulePath from being reset to default
+    $iss.EnvironmentVariables.Add([System.Management.Automation.Runspaces.SessionStateVariableEntry]::new("PSModulePath", $env:PSModulePath, $null))
     $powershell = [PowerShell]::Create($iss)
     $script = @"
 using module $path
-
-Write-Host -Message ([$type]::new | out-string)
-return [$type]::new()
+return [$type]
 "@
 
-
-    $null= $powershell.AddScript($script)
-    $dscType=$powershell.Invoke() | Select-object -First 1
+    $null = $powershell.AddScript($script)
+    $dscType = $powershell.Invoke() | Select-object -First 1
+    Write-Debug "Imported Type: $($dscType | Out-String)"
+    $dscObj = $dscType::new()
     foreach($key in $Property.Keys)
     {
         $value = $Property.$key
         Write-Debug "Setting $key to $value"
-        $dscType.$key = $value
+        $dscObj.$key = $value
     }
-    $info = $dscType | Out-String
-    Write-Debug $info
+    Write-Debug "Object with filled keys: $($dscObj | Out-String)"
 
-    Write-Debug "calling $type.$Method() ..."
+    Write-Debug "Calling $type.$Method() ..."
     $global:DSCMachineStatus = $null
-    $output = $dscType.$Method()
+    $output = $dscObj.$Method()
     return Get-InvokeDscResourceResult -Output $output -Method $Method
 }
 
@@ -4836,6 +4783,7 @@ function Get-InvokeDscResourceResult
 
 Export-ModuleMember -Function @(
         'Invoke-DscResource'
+        'ConvertTo-DscJsonSchema'
     )
 
 ###########################################################
