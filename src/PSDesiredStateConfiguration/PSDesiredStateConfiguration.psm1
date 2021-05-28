@@ -4695,30 +4695,27 @@ function Invoke-DscClassBasedResource
     $type = $resource.ResourceType
 
     Write-Debug "Importing $path ..."
-    $iss = [System.Management.Automation.Runspaces.InitialSessionState]::CreateDefault2()
-    # next line prevents PSModulePath from being reset to default
-    $iss.EnvironmentVariables.Add([System.Management.Automation.Runspaces.SessionStateVariableEntry]::new("PSModulePath", $env:PSModulePath, $null))
-    $powershell = [PowerShell]::Create($iss)
+    $powershell = [PowerShell]::Create('CurrentRunspace')
     $script = @"
 using module $path
-return [$type]
+return [$type]::new()
 "@
 
-    $null = $powershell.AddScript($script)
-    $dscType = $powershell.Invoke() | Select-object -First 1
-    Write-Debug "Imported Type: $($dscType | Out-String)"
-    $dscObj = $dscType::new()
+    $null= $powershell.AddScript($script)
+    $dscObj=$powershell.Invoke() | Select-object -First 1
     foreach($key in $Property.Keys)
     {
         $value = $Property.$key
         Write-Debug "Setting $key to $value"
         $dscObj.$key = $value
     }
-    Write-Debug "Object with filled keys: $($dscObj | Out-String)"
+    $info = $dscObj | Out-String
+    Write-Debug $info
 
-    Write-Debug "Calling $type.$Method() ..."
+    Write-Debug "calling $type.$Method() ..."
     $global:DSCMachineStatus = $null
     $output = $dscObj.$Method()
+
     return Get-InvokeDscResourceResult -Output $output -Method $Method
 }
 
