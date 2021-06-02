@@ -101,6 +101,13 @@ HelpInfoURI = 'https://go.microsoft.com/fwlink/?linkid=2113535'
 
 PrivateData = @{
     PSData = @{
+        Prerelease = 'beta1'
+        Tags         = @('PSDesiredStateConfiguration',
+            'PSEdition_Core',
+            'Linux',
+            'Mac',
+            'Windows')
+        ProjectUri   = 'https://github.com/PowerShell/PSDesiredStateConfiguration'
         ExperimentalFeatures = @(
                 @{
                     Name = 'PSDesiredStateConfiguration.InvokeDscResource'
