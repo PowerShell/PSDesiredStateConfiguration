@@ -1,16 +1,20 @@
+<!-- USE  "./build.ps1 -Build" TO BUILD THIS -->
+
 <Project Sdk="Microsoft.NET.Sdk" ToolsVersion="15.0">
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <AssemblyName>Microsoft.PowerShell.DscSubsystem</AssemblyName>
-    
+    <!-- Assembly is fully signed in \.vsts-ci\azure-pipelines-release.yml -->
     <DelaySign>true</DelaySign>
     <AssemblyOriginatorKeyFile>visualstudiopublic.snk</AssemblyOriginatorKeyFile>
     <SignAssembly>true</SignAssembly>
   </PropertyGroup>
 
   <ItemGroup>
-  <!-- TEMPORARY: This needs to be replaced with <PackageReference Include="System.Management.Automation" /> when Preview 6 is published with subsystem interface. -->
-    <Reference Include="C:\Temp\SMA-Reference\System.Management.Automation.dll"></Reference>
+    <!-- Can't use PackageReference here because subsystem uses internal SMA types that are not available in `ref` version of the SMA package.
+         So a workaround is to download SMA package and reference local file (full runtime SMA assembly) in `runtimes` folder. -->
+    <Reference Include="PackageReferences/System.Management.Automation/runtimes/win/lib/net6.0/System.Management.Automation.dll"></Reference>
   </ItemGroup>
   
 </Project>
