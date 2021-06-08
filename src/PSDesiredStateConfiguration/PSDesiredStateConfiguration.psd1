@@ -100,13 +100,11 @@ HelpInfoURI = 'https://go.microsoft.com/fwlink/?linkid=2113535'
 
 PrivateData = @{
     PSData = @{
-        ExperimentalFeatures = @(
-                @{
-                    Name = 'PSDesiredStateConfiguration.InvokeDscResource'
-                    Description = "Enables the Invoke-DscResource cmdlet and related features."
-                }
-            )
-        }
+        Tags         = @('PSDesiredStateConfiguration',
+            'Linux',
+            'Mac',
+            'Windows')
+        ProjectUri   = 'https://github.com/PowerShell/PSDesiredStateConfiguration'
     }
-
+}
 }

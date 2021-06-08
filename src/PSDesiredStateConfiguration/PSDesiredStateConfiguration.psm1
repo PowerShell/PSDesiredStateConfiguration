@@ -4210,10 +4210,8 @@ function GetResourceFromKeyword
         Ascending  = $true
     }
     $resource.UpdateProperties($updatedProperties)
-    if ([ExperimentalFeature]::IsEnabled("PSDesiredStateConfiguration.InvokeDscResource"))
-    {
-        $resource | Add-Member -MemberType NoteProperty -Name 'ImplementationDetail' -Value $implementationDetail
-    }
+    
+    $resource | Add-Member -MemberType NoteProperty -Name 'ImplementationDetail' -Value $implementationDetail
 
     return $resource
 }
@@ -4647,7 +4645,6 @@ Export-ModuleMember -Function Get-DscResource, Configuration
 
 function Invoke-DscResource
 {
-    [Experimental("PSDesiredStateConfiguration.InvokeDscResource", "Show")]
     [CmdletBinding(HelpUri = '')]
     param (
         [Parameter(ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true, Mandatory)]
