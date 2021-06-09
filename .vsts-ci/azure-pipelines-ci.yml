@@ -91,6 +91,7 @@ stages:
         $outBinPath = "$(Build.SourcesDirectory)\out\PSDesiredStateConfiguration"
         $vstsCommandString = "vso[task.setvariable variable=outBinPath]${outBinPath}"
         Write-Host "sending " + $vstsCommandString
+        Write-Host "##$vstsCommandString"
       displayName: Execute build
 
     - publish: "$(outBinPath)"
