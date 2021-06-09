@@ -41,6 +41,14 @@ stages:
         checkLatest: false
         version: 5.9.1
 
+    - task: UseDotNet@2
+      displayName: 'Install .NET Core SDK'
+      inputs:
+        packageType: sdk
+        useGlobalJson: true
+        includePreviewVersions: true
+        workingDirectory: '$(Build.SourcesDirectory)'
+
     - pwsh: |
         Get-ChildItem -Path env:
       displayName: Capture environment for build
