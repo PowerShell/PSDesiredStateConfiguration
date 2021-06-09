@@ -21,7 +21,7 @@ stages:
 - stage: Build
   displayName: Build PSDesiredStateConfiguration module
   pool:
-      name: Package ES CodeHub Lab E
+    vmImage: windows-latest
   jobs:
   - job: BuildPkg
     displayName: Build Package
@@ -93,7 +93,7 @@ stages:
   jobs:
   - job: Compliance_Job
     pool:
-      name: Package ES CodeHub Lab E
+      vmImage: windows-latest
     steps:
     - checkout: self
     - checkout: ComplianceRepo
