@@ -108,13 +108,6 @@ PrivateData = @{
             'Mac',
             'Windows')
         ProjectUri   = 'https://github.com/PowerShell/PSDesiredStateConfiguration'
-        ExperimentalFeatures = @(
-                @{
-                    Name = 'PSDesiredStateConfiguration.InvokeDscResource'
-                    Description = "Enables the Invoke-DscResource cmdlet and related features."
-                }
-            )
-        }
     }
 
 }
