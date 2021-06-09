@@ -91,7 +91,7 @@ stages:
         $outBinPath = "$(Build.SourcesDirectory)\out\PSDesiredStateConfiguration"
       displayName: Execute build
 
-    - publish: "$($outBinPath)"
+    - publish: "$(outBinPath)"
       artifact: Build
       displayName: Publish build
 
