@@ -82,56 +82,12 @@ stages:
         Import-Module -Name $modPath -Force
         #
         $(Build.SourcesDirectory)/build.ps1 -Build -Clean
+        $outBinPath = "$(Build.SourcesDirectory)\out\PSDesiredStateConfiguration"
       displayName: Execute build
 
-    - pwsh: |
-        $signSrcPath = "$(Build.SourcesDirectory)\out\PSDesiredStateConfiguration"
-        # Set signing src path variable
-        $vstsCommandString = "vso[task.setvariable variable=signSrcPath]${signSrcPath}"
-        Write-Host "sending " + $vstsCommandString
-        Write-Host "##$vstsCommandString"
-        $signOutPath = "$(Build.SourcesDirectory)\signed\PSDesiredStateConfiguration"
-        $null = New-Item -ItemType Directory -Path $signOutPath
-        # Set signing out path variable
-        $vstsCommandString = "vso[task.setvariable variable=signOutPath]${signOutPath}"
-        Write-Host "sending " + $vstsCommandString
-        Write-Host "##$vstsCommandString"
-        # Set path variable for guardian codesign validation
-        $vstsCommandString = "vso[task.setvariable variable=GDN_CODESIGN_TARGETDIRECTORY]${signOutPath}"
-        Write-Host "sending " + $vstsCommandString
-        Write-Host "##$vstsCommandString"
-      displayName: Setup variables for signing
-
-    - template: EsrpSign.yml@ComplianceRepo
-      parameters:
-        # the folder which contains the binaries to sign
-        buildOutputPath: $(signSrcPath)
-        # the location to put the signed output
-        signOutputPath: $(signOutPath)
-        # the certificate ID to use
-        certificateId: "CP-230012"
-        # the file pattern to use, comma separated
-        pattern: '*.psm1,*.psd1'
-
-    - pwsh: |
-        $repoName = [guid]::newGuid().ToString("N")
-        $packageRoot = "$(Build.SourcesDirectory)\signed\PSDesiredStateConfiguration"
-        Register-PSRepository -Name $repoName -SourceLocation $packageRoot -InstallationPolicy Trusted
-        Publish-Module -Path $packageRoot -Repository $repoName
-        Unregister-PSRepository -Name $repoName
-        Get-ChildItem -Recurse -Path $packageRoot | Write-Verbose -Verbose
-        $nupkgPath = (Get-ChildItem -Recurse -Path $packageRoot -Filter "PSDesiredStateConfiguration*.nupkg" | select -First 1).FullName
-        Write-Host "##vso[artifact.upload containerfolder=nupkg;artifactname=nupkg]$nupkgPath"
-      displayName: Package and publish nupkg
-      name: ProduceNupkg
-
-    - publish: "$(signSrcPath)"
+    - publish: "$($outBinPath)"
       artifact: Build
       displayName: Publish build
-
-    - publish: "$(signOutPath)"
-      artifact: SignedBuild
-      displayName: Publish signed build
 
 - stage: Compliance
   displayName: Compliance
@@ -144,15 +100,15 @@ stages:
     - checkout: self
     - checkout: ComplianceRepo
     - download: current
-      artifact: SignedBuild
+      artifact: Build
 
     - pwsh: |
-        Get-ChildItem -Path "$(Pipeline.Workspace)\SignedBuild" -Recurse
+        Get-ChildItem -Path "$(Pipeline.Workspace)\Build" -Recurse
       displayName: Capture downloaded artifacts
     - template: ci-compliance.yml@ComplianceRepo
       parameters:
         # component-governance
-        sourceScanPath: '$(Pipeline.Workspace)\SignedBuild'
+        sourceScanPath: '$(Pipeline.Workspace)\Build'
         # credscan
         suppressionsFile: ''
         # TermCheck
