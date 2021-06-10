@@ -14,7 +14,7 @@ jobs:
         $powerShellPath = Join-Path -Path $env:AGENT_TEMPDIRECTORY -ChildPath 'powershell'
         Invoke-WebRequest -Uri https://raw.githubusercontent.com/PowerShell/PowerShell/master/tools/install-powershell.ps1 -outfile ./install-powershell.ps1
         ./install-powershell.ps1 -Preview -Destination $powerShellPath
-        $newPath = Join-Path -Path $powerShellPath -ChildPath $env:PATH
+        $newPath = $powerShellPath + [System.IO.Path]::PathSeparator + $env:PATH
         $vstsCommandString = "vso[task.setvariable variable=PATH]$newPath"
         Write-Host "sending " + $vstsCommandString
         Write-Host "##$vstsCommandString"
