@@ -56,7 +56,7 @@ jobs:
         $targetModuleLocation = Join-Path -Path $(modulePath) -ChildPath 'PSDesiredStateConfiguration'
         Move-Item -Path "$(Pipeline.Workspace)\Build" -Destination $targetModuleLocation -Force
         #
-        $env:PSModulePath = $(modulePath) + [System.IO.Path]::PathSeparator + $env:PSModulePath
+        $env:PSModulePath = '$(modulePath)' + [System.IO.Path]::PathSeparator + $env:PSModulePath
         "PSModulePath is:"| Write-Verbose -Verbose
         $env:PSModulePath | Write-Verbose -Verbose
         #
