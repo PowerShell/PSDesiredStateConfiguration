@@ -45,7 +45,9 @@ jobs:
         Save-Module -Name PSPackageProject -Path $modulePath -Force
       displayName: Install PSPackageProject and dependencies
 
-    - ${{ parameters.powershellExecutable }}: |
+    - pwsh: |
+        Get-Module -Name PSPackageProject -ListAvailable | Write-Verbose -Verbose 
+        $env:PSModulePath | Write-Verbose -Verbose 
         Invoke-PSPackageProjectTest -Type Functional
       displayName: Execute functional tests
       errorActionPreference: continue
