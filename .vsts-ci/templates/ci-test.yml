@@ -43,21 +43,23 @@ jobs:
         Save-Module -Name "Pester" -MaximumVersion 4.99 -Path $modulePath -Force
         Write-Verbose -Verbose "Install PSPackageProject to temp module path"
         Save-Module -Name PSPackageProject -Path $modulePath -Force
+        #
+        $vstsCommandString = "vso[task.setvariable variable=modulePath]${modulePath}"
+        Write-Host "sending " + $vstsCommandString
+        Write-Host "##$vstsCommandString"
       displayName: Install PSPackageProject and dependencies
     
     - download: current
       artifact: Build
+      path: "$(modulePath)"
 
     - pwsh: |
-        $modulePath = Join-Path -Path $env:AGENT_TEMPDIRECTORY -ChildPath 'TempModules'
-        $env:PSModulePath = $modulePath + [System.IO.Path]::PathSeparator + $env:PSModulePath
-        $env:PSModulePath = '$(Pipeline.Workspace)' + [System.IO.Path]::DirectorySeparatorChar + 'Build' + [System.IO.Path]::PathSeparator + $env:PSModulePath
+        $env:PSModulePath = $(modulePath) + [System.IO.Path]::PathSeparator + $env:PSModulePath
         "PSModulePath is:"| Write-Verbose -Verbose
         $env:PSModulePath | Write-Verbose -Verbose
         #
-        Get-ChildItem -Recurse -Path '$(Pipeline.Workspace)\Build'
-        # check that built module is visible
-        Get-Module -ListAvailable -Name PSDesiredStateConfiguration | select Name,Version,PreRelease,Path  | Write-Verbose -Verbose
+        Get-Module -ListAvailable -Name PSDesiredStateConfiguration | select Name,Version,PreRelease,Path
+        Get-ChildItem -Recurse -Path '$(modulePath)'
         #
         Invoke-PSPackageProjectTest -Type Functional
       displayName: Execute functional tests
