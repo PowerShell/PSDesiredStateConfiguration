@@ -51,11 +51,13 @@ jobs:
     - pwsh: |
         $modulePath = Join-Path -Path $env:AGENT_TEMPDIRECTORY -ChildPath 'TempModules'
         $env:PSModulePath = $modulePath + [System.IO.Path]::PathSeparator + $env:PSModulePath
-        $env:PSModulePath = '$(Pipeline.Workspace)\Build' + [System.IO.Path]::PathSeparator + $env:PSModulePath
+        $env:PSModulePath = '$(Pipeline.Workspace)' + [System.IO.Path]::DirectorySeparatorChar + 'Build' + [System.IO.Path]::PathSeparator + $env:PSModulePath
         "PSModulePath is:"| Write-Verbose -Verbose
         $env:PSModulePath | Write-Verbose -Verbose
+        #
+        Get-ChildItem -Recurse -Path '$(Pipeline.Workspace)\Build'
         # check that built module is visible
-        Get-Module -ListAvailable -Name PSDesiredStateConfiguration | select Name,Version,PreRelease,Path | fl | Write-Verbose -Verbose
+        Get-Module -ListAvailable -Name PSDesiredStateConfiguration | select Name,Version,PreRelease,Path  | Write-Verbose -Verbose
         #
         Invoke-PSPackageProjectTest -Type Functional
       displayName: Execute functional tests
