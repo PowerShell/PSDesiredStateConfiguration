@@ -10,68 +10,43 @@ jobs:
     vmImage: ${{ parameters.imageName }}
   displayName: ${{ parameters.displayName }}
   steps:
-  - ${{ parameters.powershellExecutable }}: |
-      if($IsMacOs)
-      {
-        brew install powershell/tap/powershell-preview
-        sudo ln -s -f /usr/local/opt/powershell-preview/libexec/pwsh /usr/local/bin/pwsh
-      }
-      elseif($IsLinux)
-      {
-        sudo apt-get update
-        sudo apt-get install powershell-preview
-        sudo ln -s /opt/microsoft/powershell/7-preview/pwsh /usr/local/bin/pwsh
-      }
-      elseif($IsWindows)
-      {
+    - powershell: |
+        $powerShellPath = Join-Path -Path $env:AGENT_TEMPDIRECTORY -ChildPath 'powershell'
         Invoke-WebRequest -Uri https://raw.githubusercontent.com/PowerShell/PowerShell/master/tools/install-powershell.ps1 -outfile ./install-powershell.ps1
-        ./install-powershell.ps1 -AddToPath -Preview -Destination C:\powershell-preview
-        $vstsCommandString = "vso[task.setvariable variable=PATH]C:\powershell-preview;$env:PATH"
+        ./install-powershell.ps1 -Destination $powerShellPath
+        $vstsCommandString = "vso[task.setvariable variable=PATH]$powerShellPath;$env:PATH"
         Write-Host "sending " + $vstsCommandString
         Write-Host "##$vstsCommandString"
-      }
-    displayName: Setup PowerShell preview
+      displayName: Install PowerShell Core
 
-  - ${{ parameters.powershellExecutable }}: |
-      $PSVersionTable
-      $vstsCommandString = "vso[task.setvariable variable=PSHOME]$pshome"
-      Write-Host "sending " + $vstsCommandString
-      Write-Host "##$vstsCommandString"
-    displayName: Capture PowerShellVersion
+    - pwsh: |
+        $modulePath = Join-Path -Path $env:AGENT_TEMPDIRECTORY -ChildPath 'TempModules'
+        if (Test-Path -Path $modulePath) {
+          Write-Verbose -Verbose "Deleting existing temp module path: $modulePath"
+          Remove-Item -Path $modulePath -Recurse -Force -ErrorAction Ignore
+        }
+        if (! (Test-Path -Path $modulePath)) {
+          Write-Verbose -Verbose "Creating new temp module path: $modulePath"
+          $null = New-Item -Path $modulePath -ItemType Directory
+        }
+      displayName: Create temporary module path
 
-  - ${{ parameters.powershellExecutable }}: |
-        dir env:PATH
-    displayName: Capture Path
+    - pwsh: |
+        $modulePath = Join-Path -Path $env:AGENT_TEMPDIRECTORY -ChildPath 'TempModules'
+        Write-Verbose -Verbose "Install PowerShellGet V3 to temp module path"
+        Save-Module -Name PowerShellGet -Path $modulePath -MinimumVersion 3.0.0-beta10 -AllowPrerelease -Force
+        Write-Verbose -Verbose "Install PlatyPS to temp module path"
+        Save-Module -Name "platyPS" -Path $modulePath -Force
+        Write-Verbose -Verbose "Install PSScriptAnalyzer to temp module path"
+        Save-Module -Name "PSScriptAnalyzer" -Path $modulePath -RequiredVersion 1.18.0 -Force
+        Write-Verbose -Verbose "Install Pester 4.X to temp module path"
+        Save-Module -Name "Pester" -MaximumVersion 4.99 -Path $modulePath -Force
+        Write-Verbose -Verbose "Install PSPackageProject to temp module path"
+        Save-Module -Name PSPackageProject -Path $modulePath -Force
+      displayName: Install PSPackageProject and dependencies
 
-  - ${{ parameters.powershellExecutable }}: |
-      Get-PSRepository
-    displayName: Capture PSRepository
-
-  - ${{ parameters.powershellExecutable }}: |
-      Install-module Pester -Force -MaximumVersion 4.99
-    displayName: Install dependencies - Pester
-    timeoutInMinutes: 10
-
-  - ${{ parameters.powershellExecutable }}: |
-      Install-Module -Name "platyPS" -Force
-    displayName: Install dependencies - PlatyPS
-    timeoutInMinutes: 10
-
-  - ${{ parameters.powershellExecutable }}: |
-        Install-Module -Name "PSScriptAnalyzer" -RequiredVersion 1.18.0 -Force
-    displayName: Install dependencies - PSScriptAnalyzer
-    timeoutInMinutes: 10
-
-  - ${{ parameters.powershellExecutable }}: |
-      Install-Module -Name PSPackageProject -Force
-    displayName: Install PSPackageProject module
-
-  - ${{ parameters.powershellExecutable }}: |
-      Get-InstalledModule -Name pester  -AllVersions | Where-Object {$_.Version -ge ([version]::new(5,0,0))} | Uninstall-Module -Force
-    displayName: Remove >= 5.0.0 Pester
-
-  - ${{ parameters.powershellExecutable }}: |
-      Invoke-PSPackageProjectTest -Type Functional
-    displayName: Execute functional tests
-    errorActionPreference: continue
+    - ${{ parameters.powershellExecutable }}: |
+        Invoke-PSPackageProjectTest -Type Functional
+      displayName: Execute functional tests
+      errorActionPreference: continue
 
