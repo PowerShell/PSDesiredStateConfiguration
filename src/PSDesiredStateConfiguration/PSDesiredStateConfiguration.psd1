@@ -108,6 +108,6 @@ PrivateData = @{
             'Mac',
             'Windows')
         ProjectUri   = 'https://github.com/PowerShell/PSDesiredStateConfiguration'
+        }
     }
-
 }
