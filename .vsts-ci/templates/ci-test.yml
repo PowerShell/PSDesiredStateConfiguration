@@ -44,10 +44,18 @@ jobs:
         Write-Verbose -Verbose "Install PSPackageProject to temp module path"
         Save-Module -Name PSPackageProject -Path $modulePath -Force
       displayName: Install PSPackageProject and dependencies
+    
+    - download: current
+      artifact: Build
 
     - pwsh: |
         $modulePath = Join-Path -Path $env:AGENT_TEMPDIRECTORY -ChildPath 'TempModules'
         $env:PSModulePath = $modulePath + [System.IO.Path]::PathSeparator + $env:PSModulePath
+        $env:PSModulePath = '$(Pipeline.Workspace)\Build' + [System.IO.Path]::PathSeparator + $env:PSModulePath
+        "PSModulePath is:"| Write-Verbose -Verbose
+        $env:PSModulePath | Write-Verbose -Verbose
+        # check that built module is visible
+        Get-Module -ListAvailable -Name PSDesiredStateConfiguration | select Name,Version,PreRelease,Path | fl | Write-Verbose -Verbose
         #
         Invoke-PSPackageProjectTest -Type Functional
       displayName: Execute functional tests
