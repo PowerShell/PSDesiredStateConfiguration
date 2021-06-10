@@ -60,7 +60,10 @@ jobs:
         "PSModulePath is:"| Write-Verbose -Verbose
         $env:PSModulePath | Write-Verbose -Verbose
         #
-        Get-Module -ListAvailable -Name PSDesiredStateConfiguration | select Name,Version,PreRelease,Path
+        Get-Module -ListAvailable -Name PSDesiredStateConfiguration | select Name,Version,PreRelease,Path | Write-Verbose -Verbose
+        #
+        "Listing contents of $targetModuleLocation:"| Write-Verbose -Verbose
+        Get-ChildItem -Path $targetModuleLocation  | Write-Verbose -Verbose
         #
         Invoke-PSPackageProjectTest -Type Functional
       displayName: Execute functional tests
