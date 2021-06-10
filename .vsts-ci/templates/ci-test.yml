@@ -51,15 +51,16 @@ jobs:
     
     - download: current
       artifact: Build
-      path: "$(modulePath)"
 
     - pwsh: |
+        $targetModuleLocation = Join-Path -Path $(modulePath) -ChildPath 'PSDesiredStateConfiguration'
+        Move-Item -Path "$(Pipeline.Workspace)\Build" -Destination $targetModuleLocation -Force
+        #
         $env:PSModulePath = $(modulePath) + [System.IO.Path]::PathSeparator + $env:PSModulePath
         "PSModulePath is:"| Write-Verbose -Verbose
         $env:PSModulePath | Write-Verbose -Verbose
         #
         Get-Module -ListAvailable -Name PSDesiredStateConfiguration | select Name,Version,PreRelease,Path
-        Get-ChildItem -Recurse -Path '$(modulePath)'
         #
         Invoke-PSPackageProjectTest -Type Functional
       displayName: Execute functional tests
