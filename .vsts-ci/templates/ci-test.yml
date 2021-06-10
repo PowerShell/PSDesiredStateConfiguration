@@ -43,11 +43,10 @@ jobs:
         Save-Module -Name "Pester" -MaximumVersion 4.99 -Path $modulePath -Force
         Write-Verbose -Verbose "Install PSPackageProject to temp module path"
         Save-Module -Name PSPackageProject -Path $modulePath -Force
+        $env:PSModulePath = $modulePath + [System.IO.Path]::PathSeparator + $env:PSModulePath
       displayName: Install PSPackageProject and dependencies
 
     - pwsh: |
-        Get-Module -Name PSPackageProject -ListAvailable | Write-Verbose -Verbose 
-        $env:PSModulePath | Write-Verbose -Verbose 
         Invoke-PSPackageProjectTest -Type Functional
       displayName: Execute functional tests
       errorActionPreference: continue
