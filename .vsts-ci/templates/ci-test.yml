@@ -10,113 +10,65 @@ jobs:
     vmImage: ${{ parameters.imageName }}
   displayName: ${{ parameters.displayName }}
   steps:
-  - ${{ parameters.powershellExecutable }}: |
-      if($IsMacOs)
-      {
-        brew install powershell/tap/powershell-preview
-        sudo ln -s -f /usr/local/opt/powershell-preview/libexec/pwsh /usr/local/bin/pwsh
-      }
-      elseif($IsLinux)
-      {
-        sudo apt-get update
-        sudo apt-get install powershell-preview
-        sudo ln -s /opt/microsoft/powershell/7-preview/pwsh /usr/local/bin/pwsh
-      }
-      elseif($IsWindows)
-      {
+    - powershell: |
+        $powerShellPath = Join-Path -Path $env:AGENT_TEMPDIRECTORY -ChildPath 'powershell'
         Invoke-WebRequest -Uri https://raw.githubusercontent.com/PowerShell/PowerShell/master/tools/install-powershell.ps1 -outfile ./install-powershell.ps1
-        ./install-powershell.ps1 -AddToPath -Preview -Destination C:\powershell-preview
-        $vstsCommandString = "vso[task.setvariable variable=PATH]C:\powershell-preview;$env:PATH"
+        ./install-powershell.ps1 -Preview -Destination $powerShellPath
+        $newPath = $powerShellPath + [System.IO.Path]::PathSeparator + $env:PATH
+        $vstsCommandString = "vso[task.setvariable variable=PATH]$newPath"
         Write-Host "sending " + $vstsCommandString
         Write-Host "##$vstsCommandString"
-      }
-    displayName: Setup PowerShell preview
+      displayName: Install PowerShell Core
 
-  - ${{ parameters.powershellExecutable }}: |
-      $PSVersionTable
-      $vstsCommandString = "vso[task.setvariable variable=PSHOME]$pshome"
-      Write-Host "sending " + $vstsCommandString
-      Write-Host "##$vstsCommandString"
-    displayName: Capture PowerShellVersion
+    - pwsh: |
+        $modulePath = Join-Path -Path $env:AGENT_TEMPDIRECTORY -ChildPath 'TempModules'
+        if (Test-Path -Path $modulePath) {
+          Write-Verbose -Verbose "Deleting existing temp module path: $modulePath"
+          Remove-Item -Path $modulePath -Recurse -Force -ErrorAction Ignore
+        }
+        if (! (Test-Path -Path $modulePath)) {
+          Write-Verbose -Verbose "Creating new temp module path: $modulePath"
+          $null = New-Item -Path $modulePath -ItemType Directory
+        }
+      displayName: Create temporary module path
 
-  - ${{ parameters.powershellExecutable }}: |
-        dir env:PATH
-    displayName: Capture Path
+    - pwsh: |
+        $modulePath = Join-Path -Path $env:AGENT_TEMPDIRECTORY -ChildPath 'TempModules'
+        Write-Verbose -Verbose "Install PowerShellGet V3 to temp module path"
+        Save-Module -Name PowerShellGet -Path $modulePath -MinimumVersion 3.0.0-beta10 -AllowPrerelease -Force
+        Write-Verbose -Verbose "Install PlatyPS to temp module path"
+        Save-Module -Name "platyPS" -Path $modulePath -Force
+        Write-Verbose -Verbose "Install PSScriptAnalyzer to temp module path"
+        Save-Module -Name "PSScriptAnalyzer" -Path $modulePath -RequiredVersion 1.18.0 -Force
+        Write-Verbose -Verbose "Install Pester 4.X to temp module path"
+        Save-Module -Name "Pester" -MaximumVersion 4.99 -Path $modulePath -Force
+        Write-Verbose -Verbose "Install PSPackageProject to temp module path"
+        Save-Module -Name PSPackageProject -Path $modulePath -Force
+        #
+        $vstsCommandString = "vso[task.setvariable variable=modulePath]${modulePath}"
+        Write-Host "sending " + $vstsCommandString
+        Write-Host "##$vstsCommandString"
+      displayName: Install PSPackageProject and dependencies
+    
+    - download: current
+      artifact: Build
 
-  - ${{ parameters.powershellExecutable }}: |
-      Get-PSRepository
-    displayName: Capture PSRepository
-
-  - ${{ parameters.powershellExecutable }}: |
-      Install-module Pester -Force -MaximumVersion 4.99
-    displayName: Install dependencies - Pester
-    timeoutInMinutes: 10
-
-  - ${{ parameters.powershellExecutable }}: |
-      Install-Module -Name "platyPS" -Force
-    displayName: Install dependencies - PlatyPS
-    timeoutInMinutes: 10
-
-  - ${{ parameters.powershellExecutable }}: |
-        Install-Module -Name "PSScriptAnalyzer" -RequiredVersion 1.18.0 -Force
-    displayName: Install dependencies - PSScriptAnalyzer
-    timeoutInMinutes: 10
-
-  - ${{ parameters.powershellExecutable }}: |
-      Install-Module -Name PSPackageProject -Force
-    displayName: Install PSPackageProject module
-
-  - ${{ parameters.powershellExecutable }}: |
-      Get-InstalledModule -Name pester  -AllVersions | Where-Object {$_.Version -ge ([version]::new(5,0,0))} | Uninstall-Module -Force
-    displayName: Remove >= 5.0.0 Pester
-
-  - task: DownloadBuildArtifacts@0
-    displayName: 'Download artifacts'
-    inputs:
-      buildType: current
-      downloadType: specific
-      itemPattern: '**/*.nupkg'
-      downloadPath: '$(System.ArtifactsDirectory)'
-
-  - ${{ parameters.powershellExecutable }}: |
-      $sourceName = 'pspackageproject-local-repo'
-      Register-PSRepository -Name $sourceName -SourceLocation '$(System.ArtifactsDirectory)' -ErrorAction Ignore
-      $config = Get-PSPackageProjectConfiguration
-      $buildOutputPath = $config.BuildOutputPath
-      $null = New-Item -ItemType Directory -Path $buildOutputPath -Verbose
-      $moduleName = $config.ModuleName
-      Save-Module -Repository $sourceName -Name $moduleName -Path $config.BuildOutputPath
-    displayName: Extract product artifact
-    timeoutInMinutes: 10
-
-  - ${{ parameters.powershellExecutable }}: |
-      Invoke-PSPackageProjectTest -Type Functional
-    displayName: Execute functional tests - InvokeDscResource Disabled
-    errorActionPreference: continue
-
-  - ${{ parameters.powershellExecutable }}: |
-      $configFolder = split-path $PROFILE
-      $configPath = Join-Path $configFolder -ChildPath powershell.config.json
-      copy-Item  $(Build.SourcesDirectory)/assets/powershell.config.json $configPath
-    displayName: Enable ExperimentalFeature
-    errorActionPreference: continue
-
-  - ${{ parameters.powershellExecutable }}: |
-      Invoke-PSPackageProjectTest -Type Functional
-    displayName: Execute functional tests - InvokeDscResource Enabled
-    errorActionPreference: continue
-
-  - ${{ parameters.powershellExecutable }}: |
-      Invoke-PSPackageProjectTest -Type StaticAnalysis
-    displayName: Execute static analysis tests
-    # need to figure out how to disable PSAvoidOverwritingBuiltInCmdlets
-    continueOnError: true
-    errorActionPreference: continue
-    condition: succeededOrFailed()
-
-
-  - ${{ parameters.powershellExecutable }}: |
-      Unregister-PSRepository -Name 'pspackageproject-local-repo' -ErrorAction Ignore
-    displayName: Unregister temporary PSRepository
-    condition: always()
-    timeoutInMinutes: 10
+    - pwsh: |
+        "PSVersionTable is"| Write-Verbose -Verbose
+        $PSVersionTable | Out-String | Write-Verbose -Verbose
+        #
+        $targetModuleLocation = Join-Path -Path $(modulePath) -ChildPath 'PSDesiredStateConfiguration'
+        Move-Item -Path "$(Pipeline.Workspace)\Build" -Destination $targetModuleLocation -Force
+        #
+        $env:PSModulePath = '$(modulePath)' + [System.IO.Path]::PathSeparator + $env:PSModulePath
+        "PSModulePath is"| Write-Verbose -Verbose
+        $env:PSModulePath | Write-Verbose -Verbose
+        #
+        Get-Module -ListAvailable -Name PSDesiredStateConfiguration | select Name,Version,PreRelease,Path | Write-Verbose -Verbose
+        #
+        "Listing contents of $targetModuleLocation"| Write-Verbose -Verbose
+        Get-ChildItem -Recurse -Path $targetModuleLocation  | Write-Verbose -Verbose
+        #
+        Invoke-PSPackageProjectTest -Type Functional
+      displayName: Execute functional tests
+      errorActionPreference: continue
