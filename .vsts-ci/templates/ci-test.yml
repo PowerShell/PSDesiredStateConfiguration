@@ -62,7 +62,7 @@ jobs:
         #
         Get-Module -ListAvailable -Name PSDesiredStateConfiguration | select Name,Version,PreRelease,Path | Write-Verbose -Verbose
         #
-        "Listing contents of $targetModuleLocation:"| Write-Verbose -Verbose
+        "Listing contents of $targetModuleLocation"| Write-Verbose -Verbose
         Get-ChildItem -Path $targetModuleLocation  | Write-Verbose -Verbose
         #
         Invoke-PSPackageProjectTest -Type Functional
