@@ -209,3 +209,34 @@ Describe "Test PSDesiredStateConfiguration" -tags CI {
         }
     }
 }
+
+Describe "DSC MOF Compilation" -tags "CI" {
+    BeforeAll {
+        # ensure that module is imported
+        Import-Module -Name PSDesiredStateConfiguration -MinimumVersion 3.0.0
+        Install-ModuleIfMissing -Name XmlContentDsc -Force
+    }
+
+    It "Should be able to compile a MOF using configuration keyword" {
+
+        Write-Verbose "DSC_HOME: ${env:DSC_HOME}" -Verbose
+        [Scriptblock]::Create(@"
+configuration DSCTestConfig
+{
+    Import-DscResource -ModuleName XmlContentDsc
+    Node "localhost" {
+        XmlFileContentResource f1
+        {
+            Path = 'testpath'
+            XPath = '/configuration/appSetting/Test1'
+            Ensure = 'Absent'
+        }
+    }
+}
+
+DSCTestConfig -OutputPath TestDrive:\DscTestConfig2
+"@) | Should -Not -Throw
+
+        "TestDrive:\DscTestConfig2\localhost.mof" | Should -Exist
+    }
+}
