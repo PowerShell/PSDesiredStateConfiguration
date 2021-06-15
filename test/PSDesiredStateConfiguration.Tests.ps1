@@ -21,7 +21,7 @@ Function Install-ModuleIfMissing {
     }
 }
 
-Describe "Test PSDesiredStateConfiguration" -tags CI {
+Describe "Test PSDesiredStateConfiguration" {
     Context "Module loading" {
         BeforeAll {
             Function BeCommand {
@@ -210,7 +210,7 @@ Describe "Test PSDesiredStateConfiguration" -tags CI {
     }
 }
 
-Describe "DSC MOF Compilation" -tags "CI" {
+Describe "DSC MOF Compilation" {
     BeforeAll {
         # ensure that module is imported
         Import-Module -Name PSDesiredStateConfiguration -MinimumVersion 3.0.0
@@ -238,5 +238,69 @@ DSCTestConfig -OutputPath TestDrive:\DscTestConfig2
 "@) | Should -Not -Throw
 
         "TestDrive:\DscTestConfig2\localhost.mof" | Should -Exist
+    }
+}
+
+Describe "All types DSC resource" {
+    BeforeAll {
+        $SavedPSModulePath = $env:PSModulePath
+
+        $testModulesPath = Join-Path $PSScriptRoot "TestModules"
+        "TestModulesPath is " + $testModulesPath | Write-Verbose -Verbose
+        $env:PSModulePath = $testModulesPath
+    }
+
+    AfterAll {
+        $env:PSModulePath = $SavedPSModulePath
+    }
+
+    It "Check Get-DscResource on all-types dsc resource and check returned property types" {
+
+        $resource = Get-DscResource | ? {$_.Name -eq "xTestClassResource"}
+        $resource | Should -Not -BeNullOrEmpty
+        $resource.Properties.Count | Should -Be 31
+
+        foreach($dscResourcePropertyInfo in $resource.Properties)
+        {
+            $f = $dscResourcePropertyInfo.Name + " - " + $dscResourcePropertyInfo.PropertyType
+            
+
+            switch ($dscResourcePropertyInfo.Name)
+            {
+                "Name" {$dscResourcePropertyInfo.PropertyType |  Should -Be '[string]'}
+                "Value" {$dscResourcePropertyInfo.PropertyType |  Should -Be '[string]'}
+                "bValue" {$dscResourcePropertyInfo.PropertyType |  Should -Be '[bool]'}
+                "sArray" {$dscResourcePropertyInfo.PropertyType |  Should -Be '[string[]]'}
+                "bValueArray" {$dscResourcePropertyInfo.PropertyType |  Should -Be '[bool[]]'}
+                "char16Value" {$dscResourcePropertyInfo.PropertyType |  Should -Be '[char]'}
+                "char16ValueArray" {$dscResourcePropertyInfo.PropertyType |  Should -Be '[char[]]'}
+                "dateTimeVal" {$dscResourcePropertyInfo.PropertyType |  Should -Be '[DateTime]'}
+                "dateTimeArrayVal" {$dscResourcePropertyInfo.PropertyType |  Should -Be '[DateTime[]]'}
+                "EmbClassObj" {$dscResourcePropertyInfo.PropertyType |  Should -Be '[EmbClass[]]'}
+                "Ensure" {$dscResourcePropertyInfo.PropertyType |  Should -Be '[string]'}
+                "Real32Value" {$dscResourcePropertyInfo.PropertyType |  Should -Be '[Single]'}
+                "Real32ValueArray" {$dscResourcePropertyInfo.PropertyType |  Should -Be '[Single[]]'}
+                "Real64Value" {$dscResourcePropertyInfo.PropertyType |  Should -Be '[double]'}
+                "Real64ValueArray" {$dscResourcePropertyInfo.PropertyType |  Should -Be '[double[]]'}
+
+                "sInt8Value" {$dscResourcePropertyInfo.PropertyType |  Should -Be '[SByte]'}
+                "sInt8ValueArray" {$dscResourcePropertyInfo.PropertyType |  Should -Be '[SByte[]]'}
+                "sInt16Value" {$dscResourcePropertyInfo.PropertyType |  Should -Be '[Int16]'}
+                "sInt16ValueArray" {$dscResourcePropertyInfo.PropertyType |  Should -Be '[Int16[]]'}
+                "sInt32Value" {$dscResourcePropertyInfo.PropertyType |  Should -Be '[Int32]'}
+                "sInt32ValueArray" {$dscResourcePropertyInfo.PropertyType |  Should -Be '[Int32[]]'}
+                "sInt64Value" {$dscResourcePropertyInfo.PropertyType |  Should -Be '[Int64]'}
+                "sInt64ValueArray" {$dscResourcePropertyInfo.PropertyType |  Should -Be '[Int64[]]'}
+
+                "uInt8Value" {$dscResourcePropertyInfo.PropertyType |  Should -Be '[Byte]'}
+                "uInt8ValueArray" {$dscResourcePropertyInfo.PropertyType |  Should -Be '[Byte[]]'}
+                "uInt16Value" {$dscResourcePropertyInfo.PropertyType |  Should -Be '[UInt16]'}
+                "uInt16ValueArray" {$dscResourcePropertyInfo.PropertyType |  Should -Be '[UInt16[]]'}
+                "uInt32Value" {$dscResourcePropertyInfo.PropertyType |  Should -Be '[UInt32]'}
+                "uInt32ValueArray" {$dscResourcePropertyInfo.PropertyType |  Should -Be '[UInt32[]]'}
+                "uInt64Value" {$dscResourcePropertyInfo.PropertyType |  Should -Be '[UInt64]'}
+                "uInt64ValueArray" {$dscResourcePropertyInfo.PropertyType |  Should -Be '[UInt64[]]'}
+            }
+        }
     }
 }
