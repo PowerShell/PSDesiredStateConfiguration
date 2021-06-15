@@ -262,9 +262,6 @@ Describe "All types DSC resource" {
 
         foreach($dscResourcePropertyInfo in $resource.Properties)
         {
-            $f = $dscResourcePropertyInfo.Name + " - " + $dscResourcePropertyInfo.PropertyType
-            
-
             switch ($dscResourcePropertyInfo.Name)
             {
                 "Name" {$dscResourcePropertyInfo.PropertyType |  Should -Be '[string]'}
