@@ -26,7 +26,10 @@ class xTestClassResource
     [string[]] $sArray
 
     [DscProperty()]
-    [EmbClass[]] $EmbClassObj
+    [EmbClass] $EmbClassObj
+
+    [DscProperty()]
+    [EmbClass[]] $EmbClassObjArray
 
     [DscProperty()]
     [DateTime] $dateTimeVal;
@@ -140,12 +143,12 @@ class xTestClassResource
         }
         else
         {
-            Write-Verbose "Start of EmbClassObj" -Verbose
-            foreach ($classObj in  $this.EmbClassObj)
+            Write-Verbose "Start of EmbClassObjArray" -Verbose
+            foreach ($classObj in  $this.EmbClassObjArray)
             {
                $classObj.EmbClassStr1 | write-Verbose -verbose
             }
-            Write-Verbose "End of EmbClassObj" -Verbose
+            Write-Verbose "End of EmbClassObjArray" -Verbose
 
             Write-Verbose "Ensure: $($this.Ensure)" -verbose
             Write-Verbose "sArray: $($this.sArray)" -verbose
@@ -179,7 +182,7 @@ class xTestClassResource
             [Single]$f = -1.000003
             [double]$d = -1.234
 
-            $result = ($this.EmbClassObj[1].EmbClassStr1 -eq $this.Ensure) -and `
+            $result = ($this.EmbClassObjArray[1].EmbClassStr1 -eq $this.Ensure) -and `
                       ($this.sArray[1] -eq "s2") -and `
                       ($this.dateTimeVal -lt (get-date 2020-12-12)) -and `
                       ($this.dateTimeArrayVal[1] -gt (get-date 2020-08-20)) -and `
@@ -218,16 +221,41 @@ class xTestClassResource
 
         if ($this.Value -ne "fail")
         {
-            Write-Verbose "EmbClassObj type:$($this.EmbClassObj.GetType())" -verbose
             $this.Value = "Inside if"
         }
         else
         {
             $this.Value = "Inside else"
-            $this.Ensure="Absent"
-            $this.sArray=@("str 1", "str 2")
-            $this.EmbClassObj=@(@{EmbClassStr1 = 'embc1s1_else_loop_1'}, @{EmbClassStr1 = 'embc1s1_else_loop_2'})
         }
+
+        # initialize properties so that they are not null
+        $this.char16Value = "A"
+        $this.sArray = [String[]]::new(0)
+
+        $this.EmbClassObj = [EmbClass]::new()
+        $this.EmbClassObj.EmbClassStr1 = "TestEmbObjValue"
+        
+        $EmbObj = [EmbClass]::new()
+        $EmbObj.EmbClassStr1 = "TestEmbClassStr1Value"
+        $this.EmbClassObjArray = [EmbClass[]]::new(1)
+        $this.EmbClassObjArray[0] = $EmbObj
+
+        $this.dateTimeVal = [DateTime]::Now
+        $this.dateTimeArrayVal = [DateTime[]]::new(0)
+        $this.bValueArray = [Boolean[]]::new(0)
+        $this.char16ValueArray = [Char[]]::new(0)
+
+        $this.uInt8ValueArray = [Byte[]]::new(0)
+        $this.sInt8ValueArray = [SByte[]]::new(0)
+        $this.uInt16ValueArray = [UInt16[]]::new(0)
+        $this.sInt16ValueArray = [Int16[]]::new(0)
+        $this.uInt32ValueArray = [UInt32[]]::new(0)
+        $this.sInt32ValueArray = [Int32[]]::new(0)
+        $this.uInt64ValueArray = [UInt64[]]::new(0)
+        $this.sInt64ValueArray = [Int64[]]::new(0)
+
+        $this.Real32ValueArray = [single[]]::new(0)
+        $this.Real64ValueArray = [double[]]::new(0)
 
         return $this
     }

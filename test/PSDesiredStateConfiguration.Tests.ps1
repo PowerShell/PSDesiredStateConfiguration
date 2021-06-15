@@ -241,24 +241,28 @@ DSCTestConfig -OutputPath TestDrive:\DscTestConfig2
     }
 }
 
-Describe "All types DSC resource" {
+Describe "All types DSC resource tests" {
     BeforeAll {
+
+        Import-Module -Name PSDesiredStateConfiguration -MinimumVersion 3.0.0
+
         $SavedPSModulePath = $env:PSModulePath
 
         $testModulesPath = Join-Path $PSScriptRoot "TestModules"
         "TestModulesPath is " + $testModulesPath | Write-Verbose -Verbose
-        $env:PSModulePath = $testModulesPath
+        $env:PSModulePath = $testModulesPath + [System.IO.Path]::PathSeparator + $env:PSModulePath
+        "PSModulePath is " + $env:PSModulePath | Write-Verbose -Verbose
     }
 
     AfterAll {
         $env:PSModulePath = $SavedPSModulePath
     }
 
-    It "Check Get-DscResource on all-types dsc resource and check returned property types" {
+    It "Check all property types in Get-DscResource" {
 
         $resource = Get-DscResource | ? {$_.Name -eq "xTestClassResource"}
         $resource | Should -Not -BeNullOrEmpty
-        $resource.Properties.Count | Should -Be 31
+        $resource.Properties.Count | Should -Be 32
 
         foreach($dscResourcePropertyInfo in $resource.Properties)
         {
@@ -273,7 +277,8 @@ Describe "All types DSC resource" {
                 "char16ValueArray" {$dscResourcePropertyInfo.PropertyType |  Should -Be '[char[]]'}
                 "dateTimeVal" {$dscResourcePropertyInfo.PropertyType |  Should -Be '[DateTime]'}
                 "dateTimeArrayVal" {$dscResourcePropertyInfo.PropertyType |  Should -Be '[DateTime[]]'}
-                "EmbClassObj" {$dscResourcePropertyInfo.PropertyType |  Should -Be '[EmbClass[]]'}
+                "EmbClassObj" {$dscResourcePropertyInfo.PropertyType |  Should -Be '[EmbClass]'}
+                "EmbClassObjArray" {$dscResourcePropertyInfo.PropertyType |  Should -Be '[EmbClass[]]'}
                 "Ensure" {$dscResourcePropertyInfo.PropertyType |  Should -Be '[string]'}
                 "Real32Value" {$dscResourcePropertyInfo.PropertyType |  Should -Be '[Single]'}
                 "Real32ValueArray" {$dscResourcePropertyInfo.PropertyType |  Should -Be '[Single[]]'}
@@ -299,5 +304,110 @@ Describe "All types DSC resource" {
                 "uInt64ValueArray" {$dscResourcePropertyInfo.PropertyType |  Should -Be '[UInt64[]]'}
             }
         }
+    }
+
+    It "Check all property types in Invoke-DscResource" {
+
+        $resource = Invoke-DscResource -Name xTestClassResource -ModuleName xTestClassResource -Method Get -Property @{Name="Test"}
+        $resource | Should -Not -BeNullOrEmpty
+        $resource.GetType().Name | Should -Be "xTestClassResource"
+        $resource.Name | Should -Be "Test"
+        $resource.Value | Should -Be "Inside if"
+        
+        $resource.Name.GetType().Name | Should -Be "String"
+        $resource.Value.GetType().Name | Should -Be "String"
+        $resource.sArray.GetType().Name | Should -Be "String[]"
+
+        $resource.bValue.GetType().Name | Should -Be "Boolean"
+        $resource.bValueArray.GetType().Name | Should -Be "Boolean[]"
+        $resource.char16Value.GetType().Name | Should -Be "Char"
+        $resource.char16ValueArray.GetType().Name | Should -Be "Char[]"
+        $resource.dateTimeVal.GetType().Name | Should -Be "DateTime"
+        $resource.dateTimeArrayVal.GetType().Name | Should -Be "DateTime[]"
+        $resource.EmbClassObj.GetType().Name | Should -Be "EmbClass"
+        $resource.EmbClassObjArray.GetType().Name | Should -Be "EmbClass[]"
+        $resource.Ensure.GetType().Name | Should -Be "Ensure"
+        $resource.Real32Value.GetType().Name | Should -Be "Single"
+        $resource.Real32ValueArray.GetType().Name | Should -Be "Single[]"
+        $resource.Real64Value.GetType().Name | Should -Be "Double"
+        $resource.Real64ValueArray.GetType().Name | Should -Be "Double[]"
+        
+        $resource.sInt8Value.GetType().Name | Should -Be "SByte"
+        $resource.sInt8ValueArray.GetType().Name | Should -Be "SByte[]"
+        $resource.sInt16Value.GetType().Name | Should -Be "Int16"
+        $resource.sInt16ValueArray.GetType().Name | Should -Be "Int16[]"
+        $resource.sInt32Value.GetType().Name | Should -Be "Int32"
+        $resource.sInt32ValueArray.GetType().Name | Should -Be "Int32[]"
+        $resource.sInt64Value.GetType().Name | Should -Be "Int64"
+        $resource.sInt64ValueArray.GetType().Name | Should -Be "Int64[]"
+
+        $resource.uInt8Value.GetType().Name | Should -Be "Byte"
+        $resource.uInt8ValueArray.GetType().Name | Should -Be "Byte[]"
+        $resource.uInt16Value.GetType().Name | Should -Be "UInt16"
+        $resource.uInt16ValueArray.GetType().Name | Should -Be "UInt16[]"
+        $resource.uInt32Value.GetType().Name | Should -Be "UInt32"
+        $resource.uInt32ValueArray.GetType().Name | Should -Be "UInt32[]"
+        $resource.uInt64Value.GetType().Name | Should -Be "UInt64"
+        $resource.uInt64ValueArray.GetType().Name | Should -Be "UInt64[]"
+
+        # extra check for embedded objects
+        $resource.EmbClassObj.EmbClassStr1 | Should -Be "TestEmbObjValue"
+        $resource.EmbClassObjArray[0].EmbClassStr1 | Should -Be "TestEmbClassStr1Value"
+    }
+
+    It "Check all property types in configuration compilation" {
+
+        [Scriptblock]::Create(@"
+configuration DSCAllTypesConfig
+{
+    Import-DscResource -ModuleName xTestClassResource
+    Node "localhost" {
+        xTestClassResource f1
+        {
+            Name = 'TestName'
+            Value = 'TestValue'
+
+            char16Value = 'A'
+            char16ValueArray = @('A','B')
+
+            sArray = @('Test1','Test2')
+
+            bValue = `$true
+            bValueArray = @(`$true,`$false)
+
+            dateTimeVal = Get-Date
+            dateTimeArrayVal = @(`$(Get-Date), `$(Get-Date))
+
+            Ensure = 'Present'
+
+            uInt8Value = 255
+            sInt8Value = -128
+            uInt16Value = 65535
+            sInt16Value = -32768
+            uInt32Value = 4294967295
+            sInt32Value = -2147483648
+            uInt64Value = 18446744073709551615
+            sInt64Value = -9223372036854775808
+
+            Real32Value = [Single]-1.234
+            Real64Value = [Double]-1.234
+
+            uInt8ValueArray = @(255)
+            sInt8ValueArray = @(-128)
+            uInt16ValueArray = @(65535)
+            sInt16ValueArray = @(-32768)
+            uInt32ValueArray = @(4294967295)
+            sInt32ValueArray = @(-2147483648)
+            uInt64ValueArray = @(18446744073709551615)
+            sInt64ValueArray = @(-9223372036854775808)
+        }
+    }
+}
+
+DSCAllTypesConfig -OutputPath TestDrive:\DSCAllTypesConfig
+"@) | Should -Not -Throw
+
+        "TestDrive:\DSCAllTypesConfig\localhost.mof" | Should -Exist
+        Get-Content -Raw -Path "TestDrive:\DSCAllTypesConfig\localhost.mof" | Write-Verbose -Verbose
     }
 }
