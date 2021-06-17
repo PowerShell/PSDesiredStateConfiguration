@@ -47,7 +47,7 @@ data LocalizedData
     GetDscResourceInputName=The Get-DscResource input '{0}' parameter value is '{1}'.
     ResourceNotMatched=Skipping resource '{0}' as it does not match the requested name.
     InitializingClassCache=Initializing class cache
-    LoadingDefaultCimKeywords=Loading default CIM keywords
+    LoadingDefaultKeywords=Loading default keywords
     GettingModuleList=Getting module list
     CreatingResourceList=Creating resource list
     CreatingResource=Creating resource '{0}'.
@@ -3926,7 +3926,7 @@ function Get-DscResource
     {
         $initialized = $false
         $ModuleString = $null
-        Write-Progress -Id 1 -Activity $LocalizedData.LoadingDefaultCimKeywords
+        Write-Progress -Id 1 -Activity $LocalizedData.LoadingDefaultKeywords
 
         $keywordErrors = New-Object -TypeName 'System.Collections.ObjectModel.Collection[System.Exception]'
 
