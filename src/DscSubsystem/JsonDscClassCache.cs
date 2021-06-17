@@ -399,6 +399,13 @@ namespace Microsoft.PowerShell.DesiredStateConfiguration.Internal.CrossPlatform
                     }
                 }
 
+                // as last resort - check if requested class is one of base classes
+                moduleQualifiedResourceName = GetModuleQualifiedResourceName(s_defaultModuleInfoForResource.Item1, s_defaultModuleInfoForResource.Item2.ToString(), className, className);
+                if (GuestConfigClassCache.TryGetValue(moduleQualifiedResourceName, out classCacheEntry))
+                {
+                    return classCacheEntry.CimClassInstance;
+                }
+
                 return null;
             }
         }
