@@ -1323,14 +1323,29 @@ namespace Microsoft.PowerShell.DesiredStateConfiguration.Internal.CrossPlatform
             // MOF-based implementation of this used to generate MOF string representing classes/typeAst and pass it to MMI/MOF deserializer to get CimClass array
             // Here we are avoiding that roundtrip by constructing the resulting PSObjects directly
             var className = typeAst.Name;
-
+            var cimClassProperties = new List<PSObject>();
             string cimSuperClassName = null;
             if (typeAst.Attributes.Any(a => a.TypeName.GetReflectionAttributeType() == typeof(DscResourceAttribute)))
             {
+                // In v2 code, PS classes with DscResourceAttribute were automtically inheriting (resource properties) from "OMI_BaseResource"
                 cimSuperClassName = "OMI_BaseResource";
+
+                var moduleQualifiedResourceName = GetModuleQualifiedResourceName(s_defaultModuleInfoForResource.Item1, s_defaultModuleInfoForResource.Item2.ToString(), cimSuperClassName, cimSuperClassName);
+                DscClassCacheEntry baseResource = null;
+                if (ClassCache.TryGetValue(moduleQualifiedResourceName, out baseResource))
+                {
+                    dynamic baseProperties = baseResource.CimClassInstance.Properties["ClassProperties"]?.Value;
+                    if (baseProperties != null)
+                    {
+                        foreach(PSObject prop in baseProperties)
+                        {
+                            cimClassProperties.Add(prop);
+                        }
+                    }
+                }
             }
 
-            var cimClassProperties = ProcessMembers(embeddedInstanceTypes, typeAst, className);
+            cimClassProperties.AddRange(ProcessMembers(embeddedInstanceTypes, typeAst, className));
 
             Queue<object> bases = new Queue<object>();
             foreach (var b in typeAst.BaseTypes)
