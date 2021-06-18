@@ -261,3 +261,65 @@ class xTestClassResource
     }
 }
 
+[DscResource()]
+class ResourceForTests1
+{
+    [DscProperty(Key)]
+    [string] $Prop1
+
+    [void] Set()
+    {
+    }
+
+    [bool] Test()
+    {
+        return $true
+    }
+
+    [ResourceForTests1] Get()
+    {
+        return $this
+    }
+}
+
+[DscResource()]
+class ResourceForTests2
+{
+    [DscProperty(Key)]
+    [string] $Prop1
+
+    [void] Set()
+    {
+    }
+
+    [bool] Test()
+    {
+        return $true
+    }
+
+    [ResourceForTests2] Get()
+    {
+        return $this
+    }
+}
+
+[DscResource()]
+class ResourceForTests3
+{
+    [DscProperty(Key)]
+    [string] $Prop1
+
+    [void] Set()
+    {
+    }
+
+    [bool] Test()
+    {
+        return $true
+    }
+
+    [ResourceForTests3] Get()
+    {
+        return $this
+    }
+}
