@@ -1,31 +1,19 @@
-# How to Create PSDesiredStateConfiguration NuGet package for PoweShell Core
-- Modify psm1 file in PSDesiredStateConfiguration module.
- -- Remove the signature from the bottom of the file.
- -- Add your changes.
- -- Get it signed from DSC Azure dev ops pipeline.
-     Following is the expected signing settings:
-	<file src="__INPATHROOT__\Modules\PSDesiredStateConfiguration\PSDesiredStateConfiguration.psm1" signType="AuthenticodeFormer" dest="__OUTPATHROOT__\Modules\PSDesiredStateConfiguration\PSDesiredStateConfiguration.psm1" />
+# PSDesiredStateConfiguration module
 
-- Other files under PSDesiredStateConfiguration module doesn’t need to be signed, you can modify them directly.
+## Build
 
-- Change the version in nuget spec file.
+### Requirements
+- [Any recent PowerShell Core release](https://github.com/PowerShell/powershell/releases) to run the build script
+- [.NET Core SDK](https://dotnet.microsoft.com/download/dotnet/thank-you/sdk-6.0.100-preview.4-windows-x64-binaries) of the version specified in `global.json` (`dotnet` should be visible through PATH env var)
+- [`PSPackageProject` module](https://www.powershellgallery.com/packages/PSPackageProject) installed from PS Gallery
 
-- Check-in these changes in DesiredStateConfiguration repository.
+### Build Process
+- Run `build.ps1 -Build -Clean`
+- Compiled module will be in `./out/PSDesiredStateConfiguration`
 
-- Create a NuGet package by running following command, it will generate NuGet package (PSDesiredStateConfiguration.6.2.0.nupkg). Get it published by PowerShell team.
-	nuget pack .\psdesiredstateconfiguration.nuspec
+## CI - Continuous Integration
+CI pipeline definition is in `.vsts-ci\azure-pipelines-ci.yml` and running Compliance and Pester tests in `test\PSDesiredStateConfiguration.Tests.ps1` on Windows, Linux and Mac. CI builds are not signed.
 
-# Modify PowerShell code to pick up new version of NuGet package.
- - Sync PowerShell/PowerShell repository and change NuGet package version in following files
-        src/powershell-unix/powershell-unix.csproj
-        src/powershell-win-core/powershell-win-core.csproj
-
-```sh
-   <ItemGroup>
--    <PackageReference Include="PSDesiredStateConfiguration" Version="6.0.0-beta.8" />
-+    <PackageReference Include="PSDesiredStateConfiguration" Version="6.2.0" />
-     <PackageReference Include="PowerShellHelpFiles" Version="1.0.0-*" />
-   </ItemGroup>
-```
-
-- Send PR to PowerShell team
+## Publishing Releases
+[The module is released on Powershell Gallery](https://www.powershellgallery.com/packages/PSDesiredStateConfiguration).
+For a release the code of this repo is mirrored into an internal repo and `.vsts-ci\azure-pipelines-release.yml` pipeline is run. Release builds are signed.
