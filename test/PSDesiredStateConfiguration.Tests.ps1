@@ -262,7 +262,7 @@ Describe "All types DSC resource tests" {
 
         $resource = Get-DscResource | ? {$_.Name -eq "xTestClassResource"}
         $resource | Should -Not -BeNullOrEmpty
-        $resource.Properties.Count | Should -Be 32
+        $resource.Properties.Count | Should -Be 34
 
         foreach($dscResourcePropertyInfo in $resource.Properties)
         {
@@ -409,5 +409,34 @@ DSCAllTypesConfig -OutputPath TestDrive:\DSCAllTypesConfig
 
         "TestDrive:\DSCAllTypesConfig\localhost.mof" | Should -Exist
         Get-Content -Raw -Path "TestDrive:\DSCAllTypesConfig\localhost.mof" | Write-Verbose -Verbose
+    }
+
+    It "Check multi-resource configuration compilation with dependencies" {
+
+        [Scriptblock]::Create(@"
+configuration MultiResourceConfig
+{
+    Import-DscResource -ModuleName xTestClassResource
+    ResourceForTests1 r1
+    {
+        Prop1 = 'Test'
+    }
+    ResourceForTests2 r2
+    {
+        Prop1 = 'Test'
+        DependsOn = '[ResourceForTests1]r1'
+    }
+    ResourceForTests3 r3
+    {
+        Prop1 = 'Test'
+        DependsOn = '[ResourceForTests1]r1','[ResourceForTests2]r2'
+    }
+}
+
+MultiResourceConfig -OutputPath TestDrive:\MultiResourceConfig
+"@) | Should -Not -Throw
+
+        "TestDrive:\MultiResourceConfig\localhost.mof" | Should -Exist
+        Get-Content -Raw -Path "TestDrive:\MultiResourceConfig\localhost.mof" | Write-Verbose -Verbose
     }
 }

@@ -47,7 +47,7 @@ data LocalizedData
     GetDscResourceInputName=The Get-DscResource input '{0}' parameter value is '{1}'.
     ResourceNotMatched=Skipping resource '{0}' as it does not match the requested name.
     InitializingClassCache=Initializing class cache
-    LoadingDefaultCimKeywords=Loading default CIM keywords
+    LoadingDefaultKeywords=Loading default keywords
     GettingModuleList=Getting module list
     CreatingResourceList=Creating resource list
     CreatingResource=Creating resource '{0}'.
@@ -699,33 +699,6 @@ function ConvertTo-MOFInstance
     finally
     {
         $OFS = $oldOFS
-    }
-
-    #
-    # Add extra information about Author, GenerationHost, GenerationDate and Name if they are not specified
-    #
-    if ($Type -match 'OMI_ConfigurationDocument' -and $Properties)
-    {
-        if (-not $Properties.ContainsKey('Author'))
-        {
-            $result += " Author = `"$([system.environment]::UserName)`";`n"
-        }
-
-        if (-not $Properties.ContainsKey('GenerationDate'))
-        {
-            $result += " GenerationDate = `"$(Get-Date)`";`n"
-        }
-
-        if (-not $Properties.ContainsKey('GenerationHost'))
-        {
-            $result += " GenerationHost = `"$([system.environment]::MachineName)`";`n"
-        }
-
-        # todo: report error is configuration name does't match
-        if (-not $Properties.ContainsKey('Name'))
-        {
-            $result += " Name = `"$(Get-PSTopConfigurationName)`";`n"
-        }
     }
 
     #
@@ -2398,12 +2371,12 @@ function Update-ConfigurationDocumentRef
             $needAdd = $true
             $first = $instanceText.Substring(0, $curlyPosition).TrimEnd()
 
-            $ConfigurationNameRef = "`r`n ConfigurationName = `"$ConfigurationName`";"
+            $ConfigurationNameRef = "`n ConfigurationName = `"$ConfigurationName`";"
         }
 
         if($needAdd)
         {
-            $NodeInstanceAliases[$alias] = $first + $ConfigurationNameRef + "`r`n};"
+            $NodeInstanceAliases[$alias] = $first + $ConfigurationNameRef + "`n};`n"
         }
     }
 }
@@ -2456,7 +2429,7 @@ function Write-MetaConfigFile
     )
 
     # Set up prefix for both the configuration and metaconfiguration documents.
-    $nodeDoc = "/*`n@TargetNode='$mofNode'`n" + "@GeneratedBy=$([system.environment]::UserName)`n@GenerationDate=$(Get-Date)`n@GenerationHost=$([system.environment]::MachineName)`n*/`n"
+    $nodeDoc = $null
     $nodeConfigurationDocument = $null
     [int]$nodeDocCount = 0
     $resourceManagers = $null
@@ -2582,11 +2555,11 @@ function Write-MetaConfigFile
             Write-Debug -Message "  ${ConfigurationName}: Adding missing OMI_ConfigurationDocument element to the document"
             if($Script:NodesPasswordEncrypted[$mofNode])
             {
-                $nodeDoc += "`ninstance of OMI_ConfigurationDocument`n{`n Version=`"2.0.0`";`n MinimumCompatibleVersion = `"$($script:PSMetaConfigDocumentInstVersionInfo['MinimumCompatibleVersion'])`";`n CompatibleVersionAdditionalProperties= $(Get-CompatibleVersionAddtionaPropertiesStr);`n Author=`"$([system.environment]::UserName)`";`n GenerationDate=`"$(Get-Date)`";`n GenerationHost=`"$([system.environment]::MachineName)`";`n ContentType=`"PasswordEncrypted`";`n Name=`"$(Get-PSTopConfigurationName)`";`n};"
+                $nodeDoc += "`ninstance of OMI_ConfigurationDocument`n{`n Version=`"2.0.0`";`n MinimumCompatibleVersion = `"$($script:PSMetaConfigDocumentInstVersionInfo['MinimumCompatibleVersion'])`";`n CompatibleVersionAdditionalProperties= $(Get-CompatibleVersionAddtionaPropertiesStr);`n ContentType=`"PasswordEncrypted`";`n Name=`"$(Get-PSTopConfigurationName)`";`n};"
             }
             else
             {
-                $nodeDoc += "`ninstance of OMI_ConfigurationDocument`n{`n Version=`"2.0.0`";`n MinimumCompatibleVersion = `"$($script:PSMetaConfigDocumentInstVersionInfo['MinimumCompatibleVersion'])`";`n CompatibleVersionAdditionalProperties= $(Get-CompatibleVersionAddtionaPropertiesStr);`n Author=`"$([system.environment]::UserName)`";`n GenerationDate=`"$(Get-Date)`";`n GenerationHost=`"$([system.environment]::MachineName)`";`n Name=`"$(Get-PSTopConfigurationName)`";`n};"
+                $nodeDoc += "`ninstance of OMI_ConfigurationDocument`n{`n Version=`"2.0.0`";`n MinimumCompatibleVersion = `"$($script:PSMetaConfigDocumentInstVersionInfo['MinimumCompatibleVersion'])`";`n CompatibleVersionAdditionalProperties= $(Get-CompatibleVersionAddtionaPropertiesStr);`n Name=`"$(Get-PSTopConfigurationName)`";`n};"
             }
         }
     }
@@ -2688,7 +2661,7 @@ function Write-NodeMOFFile
     )
 
     # Set up prefix for both the configuration and metaconfiguration documents.
-    $nodeDoc = "/*`n@TargetNode='$mofNode'`n" + "@GeneratedBy=$([system.environment]::UserName)`n@GenerationDate=$(Get-Date)`n@GenerationHost=$([system.environment]::MachineName)`n*/`n"
+    $nodeDoc = $null
     $nodeMetaDoc = $nodeDoc
     $nodeConfigurationDocument = $null
     [int]$metaDocCount = 0
@@ -2746,11 +2719,11 @@ function Write-NodeMOFFile
             Write-Debug -Message "  ${ConfigurationName}: Adding missing OMI_ConfigurationDocument element to the document"
             if($Script:NodesPasswordEncrypted[$mofNode])
             {
-                $nodeMetaDoc += "`ninstance of OMI_ConfigurationDocument`n{`n Version=`"2.0.0`";`n MinimumCompatibleVersion = `"1.0.0`";`n CompatibleVersionAdditionalProperties= $(Get-CompatibleVersionAddtionaPropertiesStr);`n Author=`"$([system.environment]::UserName)`";`n GenerationDate=`"$(Get-Date)`";`n GenerationHost=`"$([system.environment]::MachineName)`";`n ContentType=`"PasswordEncrypted`";`n Name=`"$(Get-PSTopConfigurationName)`";`n};"
+                $nodeMetaDoc += "`ninstance of OMI_ConfigurationDocument`n{`n Version=`"2.0.0`";`n MinimumCompatibleVersion = `"1.0.0`";`n CompatibleVersionAdditionalProperties= $(Get-CompatibleVersionAddtionaPropertiesStr);`n ContentType=`"PasswordEncrypted`";`n Name=`"$(Get-PSTopConfigurationName)`";`n};"
             }
             else
             {
-                $nodeMetaDoc += "`ninstance of OMI_ConfigurationDocument`n{`n Version=`"2.0.0`";`n MinimumCompatibleVersion = `"1.0.0`";`n CompatibleVersionAdditionalProperties= $(Get-CompatibleVersionAddtionaPropertiesStr);`n Author=`"$([system.environment]::UserName)`";`n GenerationDate=`"$(Get-Date)`";`n GenerationHost=`"$([system.environment]::MachineName)`";`n Name=`"$(Get-PSTopConfigurationName)`";`n};"
+                $nodeMetaDoc += "`ninstance of OMI_ConfigurationDocument`n{`n Version=`"2.0.0`";`n MinimumCompatibleVersion = `"1.0.0`";`n CompatibleVersionAdditionalProperties= $(Get-CompatibleVersionAddtionaPropertiesStr);`n Name=`"$(Get-PSTopConfigurationName)`";`n};"
             }
         }
     }
@@ -2769,56 +2742,22 @@ function Write-NodeMOFFile
             {
                 if($nodeDoc.Contains("PsDscRunAsCredential"))
                 {
-                    $nodeDoc += "`ninstance of OMI_ConfigurationDocument`n
-                    {`n Version=`"2.0.0`";`n
-                        MinimumCompatibleVersion = `"2.0.0`";`n
-                        CompatibleVersionAdditionalProperties= {`"Omi_BaseResource:ConfigurationName`"};`n
-                        Author=`"$([system.environment]::UserName)`";`n
-                        GenerationDate=`"$(Get-Date)`";`n
-                        GenerationHost=`"$([system.environment]::MachineName)`";`n
-                        ContentType=`"PasswordEncrypted`";`n
-                        Name=`"$(Get-PSTopConfigurationName)`";`n
-                    };"
+                    $nodeDoc += "`ninstance of OMI_ConfigurationDocument`n{`n Version=`"2.0.0`";`n MinimumCompatibleVersion = `"2.0.0`";`n CompatibleVersionAdditionalProperties= {`"Omi_BaseResource:ConfigurationName`"};`n ContentType=`"PasswordEncrypted`";`n Name=`"$(Get-PSTopConfigurationName)`";`n};"
                 }
                 else
                 {
-                    $nodeDoc += "`ninstance of OMI_ConfigurationDocument`n
-                    {`n Version=`"2.0.0`";`n
-                        MinimumCompatibleVersion = `"1.0.0`";`n
-                        CompatibleVersionAdditionalProperties= {`"Omi_BaseResource:ConfigurationName`"};`n
-                        Author=`"$([system.environment]::UserName)`";`n
-                        GenerationDate=`"$(Get-Date)`";`n
-                        GenerationHost=`"$([system.environment]::MachineName)`";`n
-                        ContentType=`"PasswordEncrypted`";`n
-                        Name=`"$(Get-PSTopConfigurationName)`";`n
-                    };"
+                    $nodeDoc += "`ninstance of OMI_ConfigurationDocument`n{`n Version=`"2.0.0`";`n MinimumCompatibleVersion = `"1.0.0`";`n CompatibleVersionAdditionalProperties= {`"Omi_BaseResource:ConfigurationName`"};`n ContentType=`"PasswordEncrypted`";`n Name=`"$(Get-PSTopConfigurationName)`";`n};"
                 }
             }
             else
             {
                 if($nodeDoc.Contains("PsDscRunAsCredential"))
                 {
-                    $nodeDoc += "`ninstance of OMI_ConfigurationDocument`n
-                    {`n Version=`"2.0.0`";`n
-                        MinimumCompatibleVersion = `"2.0.0`";`n
-                        CompatibleVersionAdditionalProperties= {`"Omi_BaseResource:ConfigurationName`"};`n
-                        Author=`"$([system.environment]::UserName)`";`n
-                        GenerationDate=`"$(Get-Date)`";`n
-                        GenerationHost=`"$([system.environment]::MachineName)`";`n
-                        Name=`"$(Get-PSTopConfigurationName)`";`n
-                    };"
+                    $nodeDoc += "`ninstance of OMI_ConfigurationDocument`n{`n Version=`"2.0.0`";`n MinimumCompatibleVersion = `"2.0.0`";`n CompatibleVersionAdditionalProperties= {`"Omi_BaseResource:ConfigurationName`"};`n Name=`"$(Get-PSTopConfigurationName)`";`n};"
                 }
                 else
                 {
-                    $nodeDoc += "`ninstance of OMI_ConfigurationDocument`n
-                    {`n Version=`"2.0.0`";`n
-                        MinimumCompatibleVersion = `"1.0.0`";`n
-                        CompatibleVersionAdditionalProperties= {`"Omi_BaseResource:ConfigurationName`"};`n
-                        Author=`"$([system.environment]::UserName)`";`n
-                        GenerationDate=`"$(Get-Date)`";`n
-                        GenerationHost=`"$([system.environment]::MachineName)`";`n
-                        Name=`"$(Get-PSTopConfigurationName)`";`n
-                    };"
+                    $nodeDoc += "`ninstance of OMI_ConfigurationDocument`n{`n Version=`"2.0.0`";`n MinimumCompatibleVersion = `"1.0.0`";`n CompatibleVersionAdditionalProperties= {`"Omi_BaseResource:ConfigurationName`"};`n Name=`"$(Get-PSTopConfigurationName)`";`n};"
                 }
             }
         }
@@ -3926,7 +3865,7 @@ function Get-DscResource
     {
         $initialized = $false
         $ModuleString = $null
-        Write-Progress -Id 1 -Activity $LocalizedData.LoadingDefaultCimKeywords
+        Write-Progress -Id 1 -Activity $LocalizedData.LoadingDefaultKeywords
 
         $keywordErrors = New-Object -TypeName 'System.Collections.ObjectModel.Collection[System.Exception]'
 
