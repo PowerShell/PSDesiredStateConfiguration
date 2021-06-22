@@ -2272,7 +2272,7 @@ function Update-ModuleVersion
 
             $moduleVersionstring = "ModuleVersion = "
             $moduleVersionstring += "`"$moduleVersionValue`"" + ";"
-            $NodeInstanceAliases[$alias] = $first + $moduleVersionstring + "`r`n};"
+            $NodeInstanceAliases[$alias] = $first + $moduleVersionstring + "`n};"
         }
     }
 }
@@ -2308,14 +2308,14 @@ function Update-DependsOn
                 $needAdd = $true
                 $first = $instanceText.Substring(0, $curlyPosition)
 
-                $dependsOn = "DependsOn = {`r`n"
+                $dependsOn = "DependsOn = {`n"
                 $len = @($NodeResources[$resourceId]).Length
                 $dependsOn += foreach ($resourceId in $NodeResources[$resourceId])
                 {
                     '    ' + "`"$($resourceId -replace '\\', '\\' -replace '"', '\"')`"" +
                     $(if (--$len -gt 0)
                         {
-                            ",`r`n"
+                            ",`n"
                         }
                         else
                         {
@@ -2329,7 +2329,7 @@ function Update-DependsOn
 
         if($needAdd)
         {
-            $NodeInstanceAliases[$alias] = $first + $dependsOn + "`r`n};"
+            $NodeInstanceAliases[$alias] = $first + $dependsOn + "`n};"
         }
     }
 }
@@ -2564,9 +2564,6 @@ function Write-MetaConfigFile
         }
     }
 
-    # Fix up newlines to be CRLF
-    $nodeDoc = $nodeDoc -replace "`n", "`r`n"
-
     # todo: meta configuration might not be verifiable currently
     $errMsg = Test-MofInstanceText $nodeDoc
     if($errMsg)
@@ -2762,8 +2759,6 @@ function Write-NodeMOFFile
             }
         }
     }
-    # Fix up newlines to be CRLF
-    $nodeDoc = $nodeDoc -replace "`n", "`r`n"
 
     if($nodeDocCount -gt 0)
     {
@@ -2777,7 +2772,6 @@ function Write-NodeMOFFile
 
     if($nodeMetaDoc -match 'MSFT_DSCMetaConfiguration' -and $Script:PSConfigurationErrors -eq 0)
     {
-        $nodeMetaDoc = $nodeMetaDoc -replace "`n", "`r`n"
         $nodeMetaDoc > $nodeMetaOutfile
         Get-ChildItem $nodeMetaOutfile
     }
