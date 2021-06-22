@@ -9,7 +9,7 @@
 
 ### Build Process
 - Run `build.ps1 -Build -Clean`
-- The compiled module will be in `./out/PSDesiredStateConfiguration`
+- Compiled module will be in `./out/PSDesiredStateConfiguration`
 
 ## CI - Continuous Integration
 CI pipeline definition is in `.vsts-ci\azure-pipelines-ci.yml` and running Compliance and Pester tests in `test\PSDesiredStateConfiguration.Tests.ps1` on Windows, Linux and Mac. CI builds are not signed.
