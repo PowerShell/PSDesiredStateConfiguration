@@ -13,7 +13,9 @@ stages:
 - stage: Build
   displayName: Build PSDesiredStateConfiguration module
   pool:
-      name: Package ES CodeHub Lab E
+      name: 1ES
+      demands:
+      - ImageOverride -equals MMS2019
   jobs:
   - job: BuildPkg
     displayName: Build Package
@@ -139,7 +141,9 @@ stages:
   jobs:
   - job: Compliance_Job
     pool:
-      name: Package ES CodeHub Lab E
+      name: 1ES
+      demands:
+      - ImageOverride -equals MMS2019
     steps:
     - checkout: self
     - checkout: ComplianceRepo
@@ -172,7 +176,9 @@ stages:
   - deployment: DeployPowerShellGallery
     displayName: Deploy nupkg to PowerShell Gallery
     pool:
-      vmImage: windows-latest
+      name: 1ES
+      demands:
+      - ImageOverride -equals MMS2019
     environment: 'PSDesiredStateConfiguration-ReleaseApproval'
     strategy:
       runOnce:
