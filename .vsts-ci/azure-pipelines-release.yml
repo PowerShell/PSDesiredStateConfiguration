@@ -9,13 +9,19 @@ resources:
     endpoint: ComplianceGHRepo
     name: PowerShell/compliance
 
+variables:
+  - name: PackageName
+    value: 'PSDesiredStateConfiguration'
+  - name: PackageVersion
+    value: '3.0.0'
+
 stages:
 - stage: Build
   displayName: Build PSDesiredStateConfiguration module
   pool:
       name: 1ES
       demands:
-      - ImageOverride -equals MMS2019
+      - ImageOverride -equals PSMMS2019-Secure
   jobs:
   - job: BuildPkg
     displayName: Build Package
@@ -106,6 +112,13 @@ stages:
         certificateId: "CP-230012"
         # the file pattern to use, comma separated
         pattern: '*.psm1,*.psd1,Microsoft.PowerShell.DscSubsystem.dll'
+
+    - template: Sbom.yml@ComplianceRepo
+      parameters:
+        BuildDropPath: "$(Build.SourcesDirectory)/signed/PSDesiredStateConfiguration/PSDesiredStateConfiguration"
+        Build_Repository_Uri: 'https://github.com/PowerShell/PSDesiredStateConfiguration'
+        PackageName: $(PackageName)
+        PackageVersion: $(PackageVersion)
 
     - pwsh: |
         $repoName = [guid]::newGuid().ToString("N")
