@@ -22,7 +22,7 @@ Our initial cross-platform work to enable partner teams:
 - Remove PSDesiredStateConfiguration module from the PowerShell 7 package. This allows the
   PSDesiredStateConfiguration module to be developed independently of PowerShell and users can mix
   and match versions of PowerShell and PSDesiredStateConfiguration for their environment.
-  - This is now available on the PowerShell Gallery: [PSDesiredStateConfiguration 2.0.5](https://www.powershellgallery.com/packages/PSDesiredStateConfiguration/2.0.5)
+  - This is now available on the PowerShell Gallery: [PSDesiredStateConfiguration 2.x](https://www.powershellgallery.com/packages/PSDesiredStateConfiguration)
 - Removing the dependency on MOF: Initially, only support DSC Resources written as PowerShell
   classes. This includes tooling to convert existing script based DSC Resources to be wrapped as
   PowerShell classes.
