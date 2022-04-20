@@ -9,9 +9,9 @@ and [Automanage](https://azure.microsoft.com/services/azure-automanage), we star
 DSC cross-platform by enabling `Invoke-DSCResource` to directly use resources without going through
 the Local Configuration Manager (LCM).
 
-We are continuing on this journey to make DSC a cross-platform technology and invite the community
-to express ideas and issues. Our focus remains on enabling partner teams during 7.3 timeframe and we
-will not be accepting pull requests.
+As we continue this journey to make DSC a cross-platform technology, we invite the community
+to share their ideas and open issues. During the PowerShell 7.3 timeframe, we remain focused on enabling partner teams and 
+will not be accepting public pull requests.
 
 ## Planned work
 
