@@ -38,7 +38,7 @@ The documentation for **PSDesiredStateConfiguration** 3.0.0-beta1 is a work-in-p
 community to review the documentation and assist us as we work on new documentation during the platform
 development.
 
-For more information about DSC v3, see [PowerShell Desired State Configuration Overview](https://docs.microsoft.com/en-us/powershell/dsc/overview?view=dsc-3.0)
+For more information about DSC v3, see [PowerShell Desired State Configuration Overview](https://docs.microsoft.com/powershell/dsc/overview?view=dsc-3.0)
 
 To download the latest release from the PowerShell Gallery, see [PSDesiredStateConfiguration 3.0.0-beta1](https://www.powershellgallery.com/packages/PSDesiredStateConfiguration/3.0.0-beta1)
 
