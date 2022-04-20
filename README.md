@@ -2,10 +2,10 @@
 
 **PSDesiredStateConfiguration** (DSC) is the PowerShell module that enables writing configuration as code.
 
-This platform was originally built on top of WMI for Windows. Starting in PowerShell 7.1 and working
+The DSC platform was originally built on top of WMI for Windows. Starting in PowerShell 7.1 and working
 with internal partner teams
-[Azure Guest Configuration](https://docs.microsoft.com/en-us/azure/governance/policy/concepts/guest-configuration)
-and [Automanage](https://azure.microsoft.com/en-us/services/azure-automanage/), we started making
+[Azure Guest Configuration](https://docs.microsoft.com/azure/governance/policy/concepts/guest-configuration)
+and [Automanage](https://azure.microsoft.com/services/azure-automanage), we started making
 DSC cross-platform by enabling `Invoke-DSCResource` to directly use resources without going through
 the Local Configuration Manager (LCM).
 
