@@ -34,8 +34,8 @@ Additional work that we are considering:
 
 ## Documentation and resources
 
-The documentation for `PSDesiredStateConfiguration 3.0.0-beta1` is work in progress. We invite the
-community to review and assist us as we work on building the new documentation during the platform
+The documentation for **PSDesiredStateConfiguration** 3.0.0-beta1 is a work-in-progress. We invite the
+community to review the documentation and assist us as we work on new documentation during the platform
 development.
 
 For more information about DSC v3, see [PowerShell Desired State Configuration Overview](https://docs.microsoft.com/en-us/powershell/dsc/overview?view=dsc-3.0)
