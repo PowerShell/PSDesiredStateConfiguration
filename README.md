@@ -17,7 +17,7 @@ will not be accepting pull requests.
 
 Our initial cross-platform work to enable partner teams:
 
-- Separate out the DSC parts in the PowerShell engine and moved them as a subsystem into the
+- Separated out the DSC parts in the PowerShell engine and moved them as a subsystem into the
   PSDesiredStateConfiguration module
 - Remove PSDesiredStateConfiguration module from the PowerShell 7 package. This allows the
   PSDesiredStateConfiguration module to be developed independently of PowerShell and users can mix
