@@ -29,8 +29,8 @@ Our initial cross-platform work to enable partner teams:
 
 Additional work that we are considering:
 
-- Change generated DSC configuration files from MOF to using JSON
-- Enabling integration of DSC with existing agents (no LCM support)
+- Change generated DSC configuration files to JSON from MOF
+- Enable integration of DSC with existing agents (no LCM support)
 
 ## Documentation and resources
 
