@@ -1,5 +1,48 @@
 # PSDesiredStateConfiguration module
 
+`PSDesiredStateConfiguration`(DSC) is a PowerShell feature that enables writing configuration as code.
+
+This platform was originally built on top of WMI for Windows. Starting in PowerShell 7.1 and working
+with internal partner teams
+[Azure Guest Configuration](https://docs.microsoft.com/en-us/azure/governance/policy/concepts/guest-configuration)
+and [Automanage](https://azure.microsoft.com/en-us/services/azure-automanage/), we started making
+DSC cross-platform by enabling `Invoke-DSCResource` to directly use resources without going through
+the Local Configuration Manager (LCM).
+
+We are continuing on this journey to make DSC a cross-platform technology and invite the community
+to express ideas and issues. Our focus remains on enabling partner teams during 7.3 timeframe and we
+will not be accepting pull requests.
+
+## Planned work
+
+Our initial cross-platform work to enable partner teams:
+
+- Separate out the DSC parts in the PowerShell engine and moved them as a subsystem into the
+  PSDesiredStateConfiguration module
+- Remove PSDesiredStateConfiguration module from the PowerShell 7 package. This allows the
+  PSDesiredStateConfiguration module to be developed independently of PowerShell and users can mix
+  and match versions of PowerShell and PSDesiredStateConfiguration for their environment.
+  - This is now available on the PowerShell Gallery: [PSDesiredStateConfiguration 2.0.5](https://www.powershellgallery.com/packages/PSDesiredStateConfiguration/2.0.5)
+- Removing the dependency on MOF: Initially, only support DSC Resources written as PowerShell
+  classes. This includes tooling to convert existing script based DSC Resources to be wrapped as
+  PowerShell classes.
+
+Additional work that we are considering:
+
+- Change generated DSC configuration files from MOF to using JSON
+- Enabling integration of DSC with existing agents (no LCM support)
+
+## Documentation and resources
+
+The documentation for `PSDesiredStateConfiguration 3.0.0-beta1` is work in progress. We invite the
+community to review and assist us as we work on building the new documentation during the platform
+development.
+
+For more information about DSC v3, see [PowerShell Desired State Configuration Overview](https://docs.microsoft.com/en-us/powershell/dsc/overview?view=dsc-3.0)
+
+To download the latest release from the PowerShell Gallery, see [PSDesiredStateConfiguration 3.0.0-beta1](https://www.powershellgallery.com/packages/PSDesiredStateConfiguration/3.0.0-beta1)
+
+
 ## Build
 
 ### Requirements
