@@ -11,12 +11,6 @@ and [Automanage](https://azure.microsoft.com/services/azure-automanage), we star
 DSC cross-platform by enabling `Invoke-DSCResource` to directly use resources without going through
 the Local Configuration Manager (LCM).
 
-As we continue this journey to make DSC a cross-platform technology, we invite the community
-to share their ideas and open issues. During the PowerShell 7.3 timeframe, we remain focused on enabling partner teams and
-will not be accepting public pull requests.
-
-## Planned work
-
 Our initial cross-platform work to enable partner teams:
 
 - Separated out the DSC parts in the PowerShell engine and moved them as a subsystem into the
@@ -29,11 +23,6 @@ Our initial cross-platform work to enable partner teams:
   classes. This includes tooling to convert existing script based DSC Resources to be wrapped as
   PowerShell classes.
 
-Additional work that we are considering:
-
-- Move away from MOF completely by generating DSC ps1 configuration files as JSON
-- Enable integration of DSC with existing agents (no LCM support)
-
 ## Documentation and resources
 
 The documentation for **PSDesiredStateConfiguration** 3.0.0-beta1 is a work-in-progress. We invite the
@@ -44,6 +33,13 @@ For more information about DSC v3, see [PowerShell Desired State Configuration O
 
 To download the latest release from the PowerShell Gallery, see [PSDesiredStateConfiguration 3.0.0-beta1](https://www.powershellgallery.com/packages/PSDesiredStateConfiguration/3.0.0-beta1)
 
+## Community Feedback
+
+As we continue this journey to make DSC a cross-platform technology, we invite the community to
+share your ideas and open
+[issues](https://github.com/PowerShell/PSDesiredStateConfiguration/issues). During the PowerShell
+7.3 timeframe, we remain focused on enabling partner teams and will not be accepting public pull
+requests.
 
 ## Build
 
