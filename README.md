@@ -29,7 +29,7 @@ Our initial cross-platform work to enable partner teams:
 
 Additional work that we are considering:
 
-- Change generated DSC configuration files to JSON from MOF
+- Move away from MOF completely by generating DSC ps1 configuration files as JSON
 - Enable integration of DSC with existing agents (no LCM support)
 
 ## Documentation and resources
