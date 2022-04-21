@@ -58,6 +58,3 @@ CI pipeline definition is in `.vsts-ci\azure-pipelines-ci.yml` and running Compl
 ## Publishing Releases
 [The module is released on Powershell Gallery](https://www.powershellgallery.com/packages/PSDesiredStateConfiguration).
 For a release the code of this repo is mirrored into an internal repo and `.vsts-ci\azure-pipelines-release.yml` pipeline is run. Release builds are signed.
-
-## EOF
-
