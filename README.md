@@ -1,5 +1,7 @@
 # PSDesiredStateConfiguration module
 
+**NOTE: We are currently NOT accepting PRs for this project**
+
 **PSDesiredStateConfiguration** (DSC) is the PowerShell module that enables writing configuration as code.
 
 The DSC platform was originally built on top of WMI for Windows. Starting in PowerShell 7.1 and working
@@ -10,7 +12,7 @@ DSC cross-platform by enabling `Invoke-DSCResource` to directly use resources wi
 the Local Configuration Manager (LCM).
 
 As we continue this journey to make DSC a cross-platform technology, we invite the community
-to share their ideas and open issues. During the PowerShell 7.3 timeframe, we remain focused on enabling partner teams and 
+to share their ideas and open issues. During the PowerShell 7.3 timeframe, we remain focused on enabling partner teams and
 will not be accepting public pull requests.
 
 ## Planned work
