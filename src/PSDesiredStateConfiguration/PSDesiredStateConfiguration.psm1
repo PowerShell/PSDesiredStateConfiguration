@@ -4627,7 +4627,7 @@ function Invoke-DscClassBasedResource
     Write-Debug "Importing $path ..."
     $powershell = [PowerShell]::Create('CurrentRunspace')
     $script = @"
-using module $path
+using module '$path'
 return [$type]::new()
 "@
 
