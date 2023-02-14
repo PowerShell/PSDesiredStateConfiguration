@@ -71,7 +71,7 @@ data LocalizedData
 Set-StrictMode -Off
 
 # In case localized resource is not available we revert back to English as defined in LocalizedData section so ignore the error instead of showing it to user.
-Import-LocalizedData  -BindingVariable LocalizedData -FileName PSDesiredStateConfiguration.Resource.psd1 -ErrorAction SilentlyContinue
+Import-LocalizedData  -BindingVariable LocalizedData -FileName PSDesiredStateConfiguration.Resource.psd1 -ErrorAction Ignore
 
 Import-Module $PSScriptRoot/helpers/DscResourceInfo.psm1
 
@@ -3679,7 +3679,7 @@ function New-DscChecksum
         }
 
         # If the Force parameter was not specified and the hash file already exists for the current file, log this, and skip this file
-        if (!$Force -and (Get-Item -Path $fileOutpath -ErrorAction SilentlyContinue))
+        if (!$Force -and (Get-Item -Path $fileOutpath -ErrorAction Ignore))
         {
             Write-Log -Message ($LocalizedData.CheckSumFileExists -f $fileOutpath)
             continue
