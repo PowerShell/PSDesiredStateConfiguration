@@ -19,7 +19,7 @@ stages:
 - stage: Build
   displayName: Build PSDesiredStateConfiguration module
   pool:
-      name: 1ES
+      name: PowerShell1ES
       demands:
       - ImageOverride -equals PSMMS2019-Secure
   jobs:
@@ -146,9 +146,9 @@ stages:
   jobs:
   - job: Compliance_Job
     pool:
-      name: 1ES
+      name: PowerShell1ES
       demands:
-      - ImageOverride -equals MMS2019
+      - ImageOverride -equals PSMMS2019-Secure
     steps:
     - checkout: self
     - checkout: ComplianceRepo
@@ -181,9 +181,9 @@ stages:
   - deployment: DeployPowerShellGallery
     displayName: Deploy nupkg to PowerShell Gallery
     pool:
-      name: 1ES
+      name: PowerShell1ES
       demands:
-      - ImageOverride -equals MMS2019
+      - ImageOverride -equals PSMMS2019-Secure
     environment: 'PSDesiredStateConfiguration-ReleaseApproval'
     strategy:
       runOnce:
