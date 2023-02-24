@@ -115,7 +115,7 @@ stages:
 
     - template: Sbom.yml@ComplianceRepo
       parameters:
-        BuildDropPath: "$(Build.SourcesDirectory)/signed/PSDesiredStateConfiguration/PSDesiredStateConfiguration"
+        BuildDropPath: "$(Build.SourcesDirectory)/signed/PSDesiredStateConfiguration"
         Build_Repository_Uri: 'https://github.com/PowerShell/PSDesiredStateConfiguration'
         PackageName: $(PackageName)
         PackageVersion: $(PackageVersion)
