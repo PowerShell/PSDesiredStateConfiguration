@@ -111,7 +111,7 @@ stages:
         # the certificate ID to use
         certificateId: "CP-230012"
         # the file pattern to use, comma separated
-        pattern: '*.psm1,*.psd1,Microsoft.PowerShell.DscSubsystem.dll'
+        pattern: '*.psm1,*.psd1'
 
     - template: Sbom.yml@ComplianceRepo
       parameters:
