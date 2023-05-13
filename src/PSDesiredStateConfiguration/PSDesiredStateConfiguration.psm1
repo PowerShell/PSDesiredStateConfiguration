@@ -4749,7 +4749,7 @@ function Invoke-DscClassBasedResource
     $iss = [System.Management.Automation.Runspaces.InitialSessionState]::CreateDefault2()
     $powershell = [PowerShell]::Create($iss)
     $script = @"
-using module $path
+using module "$path"
 
 Write-Host -Message ([$type]::new | out-string)
 return [$type]::new()

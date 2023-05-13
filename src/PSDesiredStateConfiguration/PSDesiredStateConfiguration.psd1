@@ -9,7 +9,7 @@
 RootModule = 'PSDesiredStateConfiguration.psm1'
 
 # Version number of this module.
-moduleVersion = '2.0.6'
+moduleVersion = '2.0.7'
 
 # Supported PSEditions
 CompatiblePSEditions = @('Core')
