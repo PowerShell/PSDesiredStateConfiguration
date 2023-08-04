@@ -1,6 +1,7 @@
 # PSDesiredStateConfiguration module
 
-**NOTE: A new version of this platform is in development. Although the direction is language agnostic, the vision includes compatability with existing commmunity resources. Please submit your feedback on [DSC version 3](https://github.com/powershell/dsc).**
+> [!NOTE]
+> The next generation of this platform is in development. Please submit your feedback on [DSC v3](https://github.com/powershell/dsc).
 
 **PSDesiredStateConfiguration** (DSC) is the PowerShell module that enables writing configuration as code.
 
