@@ -671,10 +671,7 @@ function ConvertTo-MOFInstance
                     }
                     else
                     {
-                        if ($targetTypeName -notmatch 'Array' -or $p.Value.Count)
-                        {
-                            $p.Name + ' = ' + (stringify -value $p.Value -asArray $asArray -targetType  $targetType ) + ";`n"
-                        }
+                        $p.Name + ' = ' + (stringify -value $p.Value -asArray $asArray -targetType  $targetType ) + ";`n"
                     }
                 }
             }
