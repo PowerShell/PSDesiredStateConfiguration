@@ -509,7 +509,7 @@ function ConvertTo-MOFInstance
                 $targetTypeName = $PropertyTypes[$p.Name].TypeConstraint
 
                 # see if the target type is an array
-                $asArray = $p.Name -eq 'DependsOn' -or $targetTypeName -match 'Array'
+                $asArray = $p.Name -eq 'DependsOn' -or $targetTypeName -match 'Array' -or ((-not [string]::IsNullOrEmpty($targetTypeName)) -and $targetTypeName.EndsWith('[]'))
 
                 # Convert the CIM typename to the appropriate .NET type to use
                 # to convert the input object into an appropriately encoded string
