@@ -439,4 +439,31 @@ MultiResourceConfig -OutputPath TestDrive:\MultiResourceConfig
         "TestDrive:\MultiResourceConfig\localhost.mof" | Should -Exist
         Get-Content -Raw -Path "TestDrive:\MultiResourceConfig\localhost.mof" | Write-Verbose -Verbose
     }
+
+    It "Check empty array compilation" {
+
+        [Scriptblock]::Create(@"
+configuration DSCEmptyArrayConfig
+{
+    Import-DscResource -ModuleName xTestClassResource
+    Node "localhost" {
+        xTestClassResource f2
+        {
+            Name = 'TestName'
+            Value = 'TestValue'
+
+            sArray = @()
+        }
+    }
+}
+
+DSCEmptyArrayConfig -OutputPath TestDrive:\DSCEmptyArrayConfig
+"@) | Should -Not -Throw
+
+        "TestDrive:\DSCEmptyArrayConfig\localhost.mof" | Should -Exist
+
+        $mofContent = Get-Content -Raw -Path "TestDrive:\DSCEmptyArrayConfig\localhost.mof"
+        $mofContent | Write-Verbose -Verbose
+        $mofContent -match '\ssArray\s=\s{\r\n};' | Should -BeTrue
+    }
 }
