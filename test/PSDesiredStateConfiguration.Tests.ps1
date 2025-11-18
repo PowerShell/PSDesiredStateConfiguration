@@ -302,6 +302,8 @@ Describe "All types DSC resource tests" {
                 "uInt32ValueArray" {$dscResourcePropertyInfo.PropertyType |  Should -Be '[UInt32[]]'}
                 "uInt64Value" {$dscResourcePropertyInfo.PropertyType |  Should -Be '[UInt64]'}
                 "uInt64ValueArray" {$dscResourcePropertyInfo.PropertyType |  Should -Be '[UInt64[]]'}
+
+                "HashTableValue" {$dscResourcePropertyInfo.PropertyType |  Should -Be '[Hashtable]'}
             }
         }
     }
@@ -349,6 +351,8 @@ Describe "All types DSC resource tests" {
         $resource.uInt32ValueArray.GetType().Name | Should -Be "UInt32[]"
         $resource.uInt64Value.GetType().Name | Should -Be "UInt64"
         $resource.uInt64ValueArray.GetType().Name | Should -Be "UInt64[]"
+
+        $resource.HashTableValue.GetType().Name | Should -Be "Hashtable"
 
         # extra check for embedded objects
         $resource.EmbClassObj.EmbClassStr1 | Should -Be "TestEmbObjValue"
@@ -400,6 +404,11 @@ configuration DSCAllTypesConfig
             sInt32ValueArray = @(-2147483648)
             uInt64ValueArray = @(18446744073709551615)
             sInt64ValueArray = @(-9223372036854775808)
+
+            HashTableValue = @{
+                Key1 = 'Value1'
+                Key2 = 'Value2'
+            }
         }
     }
 }
