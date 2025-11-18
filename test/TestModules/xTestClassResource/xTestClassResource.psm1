@@ -109,6 +109,9 @@ class xTestClassResource
     [DscProperty()]
     [Char[]] $char16ValueArray;
 
+    [DscProperty()]
+    [hashtable] $HashTableValue;
+
     [void] Set()
     {
 
@@ -256,6 +259,8 @@ class xTestClassResource
 
         $this.Real32ValueArray = [single[]]::new(0)
         $this.Real64ValueArray = [double[]]::new(0)
+
+        $this.HashTableValue = @{}
 
         return $this
     }
