@@ -1,48 +1,27 @@
 # Copyright (c) Microsoft Corporation. All rights reserved.
 # Licensed under the MIT License.
 
-#####################################################
-# Do NOT edit anything outside the DoBuild function.
-# You can define functions inside the scope of DoBuild.
-#####################################################
-
-<#
-.DESCRIPTION
-Implement build and packaging of the package and place the output $OutDirectory/$ModuleName
-#>
 function DoBuild
 {
-    Write-Verbose -Verbose -Message "Starting DoBuild"
+    Write-Verbose -Verbose -Message "Running DoBuild to layout module at: '${OutDirectory}/${ModuleName}'"
+    Copy-Item "${SrcPath}/*" "${OutDirectory}/${ModuleName}" -Recurse
+    Copy-Item -Recurse "${HelpPath}/${Culture}" "${OutDirectory}/${ModuleName}"
+}
 
-    Write-Verbose -Verbose -Message "Copying module files to '${OutDirectory}/${ModuleName}'"
-    # copy psm1 and psd1 files
-    copy-item "${SrcPath}/*" "${OutDirectory}/${ModuleName}" -Recurse
-    #
+function DoPackage
+{
+    try {
+        $repoName = [guid]::NewGuid().ToString()
+        $modulePath = Join-Path $OutDirectory $ModuleName
+        $null = Register-PSRepository -Name $repoName -InstallationPolicy Trusted -SourceLocation $OutDirectory
 
-    # copy help
-    Write-Verbose -Verbose -Message "Copying help files to '${OutDirectory}/${ModuleName}'"
-    copy-item -Recurse "${HelpPath}/${Culture}" "${OutDirectory}/${ModuleName}"
+        Write-Verbose -Verbose -Message "Publishing module from: '$modulePath'"
+        Publish-Module -Path $modulePath -Repository $repoName
 
-    if ( Test-Path "${SrcPath}/code" ) {
-        Write-Verbose -Verbose -Message "Building assembly and copying to '${OutDirectory}/${ModuleName}'"
-        # build code and place it in the staging location
-        try {
-            Push-Location "${SrcPath}/code"
-            $result = dotnet publish
-            copy-item "bin/Debug/netstandard2.0/publish/${ModuleName}.dll" "${OutDirectory}/${ModuleName}"
-        }
-        catch {
-            $result | ForEach-Object { Write-Warning $_ }
-            Write-Error "dotnet build failed"
-        }
-        finally {
-            Pop-Location
-        }
+        $nupkgPath = (Get-ChildItem -Path $OutDirectory -Filter "$ModuleName*.nupkg" | Select-Object -First 1).FullName
+        Write-Verbose -Verbose -Message "Created package: $nupkgPath"
     }
-    else {
-        Write-Verbose -Verbose -Message "No code to build in '${SrcPath}/code'"
+    finally {
+        Unregister-PSRepository -Name $repoName
     }
-
-    ## Add build and packaging here
-    Write-Verbose -Verbose -Message "Ending DoBuild"
 }

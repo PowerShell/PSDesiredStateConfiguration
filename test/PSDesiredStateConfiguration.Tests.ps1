@@ -1,40 +1,45 @@
 # Copyright (c) Microsoft Corporation. All rights reserved.
 # Licensed under the MIT License.
-Function Install-ModuleIfMissing {
-    param(
-        [parameter(Mandatory)]
-        [String]
-        $Name,
-        [version]
-        $MinimumVersion,
-        [switch]
-        $SkipPublisherCheck,
-        [switch]
-        $Force
-    )
 
-    $module = Get-Module -Name $Name -ListAvailable -ErrorAction Ignore | Sort-Object -Property Version -Descending | Select-Object -First 1
+BeforeDiscovery {
+    Function global:Install-ModuleIfMissing {
+        param(
+            [parameter(Mandatory)]
+            [String]
+            $Name,
+            [version]
+            $MinimumVersion,
+            [switch]
+            $SkipPublisherCheck,
+            [switch]
+            $Force
+        )
 
-    if (!$module -or $module.Version -lt $MinimumVersion) {
-        Write-Verbose "Installing module '$Name' ..." -Verbose
-        Install-Module -Name $Name -Force -SkipPublisherCheck:$SkipPublisherCheck.IsPresent
+        $module = Get-Module -Name $Name -ListAvailable -ErrorAction Ignore | Sort-Object -Property Version -Descending | Select-Object -First 1
+
+        if (!$module -or $module.Version -lt $MinimumVersion) {
+            Write-Verbose "Installing module '$Name' ..." -Verbose
+            Install-Module -Name $Name -Force -SkipPublisherCheck:$SkipPublisherCheck.IsPresent
+        }
+    }
+
+    Function global:Test-IsInvokeDscResourceEnable {
+        return ($PSVersionTable.PSVersion.Major -ge 7)
     }
 }
 
-Function Test-IsInvokeDscResourceEnable {
-    return [ExperimentalFeature]::IsEnabled("PSDesiredStateConfiguration.InvokeDscResource")
-}
-
-Describe "Test PSDesiredStateConfiguration" -tags CI {
+Describe "Test PSDesiredStateConfiguration" {
     Context "Module loading" {
         BeforeAll {
             Function BeCommand {
                 [CmdletBinding()]
                 Param(
-                    [object[]] $ActualValue,
+                    $ActualValue,
                     [string] $CommandName,
                     [string] $ModuleName,
-                    [switch]$Negate
+                    [switch]$Negate,
+                    [string]$Because,
+                    $CallerSessionState
                 )
 
                 $failure = if ($Negate) {
@@ -113,7 +118,7 @@ Describe "Test PSDesiredStateConfiguration" -tags CI {
                 Set-ItResult -Pending -Because "Will only find script from PSDesiredStateConfiguration without modulename"
             }
 
-            if ($IsLinux) {
+            if (-not $IsWindows) {
                 Set-ItResult -Pending -Because "https://github.com/PowerShell/PSDesiredStateConfiguration/issues/26"
             }
 
@@ -132,7 +137,7 @@ Describe "Test PSDesiredStateConfiguration" -tags CI {
         it "should be able to get <Name> from <ModuleName> - <TestCaseName>" -TestCases $testCases {
             param($Name, $ModuleName, $PendingBecause)
 
-            if ($IsLinux) {
+            if (-not $IsWindows) {
                 Set-ItResult -Pending -Because "https://github.com/PowerShell/PSDesiredStateConfiguration/issues/26"
             }
 
@@ -234,7 +239,7 @@ Describe "Test PSDesiredStateConfiguration" -tags CI {
         it "should be able to get <Name> from <ModuleName> - <TestCaseName>" -TestCases $testCases {
             param($Name, $ModuleName, $PendingBecause)
 
-            if ($IsLinux) {
+            if (-not $IsWindows) {
                 Set-ItResult -Pending -Because "https://github.com/PowerShell/PSDesiredStateConfiguration/issues/12 and https://github.com/PowerShell/PowerShellGet/pull/529"
             }
 
@@ -374,7 +379,7 @@ Describe "Test PSDesiredStateConfiguration" -tags CI {
                 $psGetModuleSpecification = @{ModuleName = $module.Name; ModuleVersion = $module.Version.ToString() }
             }
             it "Set method should work" -Skip:(!(Test-IsInvokeDscResourceEnable)) {
-                if (!$IsLinux) {
+                if (!-not $IsWindows) {
                     $result = Invoke-DscResource -Name PSModule -ModuleName $psGetModuleSpecification -Method set -Property @{
                         Name               = 'PsDscResources'
                         InstallationPolicy = 'Trusted'
@@ -490,7 +495,7 @@ Describe "Test PSDesiredStateConfiguration" -tags CI {
             }
 
             it "Get method should work"  -Skip:(!(Test-IsInvokeDscResourceEnable)) {
-                if ($IsLinux) {
+                if (-not $IsWindows) {
                     Set-ItResult -Pending -Because "https://github.com/PowerShell/PSDesiredStateConfiguration/issues/12 and https://github.com/PowerShell/PowerShellGet/pull/529"
                 }
 
