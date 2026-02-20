@@ -2,27 +2,6 @@
 # Licensed under the MIT License.
 
 BeforeDiscovery {
-    Function global:Install-ModuleIfMissing {
-        param(
-            [parameter(Mandatory)]
-            [String]
-            $Name,
-            [version]
-            $MinimumVersion,
-            [switch]
-            $SkipPublisherCheck,
-            [switch]
-            $Force
-        )
-
-        $module = Get-Module -Name $Name -ListAvailable -ErrorAction Ignore | Sort-Object -Property Version -Descending | Select-Object -First 1
-
-        if (!$module -or $module.Version -lt $MinimumVersion) {
-            Write-Verbose "Installing module '$Name' ..." -Verbose
-            Install-Module -Name $Name -Force -SkipPublisherCheck:$SkipPublisherCheck.IsPresent
-        }
-    }
-
     Function global:Test-IsInvokeDscResourceEnable {
         return ($PSVersionTable.PSVersion.Major -ge 7)
     }
@@ -87,7 +66,6 @@ Describe "Test PSDesiredStateConfiguration" {
         BeforeAll {
             $origProgress = $global:ProgressPreference
             $global:ProgressPreference = 'SilentlyContinue'
-            Install-ModuleIfMissing -Name PSDscResources
             $testCases = @(
                 @{
                     TestCaseName = 'case mismatch in resource name'
@@ -162,10 +140,6 @@ Describe "Test PSDesiredStateConfiguration" {
             $origProgress = $global:ProgressPreference
             $global:ProgressPreference = 'SilentlyContinue'
 
-            Install-ModuleIfMissing -Name PSDscResources -Force
-
-            # Install PowerShellGet only if PowerShellGet 2.2.1 or newer does not exist
-            Install-ModuleIfMissing -Name PowerShellGet -MinimumVersion '2.2.1'
             $module = Get-Module PowerShellGet -ListAvailable | Sort-Object -Property Version -Descending | Select-Object -First 1
 
             $psGetModuleSpecification = @{ModuleName = $module.Name; ModuleVersion = $module.Version.ToString() }
@@ -273,7 +247,6 @@ Describe "Test PSDesiredStateConfiguration" {
         BeforeAll {
             $origProgress = $global:ProgressPreference
             $global:ProgressPreference = 'SilentlyContinue'
-            Install-ModuleIfMissing -Name XmlContentDsc -Force
             $classTestCases = @(
                 @{
                     TestCaseName = 'Good case'
@@ -340,11 +313,6 @@ Describe "Test PSDesiredStateConfiguration" {
         BeforeAll {
             $origProgress = $global:ProgressPreference
             $global:ProgressPreference = 'SilentlyContinue'
-            $module = Get-InstalledModule -Name PsDscResources -ErrorAction Ignore
-            if ($module) {
-                Write-Verbose "removing PSDscResources, tests will re-install..." -Verbose
-                Uninstall-Module -Name PsDscResources -AllVersions -Force
-            }
         }
 
         AfterAll {
@@ -372,26 +340,22 @@ Describe "Test PSDesiredStateConfiguration" {
                     }
                 )
 
-                Install-ModuleIfMissing -Name PowerShellGet -Force -SkipPublisherCheck -MinimumVersion '2.2.1'
-                Install-ModuleIfMissing -Name xWebAdministration
                 $module = Get-Module PowerShellGet -ListAvailable | Sort-Object -Property Version -Descending | Select-Object -First 1
 
                 $psGetModuleSpecification = @{ModuleName = $module.Name; ModuleVersion = $module.Version.ToString() }
             }
             it "Set method should work" -Skip:(!(Test-IsInvokeDscResourceEnable)) {
-                if (!-not $IsWindows) {
-                    $result = Invoke-DscResource -Name PSModule -ModuleName $psGetModuleSpecification -Method set -Property @{
-                        Name               = 'PsDscResources'
-                        InstallationPolicy = 'Trusted'
-                    }
+                if ($env:TF_BUILD -eq 'true') {
+                    Set-ItResult -Skipped -Because "cannot install PSDscResources module during tests in Azure DevOps"
                 }
-                else {
-                    # workraound because of https://github.com/PowerShell/PowerShellGet/pull/529
-                    Install-ModuleIfMissing -Name PsDscResources -Force
+
+                $result = Invoke-DscResource -Name PSModule -ModuleName $psGetModuleSpecification -Method set -Property @{
+                    Name               = 'PSDscResources'
+                    InstallationPolicy = 'Trusted'
                 }
 
                 $result.RebootRequired | Should -BeFalse
-                $module = Get-module PsDscResources -ListAvailable
+                $module = Get-module PSDscResources -ListAvailable
                 $module | Should -Not -BeNullOrEmpty -Because "Resource should have installed module"
             }
             it 'Set method should return RebootRequired=<expectedResult> when $global:DSCMachineStatus = <value>'  -Skip:(!(Test-IsInvokeDscResourceEnable))  -TestCases $dscMachineStatusCases {
@@ -408,18 +372,30 @@ Describe "Test PSDesiredStateConfiguration" {
             }
 
             it "Test method should return false"  -Skip:(!(Test-IsInvokeDscResourceEnable)) {
+                if ($env:TF_BUILD -eq 'true') {
+                    Set-ItResult -Skipped -Because "cannot install PSDscResources module during tests in Azure DevOps"
+                }
+
                 $result = Invoke-DscResource -Name Script -ModuleName PSDscResources -Method Test -Property @{TestScript = { Write-Output 'test'; return $false }; GetScript = { return @{ } }; SetScript = { return } }
                 $result | Should -Not -BeNullOrEmpty
                 $result.InDesiredState | Should -BeFalse -Because "Test method return false"
             }
 
             it "Test method should return true"  -Skip:(!(Test-IsInvokeDscResourceEnable)) {
+                if ($env:TF_BUILD -eq 'true') {
+                    Set-ItResult -Skipped -Because "cannot install PSDscResources module during tests in Azure DevOps"
+                }
+
                 $result = Invoke-DscResource -Name Script -ModuleName PSDscResources -Method Test -Property @{TestScript = { Write-Verbose 'test'; return $true }; GetScript = { return @{ } }; SetScript = { return } }
                 $result | Should -BeTrue -Because "Test method return true"
             }
 
             it "Test method should return true with moduleSpecification"  -Skip:(!(Test-IsInvokeDscResourceEnable)) {
-                $module = get-module PsDscResources -ListAvailable
+                if ($env:TF_BUILD -eq 'true') {
+                    Set-ItResult -Skipped -Because "cannot install PSDscResources module during tests in Azure DevOps"
+                }
+
+                $module = get-module PSDscResources -ListAvailable
                 $moduleSpecification = @{ModuleName = $module.Name; ModuleVersion = $module.Version.ToString() }
                 $result = Invoke-DscResource -Name Script -ModuleName $moduleSpecification -Method Test -Property @{TestScript = { Write-Verbose 'test'; return $true }; GetScript = { return @{ } }; SetScript = { return } }
                 $result | Should -BeTrue -Because "Test method return true"
@@ -427,7 +403,7 @@ Describe "Test PSDesiredStateConfiguration" {
 
             it "Invalid moduleSpecification"  -Skip:(!(Test-IsInvokeDscResourceEnable)) {
                 Set-ItResult -Pending -Because "https://github.com/PowerShell/PSDesiredStateConfiguration/issues/17"
-                $moduleSpecification = @{ModuleName = 'PsDscResources'; ModuleVersion = '99.99.99.993' }
+                $moduleSpecification = @{ModuleName = 'PSDscResources'; ModuleVersion = '99.99.99.993' }
                 {
                     Invoke-DscResource -Name Script -ModuleName $moduleSpecification -Method Test -Property @{TestScript = { Write-Host 'test'; return $true }; GetScript = { return @{ } }; SetScript = { return } } -ErrorAction Stop
                 } |
@@ -439,11 +415,15 @@ Describe "Test PSDesiredStateConfiguration" {
                     Set-ItResult -Skipped -Because "Feature not enabled"
                 }
 
+                if ($env:TF_BUILD -eq 'true') {
+                    Set-ItResult -Skipped -Because "cannot install PSDscResources module during tests in Azure DevOps"
+                }
+
                 $resourceName="TestRes"
                 $moduleName="TestEmbeddedDSCResource"
                 $embObj = @(New-Object -TypeName psobject -Property @{embclassprop="property1"})
 
-                Install-ModuleIfMissing -Name $moduleName -Force
+                Install-Module -Name $moduleName -Force
 
                 $resource = Get-DscResource -Name $resourceName -Module $moduleName -ErrorAction Stop
                 $resource | Should -Not -BeNullOrEmpty
@@ -495,17 +475,21 @@ Describe "Test PSDesiredStateConfiguration" {
             }
 
             it "Get method should work"  -Skip:(!(Test-IsInvokeDscResourceEnable)) {
+                if ($env:TF_BUILD -eq 'true') {
+                    Set-ItResult -Skipped -Because "cannot install PSDscResources module during tests in Azure DevOps"
+                }
+
                 if (-not $IsWindows) {
                     Set-ItResult -Pending -Because "https://github.com/PowerShell/PSDesiredStateConfiguration/issues/12 and https://github.com/PowerShell/PowerShellGet/pull/529"
                 }
 
-                $result = Invoke-DscResource -Name PSModule -ModuleName $psGetModuleSpecification -Method Get -Property @{ Name = 'PsDscResources' }
+                $result = Invoke-DscResource -Name PSModule -ModuleName $psGetModuleSpecification -Method Get -Property @{ Name = 'PSDscResources' }
                 $result | Should -Not -BeNullOrEmpty
                 $result.Author | Should -BeLike 'Microsoft*'
                 $result.InstallationPolicy | Should -BeOfType [string]
                 $result.Guid | Should -BeOfType [Guid]
                 $result.Ensure | Should -Be 'Present'
-                $result.Name | Should -be 'PsDscResources'
+                $result.Name | Should -be 'PSDscResources'
                 $result.Description | Should -BeLike 'This*DSC*'
                 $result.InstalledVersion | should -BeOfType [Version]
                 $result.ModuleBase | Should -BeLike '*PSDscResources*'
@@ -515,10 +499,6 @@ Describe "Test PSDesiredStateConfiguration" {
         }
 
         Context "Class Based Resources" {
-            BeforeAll {
-                Install-ModuleIfMissing -Name XmlContentDsc -Force
-            }
-
             AfterAll {
                 $Global:ProgressPreference = $origProgress
             }
