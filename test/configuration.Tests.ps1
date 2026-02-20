@@ -8,8 +8,8 @@ Describe "DSC MOF Compilation" {
     }
 
     It "Should be able to compile a MOF using PSModule resource"  {
-        if ($env:GITHUB_ACTIONS -eq 'true') {
-            Set-ItResult -Skipped -Because "Running in GitHub Actions"
+        if ($env:GITHUB_ACTIONS -eq 'true' -or $env:TF_BUILD -eq 'true') {
+            Set-ItResult -Skipped -Because "does not work in CI"
         }
 
         if (-not $IsWindows) {
@@ -24,7 +24,7 @@ Describe "DSC MOF Compilation" {
             Node "localhost" {
                 PSModule f1
                 {
-                    Name = 'PsDscResources'
+                    Name = 'PSDscResources'
                     InstallationPolicy = 'Trusted'
                 }
             }

@@ -21,4 +21,16 @@ Install-PSResource -Verbose -TrustRepository -RequiredResource  @{
         version = "5.7.1"
         repository = $PSRepository
     }
+    PSDscResources = @{
+        version = "2.12.0.0"
+        repository = $PSRepository
+    }
+    XmlContentDsc = @{
+        version = "0.0.1"
+        repository = $PSRepository
+    }
+    xWebAdministration = @{
+        version = "3.3.0"
+        repository = $PSRepository
+    }
 }
