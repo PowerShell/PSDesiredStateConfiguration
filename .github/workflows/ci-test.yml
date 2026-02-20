@@ -1,0 +1,45 @@
+name: CI Tests
+
+on:
+  push:
+    branches: [ v2 ]
+  pull_request:
+    branches: [ v2 ]
+
+jobs:
+  ci:
+    name: pester
+    runs-on: windows-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install PSResources
+        run: ./tools/installPSResources.ps1
+        shell: pwsh
+
+      - name: Build
+        run: ./build.ps1 -Build
+        shell: pwsh
+
+      - name: Test
+        run: ./build.ps1 -Test
+        shell: pwsh
+
+      - name: Package
+        run: ./build.ps1 -Publish
+        shell: pwsh
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: PSDesiredStateConfiguration-package
+          path: out/**/*.nupkg
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: PSDesiredStateConfiguration-tests
+          path: out/testResults.xml
