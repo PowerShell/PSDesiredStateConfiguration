@@ -116,7 +116,7 @@ extends:
           inputs:
             gitHubConnection: GitHub
             repositoryName: PowerShell/PSDesiredStateConfiguration
-            target: main
+            target: v2
             assets: $(Pipeline.Workspace)/PSDesiredStateConfiguration.$(version).nupkg
             tagSource: userSpecifiedTag
             tag: $(version)
